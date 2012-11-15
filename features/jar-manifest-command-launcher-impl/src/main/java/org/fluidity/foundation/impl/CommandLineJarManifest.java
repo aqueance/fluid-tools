@@ -36,18 +36,25 @@ import org.apache.maven.project.MavenProject;
 @SuppressWarnings("UnusedDeclaration")
 final class CommandLineJarManifest implements JarManifest {
 
-    public void processManifest(final MavenProject project, final Attributes attributes, final Log log, final Dependencies dependencies) throws MojoExecutionException {
-        final String originalMainClass = attributes.getValue(Launcher.ORIGINAL_MAIN_CLASS);
+    private static final String LAUNCHER = ShellApplicationBootstrap.class.getName();
 
-        if (originalMainClass == null) {
-            final String mainClass = attributes.getValue(Attributes.Name.MAIN_CLASS);
-            attributes.putValue(Launcher.ORIGINAL_MAIN_CLASS, mainClass == null ? ShellApplicationBootstrap.class.getName() : mainClass);
-            attributes.put(Attributes.Name.MAIN_CLASS, Launcher.class.getName());
+    public void processManifest(final MavenProject project, final Attributes attributes, final Log log, final Dependencies dependencies) throws MojoExecutionException {
+        final boolean executable = dependencies.unpacked();
+
+        if (executable) {
+            final String original = attributes.getValue(Launcher.ORIGINAL_MAIN_CLASS);
+
+            if (original == null) {
+                final String main = attributes.getValue(Attributes.Name.MAIN_CLASS);
+                attributes.putValue(Launcher.ORIGINAL_MAIN_CLASS, main == null ? LAUNCHER : main);
+                attributes.put(Attributes.Name.MAIN_CLASS, Launcher.class.getName());
+            }
+        } else if (attributes.getValue(Attributes.Name.MAIN_CLASS) == null) {
+            attributes.put(Attributes.Name.MAIN_CLASS, LAUNCHER);
         }
 
-        final String value = attributes.getValue(Launcher.ORIGINAL_MAIN_CLASS);
-        log.info(String.format("Main class: %s",
-                               value == null ? "none" : value.equals(ShellApplicationBootstrap.class.getName()) ? JarManifest.FRAMEWORK_ID : value));
+        final String value = executable ? attributes.getValue(Launcher.ORIGINAL_MAIN_CLASS) : attributes.getValue(Attributes.Name.MAIN_CLASS);
+        log.info(String.format("Main class: %s", value == null ? "none" : value.equals(LAUNCHER) ? JarManifest.FRAMEWORK_ID : value));
     }
 
     @Override

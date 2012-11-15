@@ -21,6 +21,7 @@ import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.jar.Attributes;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
@@ -47,15 +48,23 @@ import static org.fluidity.foundation.Command.Process;
 @SuppressWarnings("JavadocReference")
 public final class Launcher {
 
-    public static final String URL_PARAM = "-url:";
-
-    private Launcher() { }
-
     /**
      * The JAR manifest attribute that specifies the application's main class, one with a <code>public static void main(final String[] args) throws
      * Exception</code> method.
      */
     public static final String ORIGINAL_MAIN_CLASS = "Original-Main-Class";
+
+    private static final String MAIN_CLASS = Attributes.Name.MAIN_CLASS.toString();
+
+    /**
+     * The optional command line parameter prefix to trigger loading and launching an application from a given URL. The syntax is:
+     * <pre>
+     * $ java -jar some-launcher.jar -url:http://host.com:port/path/application.jar
+     * </pre>
+     */
+    public static final String URL_PARAM = "-url:";
+
+    private Launcher() { }
 
     /**
      * The command line entry point.
@@ -115,11 +124,14 @@ public final class Launcher {
                 final ClassLoader parent = ClassLoaders.findClassLoader(me, true);
                 final ClassLoader loader = ClassLoaders.create(urls, parent, null);
 
-                final String main = Archives.attributes(true, url, ORIGINAL_MAIN_CLASS)[0];
+                final String[] attributes = Archives.attributes(true, url, MAIN_CLASS, ORIGINAL_MAIN_CLASS);
+                final String main = attributes[attributes[1] == null ? 0 : 1];
 
-                if (main == null) {
-                    throw new IllegalStateException(String.format("%s is not a defined in the %s manifest", ORIGINAL_MAIN_CLASS, url));
-                } else if (!main.equals(me.getName()) || url != root) {
+                if (main == null || main.equals(me.getName())) {
+                    throw new IllegalStateException(String.format("No main class defined in the %s manifest (attribute %s)",
+                                                                  url,
+                                                                  main == null ? MAIN_CLASS : ORIGINAL_MAIN_CLASS));
+                } else {
                     ClassLoaders.context(loader, new Function<Object, ClassLoader, Exception>() {
                         public Object run(final ClassLoader loader) throws Exception {
                             return loader.loadClass(main).getMethod("main", String[].class).invoke(null, new Object[] { arguments });

@@ -89,6 +89,14 @@ public final class StandaloneJarMojo extends AbstractMojo {
     private boolean compact;
 
     /**
+     * Tells the plugin to make an executable application. An executable application has some launcher unpacked in its root. The default value of this
+     * parameter is <code>true</code>. Unless you are making an archive that requires a separate launcher, leave this parameter at its default.
+     *
+     * @parameter default-value="true"
+     */
+    private boolean executable;
+
+    /**
      * The location of the compiled classes.
      *
      * @parameter expression="${project.build.directory}"
@@ -179,9 +187,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
         final List<JarManifest> handlers = ServiceProviders.findInstances(JarManifest.class, getClass().getClassLoader());
 
-        if (handlers.isEmpty()) {
-            throw new MojoExecutionException(String.format("No %s implementation found", JarManifest.class.getName()));
-        } else if (handlers.size() > 1) {
+        if (handlers.size() > 1) {
             throw new MojoExecutionException(String.format("Multiple %s implementations found", JarManifest.class.getName()));
         }
 
@@ -207,8 +213,6 @@ public final class StandaloneJarMojo extends AbstractMojo {
             final String dependencyPath = Archives.META_INF.concat("/dependencies/");
 
             try {
-                final Collection<Artifact> unpackedDependencies = new HashSet<Artifact>();
-                final Map<String, Inclusion> includedDependencies = new HashMap<String, Inclusion>();
 
                 /*
                  * Manifest handlers use profiles to declare dependencies to include, exclude, or unpack in our standalone artifact.
@@ -244,20 +248,24 @@ public final class StandaloneJarMojo extends AbstractMojo {
                     log.debug(String.format("Packaged dependencies: %s", runtimeDependencies));
                 }
 
+                final Map<String, Inclusion> includedDependencies = new HashMap<String, Inclusion>();
+                final Collection<Artifact> unpackedDependencies = new HashSet<Artifact>();
+
                 final AtomicReference<String> dependenciesName = new AtomicReference<String>();
 
-                // even though the code below could handle multiple handlers, we only support one handler because more makes little sense
-                for (final JarManifest handler : handlers) {
-                    final Class<? extends JarManifest> handlerClass = handler.getClass();
+                if (!handlers.isEmpty()) {
+                    final JarManifest handler = handlers.get(0);
+                    final Class<?> handlerClass = handler.getClass();
 
                     final Artifact handlerArtifact = DependenciesSupport.dependencyArtifact(DependenciesSupport.dependency(handlerClass, pluginDependencies));
-                    final Collection<Artifact> unpackedClosure = DependenciesSupport.dependencyClosure(repositorySystem, unpacked, repositories, handlerArtifact, false, false, null);
                     final Collection<Artifact> includedClosure = DependenciesSupport.dependencyClosure(repositorySystem, included, repositories, handlerArtifact, false, false, null);
-
-                    unpackedClosure.remove(handlerArtifact);
                     includedClosure.remove(handlerArtifact);
 
-                    unpackedDependencies.addAll(unpackedClosure);
+                    if (executable) {
+                        final Collection<Artifact> unpackedClosure = DependenciesSupport.dependencyClosure(repositorySystem, unpacked, repositories, handlerArtifact, false, false, null);
+                        unpackedClosure.remove(handlerArtifact);
+                        unpackedDependencies.addAll(unpackedClosure);
+                    }
 
                     if (!includedClosure.isEmpty()) {
                         for (final Artifact artifact : includedClosure) {
@@ -276,6 +284,10 @@ public final class StandaloneJarMojo extends AbstractMojo {
                     final AtomicBoolean inclusionNameSet = new AtomicBoolean();
 
                     handler.processManifest(project, mainAttributes, log, new JarManifest.Dependencies() {
+                        public boolean unpacked() {
+                            return executable;
+                        }
+
                         public void attribute(final String name, final String delimiter) throws MojoExecutionException {
                             if (dependenciesName.compareAndSet(null, name)) {
                                 includedDependencies.put(name, new Inclusion(dependencyPath, runtimeDependencies, delimiter));
@@ -316,15 +328,15 @@ public final class StandaloneJarMojo extends AbstractMojo {
                         }
                     });
 
-                    final String dependencies = Archives.Nested.attribute(null);
-                    if (dependenciesName.compareAndSet(null, dependencies)) {
-                        includedDependencies.put(dependencies, new Inclusion(dependencyPath, runtimeDependencies, " "));
-                    }
-
                     if (!includedClosure.isEmpty() && !inclusionNameSet.get()) {
                         throw new MojoExecutionException(String.format("Manifest handler %s failed to specify the inclusion name",
                                                                        Strings.formatObject(false, true, handler)));
                     }
+                }
+
+                final String dependencies = Archives.Nested.attribute(null);
+                if (dependenciesName.compareAndSet(null, dependencies)) {
+                    includedDependencies.put(dependencies, new Inclusion(dependencyPath, runtimeDependencies, " "));
                 }
 
                 final Map<String, Attributes> attributesMap = new HashMap<String, Attributes>();

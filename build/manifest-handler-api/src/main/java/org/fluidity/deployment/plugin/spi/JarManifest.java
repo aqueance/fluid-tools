@@ -99,6 +99,14 @@ public interface JarManifest {
     interface Dependencies {
 
         /**
+         * Tells if any dependencies are configured to be unpacked to the root of the archive. This is normally <code>true</code> unless explicitly set to
+         * <code>false</code> by the host project.
+         *
+         * @return <code>true</code> if the archive is configured to have launcher related dependencies unpacked; <code>false</code> otherwise.
+         */
+        boolean unpacked();
+
+        /**
          * Instructs the standalone JAR plugin to include the dependencies of the host project and set the dependency list as the {@linkplain
          * org.fluidity.foundation.Archives.Nested#dependencies(boolean, String) named custom dependency} attribute in the manifest.
          *

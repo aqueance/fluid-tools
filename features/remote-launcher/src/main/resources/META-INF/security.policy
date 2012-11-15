@@ -1,11 +1,3 @@
-grant codebase "file:${project.build.finalName}.${project.packaging}" {
-  permission java.lang.RuntimePermission "createClassLoader";
-  permission java.lang.RuntimePermission "exitVM.-1";
-  permission java.io.FilePermission "<<ALL FILES>>", "read";
-  permission java.net.SocketPermission "*", "connect,accept,resolve";
-  permission java.util.PropertyPermission "*", "read,write";
-};
-
 /* grant set for the remote application
 grant codebase "\${remote.application}" {
   ...

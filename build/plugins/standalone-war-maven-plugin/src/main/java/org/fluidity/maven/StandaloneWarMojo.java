@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,7 +39,6 @@ import org.fluidity.deployment.maven.ArchivesSupport;
 import org.fluidity.deployment.maven.DependenciesSupport;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.Streams;
-import org.fluidity.foundation.jarjar.Launcher;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
@@ -218,13 +216,7 @@ public final class StandaloneWarMojo extends AbstractMojo {
                 public File next() throws IOException {
                     if (iterator.hasNext()) {
                         final File file = iterator.next().getFile();
-                        final URL url = file.toURI().toURL();
-
-                        // TODO: this is a kludge
-                        final String type = Archives.attributes(false, url, Attributes.Name.MAIN_CLASS.toString())[0];
-                        if (!Launcher.class.getName().equals(type)) {
-                            mainClass.compareAndSet(null, type);
-                        }
+                        mainClass.compareAndSet(null, Archives.attributes(false, file.toURI().toURL(), Attributes.Name.MAIN_CLASS.toString())[0]);
                         return file;
                     } else {
                         return null;
