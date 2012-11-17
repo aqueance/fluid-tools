@@ -38,6 +38,7 @@ import java.util.jar.Manifest;
 import org.fluidity.deployment.maven.ArchivesSupport;
 import org.fluidity.deployment.maven.DependenciesSupport;
 import org.fluidity.deployment.plugin.spi.JarManifest;
+import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Streams;
@@ -239,7 +240,9 @@ public final class IncludeJarsMojo extends AbstractMojo {
                 if (!dependencyMap.isEmpty()) {
                     final byte[] buffer = new byte[16384];
 
-                    final SecurityPolicy policy = new SecurityPolicy(packageFile, 2, false, buffer);
+                    final SecurityPolicy policy = new JavaSecurityPolicy(2, false, buffer);
+
+                    policy.add(packageFile, 0, null);
 
                     for (final Map.Entry<String, Collection<Artifact>> entry : dependencyMap.entrySet()) {
                         final String dependencyPath = entry.getKey();
@@ -249,18 +252,26 @@ public final class IncludeJarsMojo extends AbstractMojo {
                         }
                     }
 
-                    if (policy.found()) {
-                        mainAttributes.putValue(Archives.SECURITY_POLICY, SecurityPolicy.SECURITY_POLICY_FILE);
-                    }
+                    policy.update(new SecurityPolicy.Output() {
+                        public void save(final String name, final String content) throws IOException {
+                            if (content == null) {
+                                mainAttributes.remove(new Attributes.Name(name));
+                            } else {
+                                mainAttributes.putValue(name, content);
+                            }
+                        }
+                    });
 
                     // create the new manifest
                     outputStream.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
                     manifest.write(outputStream);
 
-                    if (policy.found()) {
-                        outputStream.putNextEntry(new JarEntry(SecurityPolicy.SECURITY_POLICY_FILE));
-                        Streams.store(outputStream, policy.generate(), "UTF-8", buffer, false);
-                    }
+                    policy.save(packageFile, new SecurityPolicy.Output() {
+                        public void save(final String name, final String content) throws IOException {
+                            outputStream.putNextEntry(new JarEntry(name));
+                            Streams.store(outputStream, content, "UTF-8", buffer, false);
+                        }
+                    });
 
                     // copy the original archive, excluding entries from our dependency paths
                     Archives.read(false, packageURL, new Archives.Entry() {
@@ -277,7 +288,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
                                 }
                             }
 
-                            return !name.equals(SecurityPolicy.SECURITY_POLICY_FILE);
+                            return !name.equals(policy.name());
                         }
 
                         public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {

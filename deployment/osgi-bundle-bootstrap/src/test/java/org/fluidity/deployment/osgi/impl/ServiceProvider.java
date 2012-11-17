@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.osgi;
+package org.fluidity.deployment.osgi.impl;
 
-/**
- * Internal interface used to connect the {@link BundleComponentContainer.Status} implementation with the internals of the {@link BundleComponentContainer}
- * implementations without breaking object encapsulation.
- *
- * @author Tibor Varga
- */
-interface ComponentStatus extends BundleComponentContainer.Status { }
+public interface ServiceProvider {
+
+    String callback(String className) throws Exception;
+
+    interface Callback {
+
+        String invoke();
+    }
+}

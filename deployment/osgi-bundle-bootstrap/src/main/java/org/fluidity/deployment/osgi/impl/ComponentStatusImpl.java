@@ -14,25 +14,28 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.osgi;
+package org.fluidity.deployment.osgi.impl;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
 
+import org.fluidity.deployment.osgi.BundleComponents;
+import org.fluidity.deployment.osgi.Service;
+
 import org.osgi.framework.BundleContext;
 
 /**
- * This is the OSGi service implementation for the {@link BundleComponentContainer.Status} service API. It requires a delegate to connect to the internal state
+ * This is the OSGi service implementation for the {@link BundleComponents.Status} service API. It requires a delegate to connect to the internal state
  * of the host bundle's {@link BundleComponentContainer}, which will be provided by that same container.
  * <p/>
- * This is a {@linkplain BundleComponentContainer.Managed managed} {@linkplain BundleComponentContainer.Registration service registration} component, hence no
+ * This is a {@linkplain BundleComponents.Managed managed} {@linkplain BundleComponents.Registration service registration} component, hence no
  * {@link org.fluidity.composition.Component @Component} annotation.
  *
  * @author Tibor Varga
  */
 @SuppressWarnings("UnusedDeclaration")
-final class ComponentStatusImpl implements BundleComponentContainer.Status, BundleComponentContainer.Registration {
+final class ComponentStatusImpl implements BundleComponents.Status, BundleComponents.Registration {
 
     private final Properties registration = new Properties();
     private final ComponentStatus delegate;
@@ -40,10 +43,6 @@ final class ComponentStatusImpl implements BundleComponentContainer.Status, Bund
     ComponentStatusImpl(final BundleContext context, final ComponentStatus delegate) {
         this.delegate = delegate;
         this.registration.setProperty(BUNDLE, context.getBundle().getSymbolicName());
-    }
-
-    public Class<?>[] types() {
-        return new Class<?>[] { BundleComponentContainer.Status.class };
     }
 
     public Properties properties() {

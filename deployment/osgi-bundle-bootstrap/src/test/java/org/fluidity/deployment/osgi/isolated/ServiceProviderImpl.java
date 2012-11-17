@@ -18,18 +18,14 @@ package org.fluidity.deployment.osgi.isolated;
 
 import java.util.Properties;
 
-import org.fluidity.deployment.osgi.BundleComponentContainer;
-import org.fluidity.deployment.osgi.ServiceProvider;
+import org.fluidity.deployment.osgi.BundleComponents;
+import org.fluidity.deployment.osgi.impl.ServiceProvider;
 import org.fluidity.foundation.ClassLoaders;
 
 /**
  * @author Tibor Varga
  */
-public final class ServiceProviderImpl implements ServiceProvider, BundleComponentContainer.Registration {
-
-    public Class<?>[] types() {
-        return new Class<?>[] { ServiceProvider.class };
-    }
+public final class ServiceProviderImpl implements ServiceProvider, BundleComponents.Registration {
 
     public Properties properties() {
         return null;

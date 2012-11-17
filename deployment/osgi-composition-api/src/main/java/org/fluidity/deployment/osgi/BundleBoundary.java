@@ -27,7 +27,7 @@ import static org.fluidity.foundation.Command.Process;
  * component that you want to be able to load classes from that other bundle.</li>
  * </ul>
  * <h3>Usage</h3>
- * Fluid Tool uses this component internally to inject an OSGi service as a dependency of a {@linkplain BundleComponentContainer.Managed managed component}.
+ * Fluid Tool uses this component internally to inject an OSGi service as a dependency of a {@linkplain BundleComponents.Managed managed component}.
  * Manual use of this component would only be necessary if you don't use such managed components.
  * <pre>
  * final <span class="hl1">BundleBoundary</span> boundary = &hellip;;

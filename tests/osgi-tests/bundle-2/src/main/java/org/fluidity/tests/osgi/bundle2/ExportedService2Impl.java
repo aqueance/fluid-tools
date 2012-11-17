@@ -18,7 +18,7 @@ package org.fluidity.tests.osgi.bundle2;
 
 import java.util.Properties;
 
-import org.fluidity.deployment.osgi.BundleComponentContainer;
+import org.fluidity.deployment.osgi.BundleComponents;
 import org.fluidity.deployment.osgi.Service;
 import org.fluidity.tests.osgi.ExportedService1;
 import org.fluidity.tests.osgi.ExportedService2;
@@ -29,14 +29,10 @@ import org.fluidity.tests.osgi.ExportedService2;
  * @author Tibor Varga
  */
 @SuppressWarnings("UnusedDeclaration")
-final class ExportedService2Impl implements ExportedService2, BundleComponentContainer.Registration {
+final class ExportedService2Impl implements ExportedService2, BundleComponents.Registration {
 
     ExportedService2Impl(final @Service ExportedService1 service) {
         assert service != null;
-    }
-
-    public Class<?>[] types() {
-        return new Class<?>[] { ExportedService2.class };
     }
 
     public Properties properties() {

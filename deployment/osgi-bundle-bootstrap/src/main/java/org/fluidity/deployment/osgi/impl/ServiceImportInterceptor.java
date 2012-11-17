@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.osgi;
+package org.fluidity.deployment.osgi.impl;
 
 import java.lang.reflect.Type;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.spi.ComponentInterceptor;
+import org.fluidity.deployment.osgi.BundleBoundary;
+import org.fluidity.deployment.osgi.Service;
 import org.fluidity.foundation.Generics;
 
 /**
@@ -28,7 +30,7 @@ import org.fluidity.foundation.Generics;
  * Object)}.
  * <h3>Usage</h3>
  * <pre>
- * final class MyComponent implements {@linkplain BundleComponentContainer.Managed BundleComponentContainer.Managed} {
+ * final class MyComponent implements {@linkplain org.fluidity.deployment.osgi.BundleComponents.Managed BundleComponents.Managed} {
  *
  *   MyComponent(final <span class="hl1">&#64;Service</span> <span class="hl2">SomeService</span> service) {
  *     &hellip;

@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.osgi;
+package org.fluidity.deployment.osgi.impl;
 
 import java.lang.annotation.Annotation;
 
+import org.fluidity.deployment.osgi.Service;
 import org.fluidity.foundation.Strings;
 
 /**
  * @author Tibor Varga
  */
 @SuppressWarnings("ClassExplicitlyAnnotation")
-final class ServiceImpl implements Service {
+public final class ServiceImpl implements Service {
 
     private Class<?> type;
     private final String filter;

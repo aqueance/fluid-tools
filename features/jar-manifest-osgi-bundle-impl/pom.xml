@@ -89,6 +89,24 @@
 
                 <dependency>
                     <groupId>${fluidity.deployment.groupId}</groupId>
+                    <artifactId>maven-plugin-support</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>${fluidity.deployment.groupId}</groupId>
+                    <artifactId>osgi-composition-api</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.ow2.asm</groupId>
+                    <artifactId>asm</artifactId>
+                    <version>${asm.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>${fluidity.deployment.groupId}</groupId>
                     <artifactId>manifest-handler-api</artifactId>
                     <version>${project.version}</version>
                     <scope>provided</scope> <!-- provided by the invoking standalone-jar plugin -->
@@ -105,4 +123,12 @@
 
     </profiles>
 
+    <build>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>false</filtering>
+            </testResource>
+        </testResources>
+    </build>
 </project>

@@ -20,6 +20,7 @@ import java.util.jar.Attributes;
 
 import org.fluidity.deployment.launcher.ShellApplicationBootstrap;
 import org.fluidity.deployment.plugin.spi.JarManifest;
+import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.jarjar.Launcher;
 
 import org.apache.maven.plugin.MojoExecutionException;
@@ -38,7 +39,11 @@ final class CommandLineJarManifest implements JarManifest {
 
     private static final String LAUNCHER = ShellApplicationBootstrap.class.getName();
 
-    public void processManifest(final MavenProject project, final Attributes attributes, final Log log, final Dependencies dependencies) throws MojoExecutionException {
+    public SecurityPolicy processManifest(final MavenProject project,
+                                          final Attributes attributes,
+                                          final SecurityPolicy policy,
+                                          final Log log,
+                                          final Dependencies dependencies) throws MojoExecutionException {
         final boolean executable = dependencies.unpacked();
 
         if (executable) {
@@ -58,6 +63,8 @@ final class CommandLineJarManifest implements JarManifest {
 
         final String value = executable ? attributes.getValue(Launcher.ORIGINAL_MAIN_CLASS) : attributes.getValue(Attributes.Name.MAIN_CLASS);
         log.info(String.format("Main class: %s", value == null ? "none" : value.equals(LAUNCHER) ? JarManifest.FRAMEWORK_ID : value));
+
+        return null;
     }
 
     @Override

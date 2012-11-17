@@ -1,0 +1,587 @@
+/*
+ * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.fluidity.foundation.impl;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StreamTokenizer;
+import java.io.StringReader;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.fluidity.composition.ServiceProvider;
+import org.fluidity.deployment.maven.ClassReaders;
+import org.fluidity.deployment.maven.ClassRepository;
+import org.fluidity.deployment.osgi.BundleComponents;
+import org.fluidity.deployment.plugin.spi.SecurityPolicy;
+import org.fluidity.foundation.Archives;
+import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Command;
+import org.fluidity.foundation.Exceptions;
+import org.fluidity.foundation.Lists;
+import org.fluidity.foundation.Methods;
+import org.fluidity.foundation.ServiceProviders;
+import org.fluidity.foundation.Streams;
+import org.fluidity.foundation.Strings;
+
+import org.apache.maven.artifact.Artifact;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.osgi.framework.PackagePermission;
+import org.osgi.framework.ServicePermission;
+
+/**
+ * Generates an OSGi local permissions file based on the Java permissions needed by the bundle, and by its manually edited permissions file, if found.
+ *
+ * @author Tibor Varga
+ */
+final class OsgiLocalPermissions implements SecurityPolicy {
+
+    static final String SECURITY_POLICY_FILE = String.format("%s/permissions.perm", Archives.OSGI_INF);
+
+    private final List<Dependency> dependencies = new ArrayList<Dependency>();
+    private final SecurityPolicy delegate;
+    private final File[] classpath;
+    private final String dynamicImports;
+    private final String staticImports;
+    private final String staticExports;
+
+    OsgiLocalPermissions(final SecurityPolicy delegate,
+                         final Collection<Artifact> classpath,
+                         final String dynamicImports,
+                         final String staticImports,
+                         final String staticExports) {
+        this.delegate = delegate;
+        this.dynamicImports = dynamicImports;
+        this.staticImports = staticImports;
+        this.staticExports = staticExports;
+        this.classpath = new File[classpath.size()];
+
+        int i = 0;
+        for (final Artifact artifact : classpath) {
+            this.classpath[i++] = artifact.getFile();
+        }
+    }
+
+    public String name() {
+        return SECURITY_POLICY_FILE;
+    }
+
+    public byte[] buffer() {
+        return delegate.buffer();
+    }
+
+    public void add(final File archive, final int level, final String location) throws IOException {
+        delegate.add(archive, level, location);
+        dependencies.add(new Dependency() {
+            public File file() {
+                return archive;
+            }
+
+            public String location() {
+                return location;
+            }
+        });
+    }
+
+    public void update(final Output metadata) throws IOException {
+        delegate.update(new Output() {
+            public void save(final String name, final String content) throws IOException {
+                metadata.save(name, null);
+            }
+        });
+    }
+
+    public void save(final File archive, final Output output) throws IOException {
+        final PermissionsOutput permissions = new PermissionsOutput(archive,
+                                                                output,
+                                                                buffer(),
+                                                                dynamicImports,
+                                                                staticImports,
+                                                                staticExports,
+                                                                classpath,
+                                                                Lists.asArray(Dependency.class, dependencies));
+        delegate.save(archive, permissions);
+    }
+
+    /**
+     * @author Tibor Varga
+     */
+    interface Dependency {
+
+        File file();
+
+        String location();
+    }
+
+    /**
+     * @author Tibor Varga
+     */
+    static final class PermissionsOutput implements Output {
+
+        private static final String NL = String.format("%n");
+
+        private final String serviceType;
+
+        private static final String REGISTRATION_TYPE_PARAM = Methods.get(BundleComponents.Registration.Type.class, new Methods.Invoker<BundleComponents.Registration.Type>() {
+            public void invoke(final BundleComponents.Registration.Type capture) throws Exception {
+                capture.value();
+            }
+        })[0].getName();
+
+        private final File archive;
+        private final Output output;
+        private final byte[] buffer;
+        private final String dynamicImports;
+        private final String staticImports;
+        private final String staticExports;
+        private final File[] runtime;
+        private final Dependency[] dependencies;
+
+        public PermissionsOutput(final File archive,
+                                 final Output output,
+                                 final byte[] buffer,
+                                 final String dynamicImports,
+                                 final String staticImports,
+                                 final String staticExports,
+                                 final File[] runtime,
+                                 final Dependency... dependencies) {
+            this.archive = archive;
+            this.output = output;
+            this.buffer = buffer;
+            this.dynamicImports = dynamicImports;
+            this.staticImports = staticImports;
+            this.staticExports = staticExports;
+            this.runtime = runtime;
+            this.dependencies = dependencies;
+
+            final Method method = Methods.get(ServiceProvider.class, new Methods.Invoker<ServiceProvider>() {
+                public void invoke(final ServiceProvider capture) throws Exception {
+                    capture.type();
+                }
+            })[0];
+
+            final String type = Exceptions.wrap(new Command.Process<String, Exception>() {
+                public String run() throws Exception {
+                    return (String) method.invoke(BundleComponents.Managed.class.getAnnotation(ServiceProvider.class));
+                }
+            });
+
+            serviceType = type == null ? (String) method.getDefaultValue() : type;
+        }
+
+        private enum Keyword {
+            GRANT, CODEBASE, PERMISSION, SIGNEDBY, PRINCIPAL
+        }
+
+        public void save(final String name, final String original) throws IOException {
+            final String supplied = permissions(archive);
+
+            if (supplied != null) {
+                final Map<String, Collection<String>> permissions = new LinkedHashMap<String, Collection<String>>();
+
+                if (!supplied.isEmpty()) {
+                    permissions("source entries", permissions).addAll(Arrays.asList(supplied.split("\"\\r?\\n|\\r")));
+                }
+
+                components(permissions, dependencies);
+
+                packages("dynamic package imports", dynamicImports, permissions, PackagePermission.IMPORT);
+                packages("static package imports", staticImports, permissions, PackagePermission.IMPORT);
+                packages("static package exports", staticExports, permissions, PackagePermission.EXPORTONLY);
+
+                if (original != null) {
+                    policy(permissions, original);
+                }
+
+                if (!permissions.isEmpty()) {
+                    final Set<String> duplicates = new HashSet<String>();
+                    final Lists.Delimited delimited = Lists.delimited(NL);
+
+                    for (final Map.Entry<String, Collection<String>> entry : permissions.entrySet()) {
+                        final Collection<String> list = entry.getValue();
+
+                        if (!list.isEmpty()) {
+                            final String archive = entry.getKey();
+
+                            delimited.add("");
+
+                            if (!archive.isEmpty()) {
+                                delimited.add("# ".concat(archive));
+                            }
+
+                            for (final String permission : list) {
+                                delimited.add(duplicates.add(permission) ? permission : "# ".concat(permission));
+                            }
+                        }
+                    }
+
+                    output.save(SECURITY_POLICY_FILE, delimited.toString().replaceAll(NL.concat("{3,}"), NL.concat(NL)));
+                }
+            }
+        }
+
+        private void packages(final String key, final String header, final Map<String, Collection<String>> permissions, final String type) {
+            if (header != null) {
+                final Collection<String> list = permissions(key, permissions);
+
+                for (final String description : header.split("\\s*,\\s*")) {
+                    list.add(String.format("(%s \"%s\" \"%s\")", PackagePermission.class.getName(), description.split("\\s*;\\s*")[0], type));
+                }
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        private static final Collection<Class<?>> IGNORED_TYPES = Arrays.asList(BundleComponents.Stoppable.class,
+                                                                                BundleComponents.Managed.class,
+                                                                                BundleComponents.Registration.class,
+                                                                                BundleComponents.Registration.Listener.class,
+                                                                                BundleComponents.Registration.Type.class);
+
+        private static final Collection<String> IGNORED_TYPES_INTERNAL = internalNames(IGNORED_TYPES);
+        private static final Collection<String> IGNORED_TYPES_EXTERNAL = externalNames(IGNORED_TYPES);
+
+        private static Collection<String> internalNames(final Collection<Class<?>> types) {
+            final List<String> list = new ArrayList<String>();
+
+            for (final Class<?> type : types) {
+                list.add(Type.getInternalName(type));
+            }
+
+            return list;
+        }
+
+        private static Collection<String> externalNames(final Collection<Class<?>> types) {
+            final List<String> list = new ArrayList<String>();
+
+            for (final Class<?> type : types) {
+                list.add(type.getName());
+            }
+
+            return list;
+        }
+
+        private void components(final Map<String, Collection<String>> permissions, final Dependency... dependencies) throws IOException {
+            final Collection<URL> classpath = new LinkedHashSet<URL>();
+
+            for (final Dependency dependency : dependencies) {
+                classpath.add(dependency.file().toURI().toURL());
+            }
+
+            if (!classpath.isEmpty()) {
+                for (final File file : runtime) {
+                    classpath.add(file.toURI().toURL());
+                }
+
+                permissions("service acquisition", permissions).add(String.format("(%s \"*\" \"%s\")", ServicePermission.class.getName(), ServicePermission.GET));
+
+                final ClassLoader loader = ClassLoaders.create(classpath, null, null);
+                final ClassRepository repository = new ClassRepository(loader);
+                final Type registration = Type.getType(BundleComponents.Registration.Type.class);
+
+                for (final Dependency dependency : dependencies) {
+                    final URL file = dependency.file().toURI().toURL();
+
+                    final InputStream provider = provider(file);
+                    if (provider != null) {
+                        try {
+                            final BufferedReader metadata = new BufferedReader(new InputStreamReader(provider, "UTF-8"));
+                            String content;
+
+                            while ((content = metadata.readLine()) != null) {
+                                final int hash = content.indexOf('#');
+                                final String line = (hash < 0 ? content : content.substring(0, hash)).trim();
+
+                                if (!line.isEmpty()) {
+                                    final ClassReader reader = repository.reader(line);
+                                    final Set<String> interfaces = ClassReaders.findInterfaces(reader, repository);
+
+                                    if (interfaces.contains(BundleComponents.Registration.class.getName())) {
+                                        interfaces.removeAll(IGNORED_TYPES_EXTERNAL);
+
+                                        final List<String> types = new ArrayList<String>();
+
+                                        final RegistrationTypes visitor = new RegistrationTypes(registration, types);
+                                        final int configuration = ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES | ClassReader.SKIP_CODE;
+
+                                        reader.accept(visitor, configuration);
+
+                                        if (types.isEmpty()) {
+                                            services(reader, types, repository);
+                                        }
+
+                                        if (types.isEmpty()) {
+                                            throw new IllegalStateException(String.format("Managed component %s does not have or inherit @%s",
+                                                                                          line,
+                                                                                          Strings.formatClass(false, false, BundleComponents.Registration.Type.class)));
+                                        }
+
+                                        final Collection<String> list = permissions(dependency.location().concat(dependency.file().getName()), permissions);
+
+                                        for (final String type : types) {
+                                            final String permission = String.format("(%s \"%s\" \"%s\")", ServicePermission.class.getName(), type, ServicePermission.REGISTER);
+
+                                            if (!list.contains(permission)) {
+                                                list.add(permission);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } finally {
+                            provider.close();
+                        }
+                    }
+                }
+            }
+        }
+
+        private Collection<String> permissions(final String key, final Map<String, Collection<String>> permissions) {
+            final Collection<String> list;
+
+            if (!permissions.containsKey(key)) {
+                permissions.put(key, list = new ArrayList<String>());
+            } else {
+                list = permissions.get(key);
+            }
+            return list;
+        }
+
+        private void services(final ClassReader reader, final List<String> types, final ClassRepository repository) throws IOException {
+            final Collection<String> interfaces = new ArrayList<String>(Arrays.asList(reader.getInterfaces()));
+            interfaces.removeAll(IGNORED_TYPES_INTERNAL);
+
+            if (interfaces.isEmpty()) {
+                if (!Type.getInternalName(Object.class).equals(reader.getSuperName())) {
+                    services(repository.reader(reader.getSuperName()), types, repository);
+                } else {
+                    types.add(ClassReaders.externalName(reader.getClassName()));
+                }
+            } else {
+                for (String api : interfaces) {
+                    types.add(ClassReaders.externalName(api));
+                }
+            }
+        }
+
+        private InputStream provider(final URL file) throws IOException {
+            final URL url = Archives.Nested.formatURL(file, String.format("%s/%s", ServiceProviders.location(serviceType), BundleComponents.Managed.class.getName()));
+
+            try {
+                return Archives.open(true, url);
+            } catch (final FileNotFoundException e) {
+                return null;
+            }
+        }
+
+        private void policy(final Map<String, Collection<String>> permissions, final String original) throws IOException {
+            final Lists.Delimited sequence = Lists.delimited(" ");
+
+            final List<String> texts = reduce(original, sequence);
+
+            // pattern for a non-reserved word
+            final String word = String.format("%d:\\d+", StreamTokenizer.TT_WORD);
+
+            // pattern for quoted text
+            final String text = String.format("%d:\\d+", (int) '"');
+
+            // matches a signedBy clause with a comma before or after
+            final String signature = String.format(" %1$d %2$s %3$s|%2$s %3$s %1$d ", (int) ',', keyword(Keyword.SIGNEDBY), text);
+
+            // matches a principal list with a comma before or after
+            final String principal = String.format(" %1$d:%2$s %3$s %3$s|:%2$s %3$s %4$s %1$d ", (int) ',', keyword(Keyword.PRINCIPAL), word, text);
+
+            // removes signedBy clauses and principal lists
+            final String content = sequence.toString().replaceAll(String.format("(%s|%s)", signature, principal), "");
+
+            // matches a permission line within a grant entry
+            final Pattern permission = Pattern.compile(String.format("%3$s (%1$s( %2$s( %4$d %2$s)? %5$d)?)",
+                                                                     word,
+                                                                     text,
+                                                                     keyword(Keyword.PERMISSION),
+                                                                     (int) ',',
+                                                                     (int) ';'));
+
+            // matches a grant entry
+            final Pattern grant = Pattern.compile(String.format("%2$s %3$s (%1$s) %4$d(( %7$s)+) %5$d %6$d",
+                                                                text,
+                                                                keyword(Keyword.GRANT),
+                                                                keyword(Keyword.CODEBASE),
+                                                                (int) '{',
+                                                                (int) '}',
+                                                                (int) ';',
+                                                                permission));
+
+            final Matcher entry = grant.matcher(content);
+
+            while (entry.find()) {
+                Lists.Delimited path = Lists.delimited(":");
+
+                final String[] parts = text(entry.group(1), texts).replaceAll(String.format("\\$\\{%s\\}", JAVA_CLASS_PATH), archive.getName()).split(Archives.Nested.DELIMITER);
+                for (int i = 1, limit = parts.length; i < limit; i++) {
+                    path.add(parts[i]);
+                }
+
+                final Collection<String> list = permissions(path.isEmpty() ? "" : path.toString(), permissions);
+                final Matcher line = permission.matcher(entry.group(2));
+
+                while (line.find()) {
+                    final String value = permission(line.group(1), texts);
+                    list.add(String.format("(%s)", value));
+                }
+            }
+        }
+
+        private String permissions(final File archive) throws IOException {
+            try {
+                // check if the bundle has a local permissions file
+                return Streams.load(Archives.open(false, Archives.Nested.formatURL(archive.toURI().toURL(), SECURITY_POLICY_FILE)), "UTF-8", buffer, true);
+            } catch (final FileNotFoundException e) {
+
+                // do not generate one if the bundle has none
+                return null;
+            }
+        }
+
+        private List<String> reduce(final String original, final Lists.Delimited sequence) throws IOException {
+            final StreamTokenizer tokens = new StreamTokenizer(new BufferedReader(new StringReader(original)));
+
+            tokens.resetSyntax();
+            tokens.wordChars('a', 'z');
+            tokens.wordChars('A', 'Z');
+            tokens.wordChars('.', '.');
+            tokens.wordChars('0', '9');
+            tokens.wordChars('_', '_');
+            tokens.wordChars('$', '$');
+            tokens.wordChars(128 + 32, 255);
+            tokens.whitespaceChars(0, ' ');
+            tokens.commentChar('/');
+            tokens.quoteChar('\'');
+            tokens.quoteChar('"');
+            tokens.lowerCaseMode(false);
+            tokens.ordinaryChar('/');
+            tokens.slashSlashComments(true);
+            tokens.slashStarComments(true);
+
+            final List<String> values = new ArrayList<String>();
+            for (int type = tokens.nextToken(); type != StreamTokenizer.TT_EOF; type = tokens.nextToken()) {
+                final String value = tokens.sval == null ? null : tokens.sval.toLowerCase();
+
+                if (value == null) {
+                    sequence.add(String.format("%d", type));
+                } else {
+                    try {
+                        sequence.add(keyword(Keyword.valueOf(value.toUpperCase())));
+                        assert type == StreamTokenizer.TT_WORD : value;
+                    } catch (final IllegalArgumentException e) {
+                        sequence.add(String.format("%d:%d", type, values.size()));
+                        values.add(tokens.sval);
+                    }
+                }
+            }
+
+            return values;
+        }
+
+        private String keyword(final Keyword keyword) {
+            return String.format(":%d", keyword.ordinal());
+        }
+
+        private String text(final String match, final List<String> texts) {
+            return texts.get(Integer.parseInt(match.substring(match.indexOf(':') + 1)));
+        }
+
+        private String permission(final String match, final List<String> texts) {
+            final Lists.Delimited lines = Lists.delimited(" ");
+
+            for (final String token : match.split(" ")) {
+                if (!token.isEmpty()) {
+                    final int colon = token.indexOf(':');
+                    assert colon != 0 : match;
+
+                    if (colon > 0) {
+                        final String text = texts.get(Integer.parseInt(token.substring(colon + 1)));
+
+                        if (lines.isEmpty()) {
+                            lines.add(text);
+                        } else {
+                            lines.next().append('"').append(text).append('"');
+                        }
+                    }
+                }
+            }
+
+            return lines.toString();
+        }
+
+        /**
+         * @author Tibor Varga
+         */
+        private static class RegistrationTypes extends ClassVisitor {
+
+            private final Type registration;
+            private final List<String> types;
+
+            public RegistrationTypes(final Type registration, final List<String> types) {
+                super(Opcodes.ASM4);
+                this.registration = registration;
+                this.types = types;
+            }
+
+            @Override
+            public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
+                final Type type = Type.getType(desc);
+
+                if (registration.equals(type)) {
+                    return new AnnotationVisitor(Opcodes.ASM4) {
+                        @Override
+                        public AnnotationVisitor visitArray(final String name) {
+                            assert REGISTRATION_TYPE_PARAM.equals(name) : name;
+                            return new AnnotationVisitor(api) {
+                                @Override
+                                public void visit(final String ignore, final Object value) {
+                                    assert ignore == null : ignore;
+                                    types.add(((Type) value).getClassName());
+                                }
+                            };
+                        }
+                    };
+                }
+
+                return null;
+            }
+        }
+    }
+}

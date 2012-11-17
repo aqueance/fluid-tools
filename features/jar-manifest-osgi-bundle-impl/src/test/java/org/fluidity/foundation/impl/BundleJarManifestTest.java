@@ -21,6 +21,7 @@ import java.util.Properties;
 import java.util.jar.Attributes;
 
 import org.fluidity.deployment.plugin.spi.JarManifest;
+import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.testing.Simulator;
 
 import org.apache.maven.artifact.Artifact;
@@ -57,6 +58,7 @@ public class BundleJarManifestTest extends Simulator {
 
     private final MockObjects components = dependencies();
     private final JarManifest.Dependencies dependencies = components.normal(JarManifest.Dependencies.class);
+    private final SecurityPolicy policy = components.normal(SecurityPolicy.class);
     private final JarManifest manifest = new BundleJarManifest();
     private final Log log = components.lenient(Log.class);
 
@@ -81,7 +83,7 @@ public class BundleJarManifestTest extends Simulator {
 
         verify(new Task() {
             public void run() throws Exception {
-                manifest.processManifest(project, attributes, log, dependencies);
+                manifest.processManifest(project, attributes, policy, log, dependencies);
             }
         });
 
@@ -116,7 +118,7 @@ public class BundleJarManifestTest extends Simulator {
 
         verify(new Task() {
             public void run() throws Exception {
-                manifest.processManifest(project, attributes, log, dependencies);
+                manifest.processManifest(project, attributes, policy, log, dependencies);
             }
         });
 
@@ -148,7 +150,7 @@ public class BundleJarManifestTest extends Simulator {
 
         verify(new Task() {
             public void run() throws Exception {
-                manifest.processManifest(project, attributes, log, dependencies);
+                manifest.processManifest(project, attributes, policy, log, dependencies);
             }
         });
 
@@ -186,7 +188,7 @@ public class BundleJarManifestTest extends Simulator {
 
         verify(new Task() {
             public void run() throws Exception {
-                manifest.processManifest(project, attributes, log, dependencies);
+                manifest.processManifest(project, attributes, policy, log, dependencies);
             }
         });
 

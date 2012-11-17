@@ -41,6 +41,7 @@ import java.util.jar.Manifest;
 import org.fluidity.deployment.maven.ArchivesSupport;
 import org.fluidity.deployment.maven.DependenciesSupport;
 import org.fluidity.deployment.plugin.spi.JarManifest;
+import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.ServiceProviders;
@@ -251,6 +252,10 @@ public final class StandaloneJarMojo extends AbstractMojo {
                 final Map<String, Inclusion> includedDependencies = new HashMap<String, Inclusion>();
                 final Collection<Artifact> unpackedDependencies = new HashSet<Artifact>();
 
+                final byte[] buffer = new byte[16384];
+
+                SecurityPolicy policy = new JavaSecurityPolicy(2, false, buffer);
+
                 final AtomicReference<String> dependenciesName = new AtomicReference<String>();
 
                 if (!handlers.isEmpty()) {
@@ -283,7 +288,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
                     final AtomicBoolean inclusionNameSet = new AtomicBoolean();
 
-                    handler.processManifest(project, mainAttributes, log, new JarManifest.Dependencies() {
+                    final SecurityPolicy update = handler.processManifest(project, mainAttributes, policy, log, new JarManifest.Dependencies() {
                         public boolean unpacked() {
                             return executable;
                         }
@@ -328,6 +333,10 @@ public final class StandaloneJarMojo extends AbstractMojo {
                         }
                     });
 
+                    if (update != null) {
+                        policy = update;
+                    }
+
                     if (!includedClosure.isEmpty() && !inclusionNameSet.get()) {
                         throw new MojoExecutionException(String.format("Manifest handler %s failed to specify the inclusion name",
                                                                        Strings.formatObject(false, true, handler)));
@@ -341,16 +350,13 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
                 final Map<String, Attributes> attributesMap = new HashMap<String, Attributes>();
                 final Map<String, String[]> providerMap = new HashMap<String, String[]>();
-                final byte[] buffer = new byte[16384];
 
-                ArchivesSupport.load(attributesMap, providerMap, buffer, log, new DependencyFeed(unpackedDependencies));
+                ArchivesSupport.load(attributesMap, providerMap, buffer, log, new DependencyFeed(policy, unpackedDependencies));
                 ArchivesSupport.include(attributesMap, manifest);
 
                 if (compact) {
                     includedDependencies.get(dependenciesName.get()).artifacts.removeAll(unpackedDependencies);
                 }
-
-                final SecurityPolicy policy = new SecurityPolicy(null, 2, false, buffer);
 
                 // list the various dependencies in manifest attributes
                 for (final Map.Entry<String, Inclusion> entry : includedDependencies.entrySet()) {
@@ -381,20 +387,28 @@ public final class StandaloneJarMojo extends AbstractMojo {
                     policy.add(artifact.getFile(), 0, null);
                 }
 
-                if (policy.found()) {
-                    mainAttributes.putValue(Archives.SECURITY_POLICY, SecurityPolicy.SECURITY_POLICY_FILE);
-                }
+                policy.update(new SecurityPolicy.Output() {
+                    public void save(final String name, final String content) throws IOException {
+                        if (content == null) {
+                            mainAttributes.remove(new Attributes.Name(name));
+                        } else {
+                            mainAttributes.putValue(name, content);
+                        }
+                    }
+                });
 
                 // create the new manifest
                 outputStream.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
                 manifest.write(outputStream);
 
-                if (policy.found()) {
-                    outputStream.putNextEntry(new JarEntry(SecurityPolicy.SECURITY_POLICY_FILE));
-                    Streams.store(outputStream, policy.generate(), "UTF-8", buffer, false);
-                }
+                policy.save(packageFile, new SecurityPolicy.Output() {
+                    public void save(final String name, final String content) throws IOException {
+                        outputStream.putNextEntry(new JarEntry(name));
+                        Streams.store(outputStream, content, "UTF-8", buffer, false);
+                    }
+                });
 
-                ArchivesSupport.expand(outputStream, buffer, providerMap, new DependencyFeed(unpackedDependencies));
+                ArchivesSupport.expand(outputStream, buffer, providerMap, new DependencyFeed(policy, unpackedDependencies));
 
                 final String projectId = project.getArtifact().getId();
 
@@ -513,10 +527,12 @@ public final class StandaloneJarMojo extends AbstractMojo {
      */
     private static class DependencyFeed implements ArchivesSupport.Feed {
 
+        private final SecurityPolicy policy;
         private final Iterator<Artifact> iterator;
 
-        DependencyFeed(final Collection<Artifact> unpackedDependencies) {
-            iterator = unpackedDependencies.iterator();
+        DependencyFeed(final SecurityPolicy policy, final Collection<Artifact> unpackedDependencies) {
+            this.policy = policy;
+            this.iterator = unpackedDependencies.iterator();
         }
 
         public File next() throws IOException {
@@ -528,7 +544,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
         }
 
         public boolean include(final JarEntry entry) {
-            return !entry.getName().equals(SecurityPolicy.SECURITY_POLICY_FILE);
+            return !entry.getName().equals(policy.name());
         }
     }
 }

@@ -16,14 +16,14 @@
 
 package org.fluidity.tests.osgi.bundle1;
 
-import org.fluidity.deployment.osgi.BundleComponentContainer;
+import org.fluidity.deployment.osgi.BundleComponents;
 
 /**
  * Independent component that must be recognized and instantiated by the bundle component container.
  *
  * @author Tibor Varga
  */
-final class IndependentComponent implements BundleComponentContainer.Managed {
+final class IndependentComponent implements BundleComponents.Managed {
 
     public void start() throws Exception {
         // empty

@@ -18,7 +18,7 @@ package org.fluidity.tests.osgi.bundle1;
 
 import java.util.Properties;
 
-import org.fluidity.deployment.osgi.BundleComponentContainer;
+import org.fluidity.deployment.osgi.BundleComponents;
 import org.fluidity.deployment.osgi.Service;
 
 /**
@@ -26,16 +26,12 @@ import org.fluidity.deployment.osgi.Service;
  *
  * @author Tibor Varga
  */
-final class LocalServiceDependency implements BundleComponentContainer.Registration {
+final class LocalServiceDependency implements BundleComponents.Registration {
 
     private final IndependentService dependency;
 
     LocalServiceDependency(final @Service IndependentService dependency) {
         this.dependency = dependency;
-    }
-
-    public Class<?>[] types() {
-        return new Class<?>[] { LocalServiceDependency.class };
     }
 
     public Properties properties() {

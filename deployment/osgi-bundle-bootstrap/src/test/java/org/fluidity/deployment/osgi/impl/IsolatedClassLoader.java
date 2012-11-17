@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.osgi;
+package org.fluidity.deployment.osgi.impl;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;

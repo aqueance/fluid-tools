@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.osgi;
+package org.fluidity.deployment.osgi.impl;
 
 import java.lang.reflect.Constructor;
 
+import org.fluidity.deployment.osgi.BundleBoundary;
 import org.fluidity.deployment.osgi.isolated.ServiceConsumerImpl;
 import org.fluidity.deployment.osgi.isolated.ServiceProviderImpl;
 

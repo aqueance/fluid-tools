@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.osgi;
+package org.fluidity.deployment.osgi.impl;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
@@ -25,6 +25,7 @@ import java.security.PrivilegedExceptionAction;
 import java.util.Enumeration;
 
 import org.fluidity.composition.Component;
+import org.fluidity.deployment.osgi.BundleBoundary;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Proxies;

@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Streams;
@@ -34,14 +35,9 @@ import org.fluidity.foundation.jarjar.Handler;
  *
  * @author Tibor Varga
  */
-public final class SecurityPolicy {
+final class JavaSecurityPolicy implements SecurityPolicy {
 
-    /**
-     * The default location for a security policy file in an archive.
-     */
-    public static final String SECURITY_POLICY_FILE = String.format("%s/%s", Archives.META_INF, "security.policy");
-
-    private static final String JAVA_CLASS_PATH = "java.class.path";
+    private static final String SECURITY_POLICY_FILE = String.format("%s/security.policy", Archives.META_INF);
 
     private final byte[] buffer;
     private final List<String> files[];
@@ -50,13 +46,12 @@ public final class SecurityPolicy {
     /**
      * Creates a new security policy file processor.
      *
-     * @param archive the archive to add at level 0; may be <code>null</code>.
-     * @param cached  the flag to send to various methods of {@link Archives} when accessing archives.
      * @param levels  tells how many lists of files to maintain.
+     * @param cached  the flag to send to various methods of {@link org.fluidity.foundation.Archives} when accessing archives.
      * @param buffer  the I/O buffer to use when accessing archives.
      */
     @SuppressWarnings("unchecked")
-    public SecurityPolicy(final File archive, final int levels, final boolean cached, final byte[] buffer) throws IOException {
+    public JavaSecurityPolicy(final int levels, final boolean cached, final byte[] buffer) throws IOException {
         assert levels > 0 : levels;
 
         this.buffer = buffer;
@@ -66,10 +61,14 @@ public final class SecurityPolicy {
         for (int i = 0; i < files.length; i++) {
             files[i] = new ArrayList<String>();
         }
+    }
 
-        if (archive != null) {
-            add(archive, 0, null);
-        }
+    public String name() {
+        return SECURITY_POLICY_FILE;
+    }
+
+    public byte[] buffer() {
+        return buffer;
     }
 
     /**
@@ -99,34 +98,27 @@ public final class SecurityPolicy {
         }
     }
 
-    /**
-     * Tells if any security policy files have been loaded.
-     *
-     * @return <code>true</code> if there was at least one policy file loaded; <code>false</code> otherwise.
-     */
-    public boolean found() {
+    public void update(final Output metadata) throws IOException {
         for (final List<String> file : files) {
             if (!file.isEmpty()) {
-                return true;
+                metadata.save(Archives.SECURITY_POLICY, SECURITY_POLICY_FILE);
+                return;
             }
         }
 
-        return false;
+        metadata.save(Archives.SECURITY_POLICY, null);
     }
 
-    /**
-     * Generates a combined policy file from the ones maintained.
-     *
-     * @return the content to store in a security policy file.
-     */
-    public String generate() {
+    public void save(final File archive, final Output output) throws IOException {
         final Lists.Delimited content = Lists.delimited(String.format("%n"));
 
         for (final List<String> list : files) {
             content.list(list);
         }
 
-        return content.toString();
+        if (!content.isEmpty()) {
+            output.save(SECURITY_POLICY_FILE, content.toString());
+        }
     }
 
     private String relativeReferences(final String location, final String archive, final String content) throws IOException {

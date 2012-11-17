@@ -20,13 +20,13 @@ limitations under the License.
 import java.util.Properties;
 
 import org.fluidity.composition.Component;
-import org.fluidity.deployment.osgi.BundleComponentContainer;
+import org.fluidity.deployment.osgi.BundleComponents;
 import org.fluidity.foundation.Log;
 
 import ${package}.MessageSink;
 
 @Component(automatic = false)
-final class MessageSinkService implements MessageSink, BundleComponentContainer.Registration {
+final class MessageSinkService implements MessageSink, BundleComponents.Registration {
 
     private final Log log;
     private final Properties properties = new Properties();

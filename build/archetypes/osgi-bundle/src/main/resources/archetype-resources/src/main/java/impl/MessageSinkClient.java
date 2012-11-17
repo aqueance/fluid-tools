@@ -18,11 +18,11 @@ limitations under the License.
 *#package ${package}.impl;
 
 import org.fluidity.deployment.osgi.Service;
-import org.fluidity.deployment.osgi.BundleComponentContainer;
+import org.fluidity.deployment.osgi.BundleComponents;
 
 import ${package}.MessageSink;
 
-final class MessageSinkClient implements BundleComponentContainer.Managed {
+final class MessageSinkClient implements BundleComponents.Managed {
 
     private final MessageSink sink;
 

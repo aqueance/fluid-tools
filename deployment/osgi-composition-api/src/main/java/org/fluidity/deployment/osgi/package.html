@@ -26,17 +26,17 @@
     Fluid Tools improves the basic service management in OSGi with dependency injected component management based on the OSGi bundle and service life cycle.
 </p>
 <p>
-    To take advantage of these improvements, implement your bundle as a collection of {@link org.fluidity.deployment.osgi.BundleComponentContainer.Managed},
-    {@link org.fluidity.deployment.osgi.BundleComponentContainer.Registration} and {@link
-    org.fluidity.deployment.osgi.BundleComponentContainer.Registration.Listener} components.
+    To take advantage of these improvements, implement your bundle as a collection of {@link org.fluidity.deployment.osgi.BundleComponents.Managed},
+    {@link org.fluidity.deployment.osgi.BundleComponents.Registration} and {@link
+    org.fluidity.deployment.osgi.BundleComponents.Registration.Listener} components.
 </p>
 <p>
     Bundle life cycle observers are also recognized as {@link org.fluidity.composition.ComponentGroup @ComponentGroup} annotated {@link
     org.osgi.framework.BundleActivator} components.
 </p>
 <p>
-    Managed component status can be queried using the {@link org.fluidity.deployment.osgi.BundleComponentContainer.Status} OSGi service that
-    each bundle running a {@link org.fluidity.deployment.osgi.BundleComponentContainer} exports.
+    Managed component status can be queried using the {@link org.fluidity.deployment.osgi.BundleComponents.Status} OSGi service that
+    each bundle running {@linkplain org.fluidity.deployment.osgi.BundleComponents.Managed managed components} exports.
 </p>
 </BODY>
 </HTML>

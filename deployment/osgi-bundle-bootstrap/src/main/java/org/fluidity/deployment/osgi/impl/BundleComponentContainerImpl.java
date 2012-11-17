@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.osgi;
+package org.fluidity.deployment.osgi.impl;
 
 import java.lang.annotation.Annotation;
 import java.security.AccessController;
@@ -40,6 +40,8 @@ import org.fluidity.composition.DependencyPath;
 import org.fluidity.composition.ObservedContainer;
 import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.ServiceProvider;
+import org.fluidity.deployment.osgi.BundleComponents;
+import org.fluidity.deployment.osgi.Service;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Log;
@@ -93,7 +95,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
     }
 
     private static class Logic implements BundleComponentContainer {
-        private final List<Stoppable> cleanup = new ArrayList<Stoppable>();
+        private final List<BundleComponents.Stoppable> cleanup = new ArrayList<BundleComponents.Stoppable>();
 
         private final Log log;
         private final BundleContext context;
@@ -106,7 +108,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
 
         private final ServiceComponentFactory serviceFactory;
 
-        private final Status status = new ComponentStatus() {
+        private final BundleComponents.Status status = new ComponentStatus() {
 
             public Collection<Class<?>> active() {
                 final Collection<Class<?>> list = new ArrayList<Class<?>>();
@@ -165,24 +167,24 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             this.bundleName = context.getBundle().getSymbolicName();
 
             // find all managed component classes
-            final Class<Managed>[] items = discovery.findComponentClasses(Managed.class, LOADER, false);
+            final Class<BundleComponents.Managed>[] items = discovery.findComponentClasses(BundleComponents.Managed.class, LOADER, false);
 
-            final Map<Class<Managed>, ComponentDescriptor> components = new HashMap<Class<Managed>, ComponentDescriptor>();
+            final Map<Class<BundleComponents.Managed>, ComponentDescriptor> components = new HashMap<Class<BundleComponents.Managed>, ComponentDescriptor>();
 
             log.debug("[%s] Discovering service dependencies", bundleName);
 
             final ComponentContainer pool = container.makeChildContainer(new ComponentContainer.Bindings() {
                 @SuppressWarnings("unchecked")
                 public void bindComponents(final ComponentContainer.Registry registry) {
-                    for (final Class<Managed> type : items) {
+                    for (final Class<BundleComponents.Managed> type : items) {
                         if (type.isAnnotationPresent(Component.Context.class)) {
                             log.warning("[%s] Managed component %s accepts context annotations; the received context will always be empty", bundleName, type);
                         }
 
-                        final List<Class<? super BundleComponentContainer.Managed>> interfaces = new ArrayList<Class<? super BundleComponentContainer.Managed>>();
+                        final List<Class<? super BundleComponents.Managed>> interfaces = new ArrayList<Class<? super BundleComponents.Managed>>();
 
                         for (final Components.Specification specification : inspect(type).api) {
-                            final Class<? super BundleComponentContainer.Managed> api = (Class<? super BundleComponentContainer.Managed>) specification.api;
+                            final Class<? super BundleComponents.Managed> api = (Class<? super BundleComponents.Managed>) specification.api;
 
                             // we can't bind to service provider interfaces (group interfaces are not present in the iterated list)
                             if (api == type || !isServiceProvider(api)) {
@@ -216,7 +218,6 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                                 if (filter != null) {
 
                                     // fail fast: verify the OSGi service filter
-
                                     try {
                                         context.createFilter(filter);
                                     } catch (final InvalidSyntaxException e) {
@@ -250,7 +251,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             final Set<ServiceDescriptor> services = new HashSet<ServiceDescriptor>();
 
             // get the observer methods invoked
-            for (final Class<Managed> type : items) {
+            for (final Class<BundleComponents.Managed> type : items) {
                 final ComponentDescriptor descriptor = components.get(type);
                 final Set<ServiceDescriptor> collected = new HashSet<ServiceDescriptor>();
 
@@ -298,7 +299,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         }
 
         @SuppressWarnings("unchecked")
-        private Components.Interfaces inspect(final Class<Managed> type) {
+        private Components.Interfaces inspect(final Class<BundleComponents.Managed> type) {
             final Component componentAnnotation = type.getAnnotation(Component.class);
             if (componentAnnotation != null && componentAnnotation.automatic()) {
                 throw new IllegalStateException(String.format("Managed component %s may not have @%s(automatic = true)", type, Component.class));
@@ -329,8 +330,8 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         }
 
         public void stop() {
-            for (final Iterator<Stoppable> iterator = cleanup.iterator(); iterator.hasNext(); ) {
-                final Stoppable stoppable = iterator.next();
+            for (final Iterator<BundleComponents.Stoppable> iterator = cleanup.iterator(); iterator.hasNext(); ) {
+                final BundleComponents.Stoppable stoppable = iterator.next();
 
                 try {
                     stoppable.stop();
@@ -342,8 +343,8 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             }
         }
 
-        private void cleanup(final String name, final Stoppable stoppable) {
-            cleanup.add(new Stoppable() {
+        private void cleanup(final String name, final BundleComponents.Stoppable stoppable) {
+            cleanup.add(new BundleComponents.Stoppable() {
                 public void stop() {
                     try {
                         stoppable.stop();
@@ -354,7 +355,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             });
         }
 
-        private <T> void register(final Registration.Listener<T> source) {
+        private <T> void register(final BundleComponents.Registration.Listener<T> source) {
             final Class<T> type = source.type();
 
             final ServiceListener listener = new ServiceListener() {
@@ -404,7 +405,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                 assert false : e;
             }
 
-            cleanup(String.format("service listener for %s", sourceName), new Stoppable() {
+            cleanup(String.format("service listener for %s", sourceName), new BundleComponents.Stoppable() {
                 public void stop() {
                     context.removeServiceListener(listener);
                     log.debug("[%s] Ignoring %s components", bundleName, sourceName);
@@ -412,9 +413,9 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             });
         }
 
-        private void register(final Registration service) {
+        private void register(final BundleComponents.Registration service) {
             final Properties properties = service.properties();
-            final String[] classes = serviceApi(service.types());
+            final String[] classes = serviceApi(service);
 
             final String propertyMessage = properties == null ? "no properties" : String.format("properties %s", properties);
             final String serviceMessage = String.format("service for %s with %s", Arrays.toString(classes), propertyMessage);
@@ -424,7 +425,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             @SuppressWarnings("unchecked")
             final ServiceRegistration registration = context.registerService(classes, service, (Dictionary) properties);
 
-            cleanup(service.getClass().getName(), new Stoppable() {
+            cleanup(service.getClass().getName(), new BundleComponents.Stoppable() {
                 public void stop() {
                     registration.unregister();
                     log.debug("[%s] Unregistered %s", bundleName, serviceMessage);
@@ -432,17 +433,17 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             });
         }
 
-        private void start(final String name, final Managed component) throws Exception {
+        private void start(final String name, final BundleComponents.Managed component) throws Exception {
             component.start();
 
             log.debug("[%s] Started %s", bundleName, name);
 
-            if (component instanceof Registration.Listener) {
-                register((Registration.Listener<?>) component);
+            if (component instanceof BundleComponents.Registration.Listener) {
+                register((BundleComponents.Registration.Listener<?>) component);
             }
 
-            if (component instanceof Registration) {
-                register((Registration) component);
+            if (component instanceof BundleComponents.Registration) {
+                register((BundleComponents.Registration) component);
             }
         }
 
@@ -453,7 +454,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
 
             for (final ComponentDescriptor descriptor : components) {
                 if ((descriptor.instance() != null || descriptor.failed()) && !resolved(servicesUp, descriptor)) {
-                    final Managed component = (Managed) descriptor.stopped(false);
+                    final BundleComponents.Managed component = (BundleComponents.Managed) descriptor.stopped(false);
 
                     if (component != null) {
                         try {
@@ -507,7 +508,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                         }
 
                         for (final ComponentDescriptor descriptor : resolved) {
-                            final Class<? extends Managed> type = (Class<? extends Managed>) descriptor.type;
+                            final Class<? extends BundleComponents.Managed> type = (Class<? extends BundleComponents.Managed>) descriptor.type;
 
                             for (final Class<?> api : descriptor.interfaces()) {
                                 registry.bindComponent((Class) type, api);
@@ -518,7 +519,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
 
                 for (final ComponentDescriptor descriptor : resolved) {
                     final String name = descriptor.toString();
-                    final Managed instance = (Managed) child.getComponent(descriptor.interfaces()[0]);
+                    final BundleComponents.Managed instance = (BundleComponents.Managed) child.getComponent(descriptor.interfaces()[0]);
 
                     // if instance is a service, it must be recorded in the descriptor before service registration takes place in the start() method
                     descriptor.started(instance);
@@ -526,9 +527,9 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                     try {
                         start(name, instance);
 
-                        cleanup(name, new Stoppable() {
+                        cleanup(name, new BundleComponents.Stoppable() {
                             public void stop() throws Exception {
-                                final Managed component = (Managed) descriptor.stopped(false);
+                                final BundleComponents.Managed component = (BundleComponents.Managed) descriptor.stopped(false);
 
                                 if (component != null) {
                                     component.stop();
@@ -587,7 +588,8 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             return parsed.toString();
         }
 
-        private String[] serviceApi(final Class<?>[] types) {
+        private String[] serviceApi(final BundleComponents.Registration service) {
+            final Class<?>[] types = types(service.getClass());
             final String[] names = new String[types.length];
 
             for (int i = 0, limit = types.length; i < limit; i++) {
@@ -597,7 +599,31 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             return names;
         }
 
-        private class ServiceChangeListener implements ServiceListener, Stoppable {
+        // figures out what service interface to register the given service class as
+        private static Class<?>[] types(final Class<?> service) {
+            final BundleComponents.Registration.Type annotation = service.getAnnotation(BundleComponents.Registration.Type.class);
+
+            if (annotation != null) {
+                return annotation.value();
+            } else {
+                final Collection<Class<?>> interfaces = new ArrayList<Class<?>>(Arrays.asList(service.getInterfaces()));
+                interfaces.remove(BundleComponents.Registration.class);
+
+                if (interfaces.isEmpty()) {
+                    final Class<?> parent = service.getSuperclass();
+
+                    if (parent == Object.class) {
+                        return new Class<?>[] { service };
+                    } else {
+                        return types(parent);
+                    }
+                } else {
+                    return Lists.asArray(Class.class, interfaces);
+                }
+            }
+        }
+
+        private class ServiceChangeListener implements ServiceListener, BundleComponents.Stoppable {
 
             private final ServiceDescriptor descriptor;
 

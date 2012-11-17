@@ -40,10 +40,6 @@ public final class RemoteDependenciesTest implements BundleTest {
         assert service != null;
     }
 
-    public Class<?>[] types() {
-        return new Class<?>[] { BundleTest.class };
-    }
-
     public Properties properties() {
         return null;
     }

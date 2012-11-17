@@ -23,11 +23,8 @@ import java.util.Collection;
  * Utilities related to arrays.
  * <h3>Usage Example</h3>
  * <pre>
- * final Constructor&lt;?> constructor = &hellip;;
- *
- * final Annotation[] annotations = <span class="hl1">Lists</span>.concatenate(constructor.{@linkplain java.lang.reflect.Constructor#getDeclaringClass() getDeclaringClass}().{@linkplain Class#getAnnotations() getAnnotations}(),
- *                                                    constructor.{@linkplain java.lang.reflect.Constructor#getAnnotations() getAnnotations}(),
- *                                                    constructor.{@linkplain java.lang.reflect.Constructor#getParameterAnnotations() getParameterAnnotations}()[0]);
+ * final <span class="hl3">String</span> <span class="hl2">items</span> = <span class="hl1">Lists</span>.{@linkplain #delimited(String, Object...) delimited}("item 1", "item 2", "item 3");
+ * final <span class="hl3">String</span>[] array = <span class="hl1">Lists</span>.{@linkplain #asArray(Class, Collection) asArray}(<span class="hl3">{@linkplain String}</span>.class, {@linkplain java.util.Arrays Arrays}.{@linkplain java.util.Arrays#asList(Object[]) asList}(<span class="hl2">items</span>.{@linkplain String#split(String) split}("\\s*,\\s*")));
  * </pre>
  *
  * @author Tibor Varga

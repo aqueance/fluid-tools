@@ -21,7 +21,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
@@ -45,6 +44,8 @@ import org.fluidity.composition.maven.annotation.ProcessorCallback;
 import org.fluidity.composition.maven.annotation.ServiceProviderProcessor;
 import org.fluidity.composition.spi.EmptyPackageBindings;
 import org.fluidity.composition.spi.PackageBindings;
+import org.fluidity.deployment.maven.ClassReaders;
+import org.fluidity.deployment.maven.ClassRepository;
 import org.fluidity.deployment.maven.DependenciesSupport;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
@@ -300,29 +301,6 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         writeClassContents(file, generator);
     }
 
-    private static class ClassRepositoryImpl implements ClassRepository {
-
-        private final Map<String, ClassReader> readers = new HashMap<String, ClassReader>();
-        private final ClassLoader loader;
-
-        ClassRepositoryImpl(final ClassLoader loader) {
-            this.loader = loader;
-        }
-
-        public ClassReader reader(final String name) throws IOException {
-            if (name == null) {
-                return null;
-            }
-
-            if (!readers.containsKey(name)) {
-                final InputStream stream = loader.getResourceAsStream(ClassReaders.fileName(name));
-                readers.put(name, stream == null ? null : new ClassReader(stream));
-            }
-
-            return readers.get(name);
-        }
-    }
-
     private boolean processClass(final ClassReader classData, final ClassProcessor command) throws MojoExecutionException, IOException {
         try {
             return command.run(classData);
@@ -352,7 +330,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         scanner.addDefaultExcludes();
         scanner.scan();
 
-        final ClassRepository repository = new ClassRepositoryImpl(loader);
+        final ClassRepository repository = new ClassRepository(loader);
 
         final Set<String> publicApis = new HashSet<String>();
         final Map<String, Set<String>> serviceProviders = new HashMap<String, Set<String>>();

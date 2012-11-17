@@ -18,7 +18,7 @@ package org.fluidity.tests.osgi.bundle1;
 
 import java.util.Properties;
 
-import org.fluidity.deployment.osgi.BundleComponentContainer;
+import org.fluidity.deployment.osgi.BundleComponents;
 import org.fluidity.tests.osgi.ExportedService1;
 
 /**
@@ -26,11 +26,7 @@ import org.fluidity.tests.osgi.ExportedService1;
  *
  * @author Tibor Varga
  */
-final class ExportedService1Impl implements ExportedService1, BundleComponentContainer.Registration {
-
-    public Class<?>[] types() {
-        return new Class<?>[] { ExportedService1.class };
-    }
+final class ExportedService1Impl implements ExportedService1, BundleComponents.Registration {
 
     public Properties properties() {
         return null;

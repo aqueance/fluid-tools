@@ -83,6 +83,11 @@ public final class Archives extends Utility {
     public static final String APP_INF = "APP-INF";
 
     /**
+     * Name of the <code>OSGI-INF</code> directory in OSGi bundles.
+     */
+    public static final String OSGI_INF = "OSGI-INF";
+
+    /**
      * Name of the JAR index file in JAR files.
      */
     public static final String INDEX_NAME = String.format("%s/INDEX.LIST", META_INF);

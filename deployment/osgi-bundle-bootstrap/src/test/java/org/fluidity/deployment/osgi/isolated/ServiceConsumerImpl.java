@@ -16,11 +16,11 @@
 
 package org.fluidity.deployment.osgi.isolated;
 
-import org.fluidity.deployment.osgi.BundleComponentContainer;
-import org.fluidity.deployment.osgi.IsolatedClassLoader;
+import org.fluidity.deployment.osgi.BundleComponents;
 import org.fluidity.deployment.osgi.Service;
-import org.fluidity.deployment.osgi.ServiceConsumer;
-import org.fluidity.deployment.osgi.ServiceProvider;
+import org.fluidity.deployment.osgi.impl.IsolatedClassLoader;
+import org.fluidity.deployment.osgi.impl.ServiceConsumer;
+import org.fluidity.deployment.osgi.impl.ServiceProvider;
 
 /**
  * An OSGi service consumer that passes to a service the name of a class not visible to the service and expects the service to instantiate the class. This is
@@ -28,7 +28,7 @@ import org.fluidity.deployment.osgi.ServiceProvider;
  *
  * @author Tibor Varga
  */
-public final class ServiceConsumerImpl implements ServiceConsumer, BundleComponentContainer.Managed {
+public final class ServiceConsumerImpl implements ServiceConsumer, BundleComponents.Managed {
 
     private final ServiceProvider provider;
 

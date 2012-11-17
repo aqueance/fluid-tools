@@ -152,10 +152,14 @@ public interface JarManifest {
      *
      * @param project      the Maven project to extract metadata from.
      * @param attributes   the main manifest attributes.
+     * @param policy       the security policy that that manages Java security permissions; never <code>null</code>.
      * @param log          the Maven logger to send messages to.
      * @param dependencies allows the receiver to handle project dependencies.
      *
+     * @return the policy processor for the caller to use in place of the one supplied to this method; may be <code>null</code>, in which case the supplied one
+     *         will be used by the caller.
+     *
      * @throws MojoExecutionException when processing the manifest fails.
      */
-    void processManifest(MavenProject project, Attributes attributes, Log log, Dependencies dependencies) throws MojoExecutionException;
+    SecurityPolicy processManifest(MavenProject project, Attributes attributes, SecurityPolicy policy, Log log, Dependencies dependencies) throws MojoExecutionException;
 }

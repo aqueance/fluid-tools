@@ -25,7 +25,6 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ContainerTermination;
-import org.fluidity.deployment.osgi.BundleComponentContainer;
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Log;
 

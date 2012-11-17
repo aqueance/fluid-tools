@@ -14,27 +14,24 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.maven;
-
-import java.io.IOException;
-
-import org.objectweb.asm.ClassReader;
+package org.fluidity.deployment.osgi.impl;
 
 /**
- * A repository of class data.
+ * Component life cycle management backed by the OSGi service registry. This container provides the functionality described for {@link
+ * org.fluidity.deployment.osgi.BundleComponents}.
  *
  * @author Tibor Varga
+ * @see org.fluidity.deployment.osgi.BundleComponents
  */
-public interface ClassRepository {
+interface BundleComponentContainer {
 
     /**
-     * Creates and caches a class reader.
-     *
-     *
-     * @param name  the name of the class to load a reader for.
-     * @return a class reader or <code>null</code> if no file found.
-     *
-     * @throws IOException when class loading fails.
+     * Starts the container. Invoked automatically when the host bundle starts.
      */
-    ClassReader reader(String name) throws IOException;
+    void start();
+
+    /**
+     * Stops the container. Invoked automatically when the host bundle stops.
+     */
+    void stop();
 }

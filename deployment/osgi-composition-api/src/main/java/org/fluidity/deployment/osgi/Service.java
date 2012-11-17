@@ -25,8 +25,8 @@ import java.lang.annotation.Target;
 import org.fluidity.composition.Component;
 
 /**
- * Annotates method parameters of a {@link BundleComponentContainer.Managed} component that require an OSGi service instance to resolve. Parameters not so
- * annotated are resolved from the in-bundle dependency injection container(s). See {@link BundleComponentContainer} for details on managed components.
+ * Annotates method parameters of a {@link BundleComponents.Managed} component that require an OSGi service instance to resolve. Parameters not so annotated
+ * are resolved from the in-bundle dependency injection container(s). See {@link BundleComponents} for details on managed components.
  * <p/>
  * This annotation applies to constructor parameters but not to fields as a component that depends on OSGi services is not expected to be instantiated until
  * all of its constructor parameters annotated with this type have been registered in the OSGi service registry.

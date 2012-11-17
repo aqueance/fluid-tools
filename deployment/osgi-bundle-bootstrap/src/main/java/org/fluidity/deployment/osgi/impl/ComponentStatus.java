@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.osgi;
+package org.fluidity.deployment.osgi.impl;
 
-public interface ServiceConsumer {
+import org.fluidity.deployment.osgi.BundleComponents;
 
-    String call() throws Exception;
-}
+/**
+ * Internal interface used to connect the {@link BundleComponents.Status} implementation with the internals of the {@link BundleComponentContainer}
+ * implementations without breaking object encapsulation.
+ *
+ * @author Tibor Varga
+ */
+interface ComponentStatus extends BundleComponents.Status { }

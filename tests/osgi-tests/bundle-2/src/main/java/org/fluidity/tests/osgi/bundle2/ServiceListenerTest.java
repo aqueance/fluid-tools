@@ -19,7 +19,7 @@ package org.fluidity.tests.osgi.bundle2;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.fluidity.deployment.osgi.BundleComponentContainer;
+import org.fluidity.deployment.osgi.BundleComponents;
 import org.fluidity.tests.osgi.BundleTest;
 
 import org.testng.annotations.Test;
@@ -27,12 +27,12 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public final class ServiceListenerTest implements BundleTest, BundleComponentContainer.Registration.Listener {
+public final class ServiceListenerTest implements BundleTest, BundleComponents.Registration.Listener {
 
     private final AtomicInteger bundleCount = new AtomicInteger();
 
     public Class type() {
-        return BundleComponentContainer.Status.class;
+        return BundleComponents.Status.class;
     }
 
     public void serviceAdded(final Object component, final Properties properties) {
@@ -46,10 +46,6 @@ public final class ServiceListenerTest implements BundleTest, BundleComponentCon
     @Test
     public void test() throws Exception {
         assert bundleCount.get() == 2 : bundleCount.get();
-    }
-
-    public Class<?>[] types() {
-        return new Class<?>[] { BundleTest.class };
     }
 
     public Properties properties() {

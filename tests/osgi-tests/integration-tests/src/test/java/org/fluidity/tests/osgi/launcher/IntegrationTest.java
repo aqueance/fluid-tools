@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.JarFile;
 
-import org.fluidity.deployment.osgi.BundleComponentContainer;
+import org.fluidity.deployment.osgi.BundleComponents;
 import org.fluidity.deployment.osgi.Service;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
@@ -129,13 +129,13 @@ public final class IntegrationTest {
             // run this before any other test is discovered
             testRestartingBundles();
 
-            final ServiceReference[] statuses = system.getServiceReferences(BundleComponentContainer.Status.class.getName(), null);
+            final ServiceReference[] statuses = system.getServiceReferences(BundleComponents.Status.class.getName(), null);
 
-            assert statuses != null : String.format("No component status services registered (%s)", BundleComponentContainer.Status.class.getName());
+            assert statuses != null : String.format("No component status services registered (%s)", BundleComponents.Status.class.getName());
             assert statuses.length == bundles.size() : String.format("Component status service count (%d) != bundle count (%d)", statuses.length, bundles.size());
 
             for (final ServiceReference reference : statuses) {
-                final BundleComponentContainer.Status status = (BundleComponentContainer.Status) system.getService(reference);
+                final BundleComponents.Status status = (BundleComponents.Status) system.getService(reference);
 
                 final String bundleName = reference.getBundle().getSymbolicName();
                 final Collection<Class<?>> failed = status.failed();

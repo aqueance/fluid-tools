@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.osgi;
+package org.fluidity.deployment.osgi.impl;
 
 import java.util.AbstractMap;
 import java.util.Arrays;
@@ -30,6 +30,8 @@ import java.util.Set;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Containers;
+import org.fluidity.deployment.osgi.BundleComponents;
+import org.fluidity.deployment.osgi.Service;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.NoLogFactory;
@@ -63,7 +65,7 @@ public class BundleComponentContainerImplTest extends Simulator {
 
     private final ServiceInterface1 service1 = dependencies.normal(ServiceInterface1.class);
     private final ServiceInterface2 service2 = dependencies.normal(ServiceInterface2.class);
-    private final BundleComponentContainer.Managed item = dependencies.normal(BundleComponentContainer.Managed.class);
+    private final BundleComponents.Managed item = dependencies.normal(BundleComponents.Managed.class);
 
     private final ServiceRegistration registration = dependencies.normal(ServiceRegistration.class);
 
@@ -73,19 +75,19 @@ public class BundleComponentContainerImplTest extends Simulator {
     private final Consumer consumer1 = dependencies.normal(Consumer.class);
     private final Consumer consumer2 = dependencies.normal(Consumer.class);
 
-    private final BundleComponentContainer.Managed component1 = dependencies.normal(BundleComponentContainer.Managed.class);
-    private final BundleComponentContainer.Managed component2 = dependencies.normal(BundleComponentContainer.Managed.class);
-    private final BundleComponentContainer.Managed component3 = dependencies.normal(BundleComponentContainer.Managed.class);
-    private final BundleComponentContainer.Managed component4 = dependencies.normal(BundleComponentContainer.Managed.class);
-    private final BundleComponentContainer.Managed component5 = dependencies.normal(BundleComponentContainer.Managed.class);
-    private final BundleComponentContainer.Managed component6 = dependencies.normal(BundleComponentContainer.Managed.class);
+    private final BundleComponents.Managed component1 = dependencies.normal(BundleComponents.Managed.class);
+    private final BundleComponents.Managed component2 = dependencies.normal(BundleComponents.Managed.class);
+    private final BundleComponents.Managed component3 = dependencies.normal(BundleComponents.Managed.class);
+    private final BundleComponents.Managed component4 = dependencies.normal(BundleComponents.Managed.class);
+    private final BundleComponents.Managed component5 = dependencies.normal(BundleComponents.Managed.class);
+    private final BundleComponents.Managed component6 = dependencies.normal(BundleComponents.Managed.class);
 
     private final ServiceInterface1 service3 = dependencies.normal(ServiceInterface1.class);
     private final ServiceReference reference3 = dependencies.normal(ServiceReference.class);
 
     private ComponentContainer container;
 
-    private final BundleComponentContainer.Registration.Listener<Consumer> source = dependencies.normal(BundleComponentContainer.Registration.Listener.class);
+    private final BundleComponents.Registration.Listener<Consumer> source = dependencies.normal(BundleComponents.Registration.Listener.class);
     private Log<BundleComponentContainerImpl> log = NoLogFactory.consume(BundleComponentContainerImpl.class);
 
     @BeforeMethod
@@ -121,7 +123,6 @@ public class BundleComponentContainerImplTest extends Simulator {
                 final Class<ServiceInterface1> serviceInterface = ServiceInterface1.class;
 
                 EasyMock.expect(Service1.delegate.properties()).andReturn(properties);
-                EasyMock.expect(Service1.delegate.types()).andReturn(new Class[] { serviceInterface });
 
                 Service1.delegate.start();
                 EasyMock.expect(context.registerService(EasyMock.aryEq(new String[] { serviceInterface.getName() }),
@@ -1136,14 +1137,14 @@ public class BundleComponentContainerImplTest extends Simulator {
     }
 
     private void assertActive(final Class<?>... components) {
-        assert StatusCheck.component != null : BundleComponentContainer.Status.class;
+        assert StatusCheck.component != null : BundleComponents.Status.class;
         final List<Class<?>> expected = Arrays.asList(components);
         final Collection<Class<?>> actual = StatusCheck.component.active();
         assert new HashSet<Class<?>>(actual).equals(new HashSet<Class<?>>(expected)) : String.format("Expected %s, actual %s", expected, actual);
     }
 
     private void assertFailed(final Class<?>... components) {
-        assert StatusCheck.component != null : BundleComponentContainer.Status.class;
+        assert StatusCheck.component != null : BundleComponents.Status.class;
         final List<Class<?>> expected = Arrays.asList(components);
         final Collection<Class<?>> actual = StatusCheck.component.failed();
         assert new HashSet<Class<?>>(actual).equals(new HashSet<Class<?>>(expected)) : String.format("Expected %s, actual %s", expected, actual);
@@ -1164,7 +1165,7 @@ public class BundleComponentContainerImplTest extends Simulator {
     }
 
     private void assertInactive(final Map<Class<?>, Set<Service>> original, final Service... active) {
-        assert StatusCheck.component != null : BundleComponentContainer.Status.class;
+        assert StatusCheck.component != null : BundleComponents.Status.class;
 
         final Map<Class<?>, Set<Service>> expected = new HashMap<Class<?>, Set<Service>>();
         for (final Map.Entry<Class<?>, Set<Service>> entry : original.entrySet()) {
@@ -1188,7 +1189,7 @@ public class BundleComponentContainerImplTest extends Simulator {
     private BundleComponentContainer discover(final Class... types) throws Exception {
         EasyMock.expect(context.getBundle()).andReturn(bundle);
         EasyMock.expect(bundle.getSymbolicName()).andReturn("test-bundle");
-        EasyMock.expect(discovery.findComponentClasses(BundleComponentContainer.Managed.class, BundleComponentContainerImpl.class.getClassLoader(), false)).andReturn(types);
+        EasyMock.expect(discovery.findComponentClasses(BundleComponents.Managed.class, BundleComponentContainerImpl.class.getClassLoader(), false)).andReturn(types);
 
         return new BundleComponentContainerImpl(context, container, log, discovery);
     }
@@ -1196,7 +1197,7 @@ public class BundleComponentContainerImplTest extends Simulator {
     private BundleComponentContainer discover(final List<String> filters, final Class... types) throws Exception {
         EasyMock.expect(context.getBundle()).andReturn(bundle);
         EasyMock.expect(bundle.getSymbolicName()).andReturn("test-bundle");
-        EasyMock.expect(discovery.findComponentClasses(BundleComponentContainer.Managed.class, BundleComponentContainerImpl.class.getClassLoader(), false)).andReturn(types);
+        EasyMock.expect(discovery.findComponentClasses(BundleComponents.Managed.class, BundleComponentContainerImpl.class.getClassLoader(), false)).andReturn(types);
 
         for (final String filter : filters) {
             EasyMock.expect(context.createFilter(filter)).andReturn(null);
@@ -1250,17 +1251,13 @@ public class BundleComponentContainerImplTest extends Simulator {
         }
     }
 
-    public interface ServiceInterface1 extends BundleComponentContainer.Registration { }
+    public interface ServiceInterface1 extends BundleComponents.Registration { }
 
-    public interface ServiceInterface2 extends BundleComponentContainer.Registration { }
+    public interface ServiceInterface2 extends BundleComponents.Registration { }
 
     public static final class Service1 implements ServiceInterface1 {
 
         private static ServiceInterface1 delegate;
-
-        public Class[] types() {
-            return delegate.types();
-        }
 
         public Properties properties() {
             return delegate.properties();
@@ -1279,10 +1276,6 @@ public class BundleComponentContainerImplTest extends Simulator {
 
         private static ServiceInterface1 delegate;
 
-        public Class[] types() {
-            return delegate.types();
-        }
-
         public Properties properties() {
             return delegate.properties();
         }
@@ -1296,9 +1289,9 @@ public class BundleComponentContainerImplTest extends Simulator {
         }
     }
 
-    public static final class ServiceDependent1 implements BundleComponentContainer.Managed {
+    public static final class ServiceDependent1 implements BundleComponents.Managed {
 
-        private static BundleComponentContainer.Managed delegate;
+        private static BundleComponents.Managed delegate;
 
         public ServiceDependent1(final @Service ServiceInterface1 service1, final @Service ServiceInterface2 service2) {
             assert service1 != null;
@@ -1314,9 +1307,9 @@ public class BundleComponentContainerImplTest extends Simulator {
         }
     }
 
-    public static final class ServiceDependent2 implements BundleComponentContainer.Managed {
+    public static final class ServiceDependent2 implements BundleComponents.Managed {
 
-        private static BundleComponentContainer.Managed delegate;
+        private static BundleComponents.Managed delegate;
 
         public ServiceDependent2(final @Service(filter = "filter-1") ServiceInterface1 service1, final @Service(filter = "filter-2") ServiceInterface2 service2) {
             assert service1 != null;
@@ -1332,11 +1325,11 @@ public class BundleComponentContainerImplTest extends Simulator {
         }
     }
 
-    public interface Consumer extends BundleComponentContainer.Managed { }
+    public interface Consumer extends BundleComponents.Managed { }
 
-    public static class EventSource implements BundleComponentContainer.Registration.Listener<Consumer> {
+    public static class EventSource implements BundleComponents.Registration.Listener<Consumer> {
 
-        private static BundleComponentContainer.Registration.Listener<Consumer> delegate;
+        private static BundleComponents.Registration.Listener<Consumer> delegate;
 
         public Class<Consumer> type() {
             return delegate.type();
@@ -1360,9 +1353,9 @@ public class BundleComponentContainerImplTest extends Simulator {
     }
 
     @SuppressWarnings("UnusedParameters")
-    public static class Component1Service12 implements BundleComponentContainer.Managed {
+    public static class Component1Service12 implements BundleComponents.Managed {
 
-        private static BundleComponentContainer.Managed delegate;
+        private static BundleComponents.Managed delegate;
 
         public Component1Service12(final @Service ServiceInterface1 service1, final Component2Service2 dependency) {
             // empty
@@ -1378,9 +1371,9 @@ public class BundleComponentContainerImplTest extends Simulator {
     }
 
     @SuppressWarnings("UnusedParameters")
-    public static class Component2Service2 implements BundleComponentContainer.Managed {
+    public static class Component2Service2 implements BundleComponents.Managed {
 
-        private static BundleComponentContainer.Managed delegate;
+        private static BundleComponents.Managed delegate;
 
         public Component2Service2(final @Service ServiceInterface2 service2) {
             // empty
@@ -1396,9 +1389,9 @@ public class BundleComponentContainerImplTest extends Simulator {
     }
 
     @SuppressWarnings("UnusedParameters")
-    public static class Component3Service1 implements BundleComponentContainer.Managed {
+    public static class Component3Service1 implements BundleComponents.Managed {
 
-        private static BundleComponentContainer.Managed delegate;
+        private static BundleComponents.Managed delegate;
 
         public Component3Service1(final Component4Service1 dependency) {
             // empty
@@ -1414,9 +1407,9 @@ public class BundleComponentContainerImplTest extends Simulator {
     }
 
     @SuppressWarnings("UnusedParameters")
-    public static class Component4Service1 implements BundleComponentContainer.Managed {
+    public static class Component4Service1 implements BundleComponents.Managed {
 
-        private static BundleComponentContainer.Managed delegate;
+        private static BundleComponents.Managed delegate;
 
         public Component4Service1(final @Service ServiceInterface1 service1) {
             // empty
@@ -1432,9 +1425,9 @@ public class BundleComponentContainerImplTest extends Simulator {
     }
 
     @SuppressWarnings("UnusedParameters")
-    public static class Component5Service2 implements BundleComponentContainer.Managed {
+    public static class Component5Service2 implements BundleComponents.Managed {
 
-        private static BundleComponentContainer.Managed delegate;
+        private static BundleComponents.Managed delegate;
 
         public Component5Service2(final @Service ServiceInterface2 service2) {
             // empty
@@ -1450,10 +1443,10 @@ public class BundleComponentContainerImplTest extends Simulator {
     }
 
     @SuppressWarnings("UnusedParameters")
-    public static class FailingComponent implements BundleComponentContainer.Managed {
+    public static class FailingComponent implements BundleComponents.Managed {
 
         @SuppressWarnings("UnusedDeclaration")
-        private static BundleComponentContainer.Managed delegate;
+        private static BundleComponents.Managed delegate;
 
         public FailingComponent(final @Service ServiceInterface1 service1) { }
 
@@ -1466,9 +1459,9 @@ public class BundleComponentContainerImplTest extends Simulator {
         }
     }
 
-    public static class MultipleServiceFiltersComponent implements BundleComponentContainer.Managed {
+    public static class MultipleServiceFiltersComponent implements BundleComponents.Managed {
 
-        private static BundleComponentContainer.Managed delegate;
+        private static BundleComponents.Managed delegate;
 
         public MultipleServiceFiltersComponent(final @Service(filter = "filter-1") ServiceInterface1 service1,
                                                final @Service(filter = "filter-2") ServiceInterface1 service2) {
@@ -1484,7 +1477,7 @@ public class BundleComponentContainerImplTest extends Simulator {
         }
     }
 
-    public static class StatusCheck implements BundleComponentContainer.Managed {
+    public static class StatusCheck implements BundleComponents.Managed {
 
         public static ComponentStatus component;
 

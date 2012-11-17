@@ -22,13 +22,13 @@ import java.util.List;
 import java.util.Properties;
 
 import org.fluidity.composition.Component;
-import org.fluidity.deployment.osgi.BundleComponentContainer;
+import org.fluidity.deployment.osgi.BundleComponents;
 
 import ${package}.MessageSink;
 import ${package}.MessageSource;
 
 @Component(automatic = false)
-final class MessageSourceImpl implements MessageSource, BundleComponentContainer.Registration, BundleComponentContainer.Registration.Listener<MessageSink> {
+final class MessageSourceImpl implements MessageSource, BundleComponents.Registration, BundleComponents.Registration.Listener<MessageSink> {
 
     private final List<MessageSink> sinks = new ArrayList<MessageSink>();
 

@@ -18,18 +18,14 @@ package org.fluidity.tests.osgi.bundle1;
 
 import java.util.Properties;
 
-import org.fluidity.deployment.osgi.BundleComponentContainer;
+import org.fluidity.deployment.osgi.BundleComponents;
 
 /**
  * Independent service that must be recognized and instantiated by the bundle component container.
  *
  * @author Tibor Varga
  */
-final class IndependentService implements BundleComponentContainer.Registration {
-
-    public Class<?>[] types() {
-        return new Class<?>[] { IndependentService.class };
-    }
+final class IndependentService implements BundleComponents.Registration {
 
     public Properties properties() {
         return null;

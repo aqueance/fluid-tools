@@ -59,10 +59,6 @@ public final class ExtraDependenciesTest implements BundleTest {
         }
     }
 
-    public Class<?>[] types() {
-        return new Class<?>[] { BundleTest.class };
-    }
-
     public Properties properties() {
         return null;
     }

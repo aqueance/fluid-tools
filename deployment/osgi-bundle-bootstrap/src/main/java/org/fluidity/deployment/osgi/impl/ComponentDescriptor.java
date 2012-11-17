@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.osgi;
+package org.fluidity.deployment.osgi.impl;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.fluidity.deployment.osgi.BundleComponents;
 import org.fluidity.foundation.Lists;
 
 /**
@@ -31,10 +32,10 @@ final class ComponentDescriptor extends Descriptor {
     private boolean failed = false;
 
     private final Set<ServiceDescriptor> dependencies = new HashSet<ServiceDescriptor>();
-    private final Class<? super BundleComponentContainer.Managed>[] api;
+    private final Class<? super BundleComponents.Managed>[] api;
 
     @SuppressWarnings("unchecked")
-    ComponentDescriptor(final Class<BundleComponentContainer.Managed> type, final Collection<Class<? super BundleComponentContainer.Managed>> api) {
+    ComponentDescriptor(final Class<BundleComponents.Managed> type, final Collection<Class<? super BundleComponents.Managed>> api) {
         super(type);
         this.api = Lists.asArray(Class.class, api);
     }

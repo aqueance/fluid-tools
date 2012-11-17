@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.maven;
+package org.fluidity.deployment.maven;
 
 import java.io.File;
 import java.io.IOException;
@@ -114,6 +114,26 @@ public final class ClassReaders extends Utility implements Opcodes {
         } else {
             return findDirectInterfaces(repository.reader(classData.getSuperName()), repository);
         }
+    }
+
+    public static Set<String> findInterfaces(final ClassReader classData, final ClassRepository repository) throws IOException {
+        return findInterfaces(classData, repository, new HashSet<String>());
+    }
+
+    private static Set<String> findInterfaces(final ClassReader classData, final ClassRepository repository, final Set<String> list) throws IOException {
+        if (classData != null) {
+            final Set<String> interfaces = findDirectInterfaces(classData, repository);
+
+            list.addAll(interfaces);
+
+            for (final String api : interfaces) {
+                findInterfaces(repository.reader(api), repository, list);
+            }
+
+            findInterfaces(repository.reader(classData.getSuperName()), repository, list);
+        }
+
+        return list;
     }
 
     public static String externalName(final ClassReader reader) {

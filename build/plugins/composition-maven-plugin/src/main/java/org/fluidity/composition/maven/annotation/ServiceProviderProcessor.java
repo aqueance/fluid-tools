@@ -19,8 +19,8 @@ package org.fluidity.composition.maven.annotation;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.fluidity.composition.maven.ClassReaders;
-import org.fluidity.composition.maven.ClassRepository;
+import org.fluidity.deployment.maven.ClassReaders;
+import org.fluidity.deployment.maven.ClassRepository;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.ServiceProviders;
 

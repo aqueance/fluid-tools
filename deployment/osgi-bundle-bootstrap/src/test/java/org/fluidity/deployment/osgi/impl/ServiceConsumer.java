@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.osgi;
+package org.fluidity.deployment.osgi.impl;
 
-public interface ServiceProvider {
+public interface ServiceConsumer {
 
-    String callback(String className) throws Exception;
-
-    interface Callback {
-
-        String invoke();
-    }
+    String call() throws Exception;
 }

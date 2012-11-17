@@ -30,6 +30,7 @@ import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.deployment.osgi.impl.BundleBootstrap;
 import org.fluidity.deployment.plugin.spi.JarManifest;
+import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Command;
@@ -81,7 +82,11 @@ final class BundleJarManifest implements JarManifest {
     public static final String DEFAULT_BUNDLE_VERSION = Version.emptyVersion.toString();
     public static final String VERSION_PREFIX = "version:";
 
-    public void processManifest(final MavenProject project, final Attributes attributes, final Log log, final Dependencies dependencies) throws MojoExecutionException {
+    public SecurityPolicy processManifest(final MavenProject project,
+                                          final Attributes attributes,
+                                          final SecurityPolicy policy,
+                                          final Log log,
+                                          final Dependencies dependencies) throws MojoExecutionException {
         dependencies.attribute(BUNDLE_CLASSPATH, ",");
 
         addEntry(attributes, BUNDLE_MANIFESTVERSION, "2");
@@ -188,6 +193,8 @@ final class BundleJarManifest implements JarManifest {
                 throw new IllegalStateException(e);
             }
         }
+
+        return new OsgiLocalPermissions(policy, artifacts, attributes.getValue(DYNAMICIMPORT_PACKAGE), attributes.getValue(IMPORT_PACKAGE), attributes.getValue(EXPORT_PACKAGE));
     }
 
     private String verify(final String version) {

@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.osgi;
+package org.fluidity.deployment.osgi.impl;
+
+import org.fluidity.deployment.osgi.Service;
 
 /**
  * @author Tibor Varga
