@@ -42,6 +42,7 @@ import org.fluidity.composition.ServiceProvider;
 import org.fluidity.deployment.maven.ClassReaders;
 import org.fluidity.deployment.maven.ClassRepository;
 import org.fluidity.deployment.osgi.BundleComponents;
+import org.fluidity.deployment.osgi.Service;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
@@ -155,8 +156,8 @@ final class OsgiLocalPermissions implements SecurityPolicy {
 
         private final String serviceType;
 
-        private static final String REGISTRATION_TYPE_PARAM = Methods.get(BundleComponents.Registration.Type.class, new Methods.Invoker<BundleComponents.Registration.Type>() {
-            public void invoke(final BundleComponents.Registration.Type capture) throws Exception {
+        private static final String REGISTRATION_TYPE_PARAM = Methods.get(Service.Type.class, new Methods.Invoker<Service.Type>() {
+            public void invoke(final Service.Type capture) throws Exception {
                 capture.value();
             }
         })[0].getName();
@@ -264,11 +265,10 @@ final class OsgiLocalPermissions implements SecurityPolicy {
         }
 
         @SuppressWarnings("unchecked")
-        private static final Collection<Class<?>> IGNORED_TYPES = Arrays.asList(BundleComponents.Stoppable.class,
-                                                                                BundleComponents.Managed.class,
-                                                                                BundleComponents.Registration.class,
-                                                                                BundleComponents.Registration.Listener.class,
-                                                                                BundleComponents.Registration.Type.class);
+        private static final Collection<Class<?>> IGNORED_TYPES = Arrays.asList((Class<?>) BundleComponents.Stoppable.class,
+                                                                                (Class<?>) BundleComponents.Managed.class,
+                                                                                (Class<?>) BundleComponents.Registration.class,
+                                                                                (Class<?>) BundleComponents.Registration.Listener.class);
 
         private static final Collection<String> IGNORED_TYPES_INTERNAL = internalNames(IGNORED_TYPES);
         private static final Collection<String> IGNORED_TYPES_EXTERNAL = externalNames(IGNORED_TYPES);
@@ -309,7 +309,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
 
                 final ClassLoader loader = ClassLoaders.create(classpath, null, null);
                 final ClassRepository repository = new ClassRepository(loader);
-                final Type registration = Type.getType(BundleComponents.Registration.Type.class);
+                final Type registration = Type.getType(Service.Type.class);
 
                 for (final Dependency dependency : dependencies) {
                     final URL file = dependency.file().toURI().toURL();
@@ -345,7 +345,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
                                         if (types.isEmpty()) {
                                             throw new IllegalStateException(String.format("Managed component %s does not have or inherit @%s",
                                                                                           line,
-                                                                                          Strings.formatClass(false, false, BundleComponents.Registration.Type.class)));
+                                                                                          Strings.formatClass(false, false, Service.Type.class)));
                                         }
 
                                         final Collection<String> list = permissions(dependency.location().concat(dependency.file().getName()), permissions);

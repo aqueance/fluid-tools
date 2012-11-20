@@ -601,7 +601,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
 
         // figures out what service interface to register the given service class as
         private static Class<?>[] types(final Class<?> service) {
-            final BundleComponents.Registration.Type annotation = service.getAnnotation(BundleComponents.Registration.Type.class);
+            final Service.Type annotation = service.getAnnotation(Service.Type.class);
 
             if (annotation != null) {
                 return annotation.value();

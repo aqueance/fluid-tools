@@ -18,6 +18,7 @@ package org.fluidity.deployment.osgi;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -53,4 +54,23 @@ public @interface Service {
      * @return the filter that narrows down the list of possible service implementation candidates.
      */
     String filter() default "";
+
+    /**
+     * Specifies the OSGi service interfaces to register a service as. Reasonable defaults are computed so the use of annotation is optional.
+     *
+     * @author Tibor Varga
+     * @see BundleComponents.Registration
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Inherited
+    @Target(ElementType.TYPE)
+    @interface Type {
+
+        /**
+         * Returns the list of classes this service is to be registered as.
+         *
+         * @return the list of classes this service is to be registered as.
+         */
+        Class<?>[] value();
+    }
 }

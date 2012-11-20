@@ -16,11 +16,6 @@
 
 package org.fluidity.deployment.osgi;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
@@ -162,7 +157,7 @@ public interface BundleComponents {
      * href="http://www.osgi.org/wiki/uploads/Links/whiteboard.pdf">Whiteboard pattern</a>, this is an event consumer that an event source will discover and
      * send events to.
      * <p/>
-     * The {@link BundleComponents.Registration.Type} annotation can be used to explicitly specify the service interfaces, which default to those
+     * The {@link Service.Type} annotation can be used to explicitly specify the service interfaces, which default to those
      * directly implemented by the service class, less {@link BundleComponents.Registration}. If the service class does not directly implement
      * interface, its super class is consulted. If the service class or its ancestor being checked does not have a super class, the class itself will be the
      * service interface.
@@ -179,25 +174,6 @@ public interface BundleComponents {
          * @return the registration properties for this service; may be <code>null</code>.
          */
         Properties properties();
-
-        /**
-         * Specifies the OSGi service interfaces to register a service as. Reasonable defaults are computed so the use of annotation is optional.
-         *
-         * @author Tibor Varga
-         * @see BundleComponents.Registration
-         */
-        @Retention(RetentionPolicy.RUNTIME)
-        @Inherited
-        @Target(ElementType.TYPE)
-        @interface Type {
-
-            /**
-             * Returns the list of classes this service is to be registered as.
-             *
-             * @return the list of classes this service is to be registered as.
-             */
-            Class<?>[] value();
-        }
 
         /**
          * An OSGi service registration listener. In terms of the <a href="http://www.osgi.org/wiki/uploads/Links/whiteboard.pdf">Whiteboard pattern</a>, this
