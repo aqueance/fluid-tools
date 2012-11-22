@@ -40,6 +40,13 @@
     <dependencies>
 
         <dependency>
+            <groupId>${fluidity.public.groupId}</groupId>
+            <artifactId>fluid-tools-osgi-application</artifactId>
+            <version>${project.version}</version>
+            <type>pom</type>
+        </dependency>
+
+        <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>testing-api</artifactId>
             <version>${project.version}</version>
@@ -47,16 +54,10 @@
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.public.groupId}</groupId>
-            <artifactId>fluid-tools-cli-application</artifactId>
-            <version>${project.version}</version>
-            <type>pom</type>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>osgi-application-bootstrap</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <version>${osgi.specification.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>

@@ -24,10 +24,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.platform</groupId>
-    <artifactId>osgi-application-bootstrap</artifactId>
+    <artifactId>osgi-application-bootstrap-spi</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Deployment: OSGi Application Bootstrap</name>
+    <name>Deployment: ISGi Bootstrap SPI</name>
 
     <licenses>
         <license>
@@ -40,27 +40,9 @@
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.public.groupId}</groupId>
-            <artifactId>fluid-tools-cli-application</artifactId>
-            <type>pom</type>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-api</artifactId>
             <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>osgi-composition-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>osgi-application-bootstrap-spi</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.codehaus.plexus</groupId>
-            <artifactId>plexus-interpolation</artifactId>
         </dependency>
 
         <dependency>
@@ -74,11 +56,6 @@
 
     <build>
         <plugins>
-
-            <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
-                <artifactId>composition-maven-plugin</artifactId>
-            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -104,5 +81,4 @@
 
         </plugins>
     </build>
-
 </project>

@@ -17,17 +17,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <groupId>org.fluidity</groupId>
-        <artifactId>platform</artifactId>
+        <groupId>org.fluidity.platform</groupId>
+        <artifactId>public</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.platform</groupId>
-    <artifactId>public</artifactId>
+    <artifactId>fluid-tools-osgi-application</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Fluid Tools: Public Dependencies</name>
+    <name>Fluid Tools: OSGi Deployment</name>
 
     <licenses>
         <license>
@@ -38,19 +38,38 @@
     </licenses>
 
     <description><![CDATA[
-This project lists the public modules of Fluid Tools.
+This project is intended to be the Fluid Tools dependency of Maven modules
+containing OSGi application wrappers.
     ]]></description>
 
-    <modules>
-        <module>fluid-tools-component-api</module>
-        <module>fluid-tools-boundary-api</module>
-        <module>fluid-tools-bootstrap</module>
-        <module>fluid-tools-generic-application</module>
-        <module>fluid-tools-cli-application</module>
-        <module>fluid-tools-osgi-application</module>
-        <module>fluid-tools-osgi-bundle</module>
-        <module>fluid-tools-tests</module>
-        <module>fluid-tools-web-application</module>
-    </modules>
+    <dependencies>
+
+        <dependency>
+            <groupId>${fluidity.public.groupId}</groupId>
+            <artifactId>fluid-tools-cli-application</artifactId>
+            <version>${project.version}</version>
+            <type>pom</type>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.deployment.groupId}</groupId>
+            <artifactId>osgi-application-bootstrap</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.deployment.groupId}</groupId>
+            <artifactId>osgi-application-bootstrap-spi</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <version>${osgi.specification.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+    </dependencies>
 
 </project>

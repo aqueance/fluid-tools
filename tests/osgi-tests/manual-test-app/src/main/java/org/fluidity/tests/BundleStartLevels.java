@@ -16,23 +16,22 @@
 
 package org.fluidity.tests;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.fluidity.composition.Component;
-import org.fluidity.deployment.osgi.StartLevels;
+import org.fluidity.deployment.osgi.Initialization;
 
 import org.osgi.framework.Bundle;
+import org.osgi.framework.launch.Framework;
+import org.osgi.framework.startlevel.BundleStartLevel;
+import org.osgi.framework.startlevel.FrameworkStartLevel;
 
-@Component
-final class StartLevelsImpl implements StartLevels {
+@SuppressWarnings("UnusedDeclaration")
+final class BundleStartLevels implements Initialization {
 
-    @SuppressWarnings("unchecked")
-    public List<List<Bundle>> bundles(final List<Bundle> bundles) {
-        return Arrays.asList(bundles.subList(0, 1));
-    }
+    public void initialize(final Framework framework, final Bundle... bundles) {
+        int level = 2;
+        for (final Bundle bundle : bundles) {
+            bundle.adapt(BundleStartLevel.class).setStartLevel(level++);
+        }
 
-    public int initial(final int maximum) {
-        return 0;
+        framework.adapt(FrameworkStartLevel.class).setStartLevel(1);
     }
 }

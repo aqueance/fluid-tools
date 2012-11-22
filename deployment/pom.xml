@@ -41,6 +41,7 @@
         <module>cli-bootstrap-spi</module>
         <module>cli-bootstrap</module>
         <module>war-bootstrap-spi</module>
+        <module>osgi-application-bootstrap-spi</module>
         <module>osgi-composition-api</module>
         <module>osgi-bundle-bootstrap</module>
         <module>osgi-application-bootstrap</module>

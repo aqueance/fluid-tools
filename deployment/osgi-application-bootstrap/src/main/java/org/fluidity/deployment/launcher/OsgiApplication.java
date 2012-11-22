@@ -41,16 +41,19 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.deployment.cli.Application;
-import org.fluidity.deployment.osgi.StartLevels;
+import org.fluidity.deployment.osgi.Initialization;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Command;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.Security;
 import org.fluidity.foundation.ServiceProviders;
+import org.fluidity.foundation.Strings;
 
 import org.codehaus.plexus.interpolation.PropertiesBasedValueSource;
 import org.codehaus.plexus.interpolation.RecursionInterceptor;
@@ -67,19 +70,10 @@ import org.osgi.framework.startlevel.FrameworkStartLevel;
 
 /**
  * A command line main class that populates the application's dependency injection container, bootstraps an OSGi framework, installs all OSGi bundle JAR files
- * visible to its class loader, starts all non-fragment bundles, and then waits for the OSGi framework to stop.
- * <p/>
- * <b>NOTE</b>: This class is public <em>only</em> so that its <code>main</code> method can be found by the Java launcher.
- * <p/>
- * With OSGi version 4.3 or later, bundle and framework start levels default to 2 to enable starting and stopping all bundles simply by setting the framework
- * start level. Fine tuning of start levels is possible through an optional implementation of the {@link StartLevels} interface.
- * <p/>
- * With OSGi version earlier than 4.2, bundle and framework start levels are set to 1 and no fine tuning is possible.
+ * visible to its class loader, calls the  optional {@link Initialization} components to initialize the OSGi framework, starts all non-fragment bundles, and
+ * then waits for the OSGi framework to stop.
  * <h3>Usage</h3>
- * <h4>POM</h4>
  * Use the <code>org.fluidity.maven:fluidity-archetype-standalone-osgi</code> Maven archetype to create the standalone OSGi application wrapper project.
- * <h4>Start Levels</h4>
- * See {@link StartLevels} for details.
  *
  * @author Tibor Varga
  */
@@ -106,19 +100,19 @@ final class OsgiApplication implements Application {
 
     private final Log log;
     private final ContainerTermination termination;
-    private final StartLevels levels;
+    private final Initialization[] initializations;
 
     /**
      * Dependency injected constructor.
      *
-     * @param log         the log sink to use.
-     * @param termination the container termination component.
-     * @param levels      the optional start level fine tuning component.
+     * @param log             the log sink to use.
+     * @param termination     the container termination component.
+     * @param initializations the optional components that initialize the OSGi application.
      */
-    OsgiApplication(final Log<OsgiApplication> log, final ContainerTermination termination, final @Optional StartLevels levels) {
+    OsgiApplication(final Log<OsgiApplication> log, final ContainerTermination termination, final @Optional @ComponentGroup Initialization... initializations) {
         this.log = log;
         this.termination = termination;
-        this.levels = levels;
+        this.initializations = initializations;
     }
 
     public void run(final String[] arguments) throws Exception {
@@ -282,58 +276,37 @@ final class OsgiApplication implements Application {
             }
         }
 
-        final FrameworkStartLevel startLevel = levels == null ? null : framework.adapt(FrameworkStartLevel.class);
-
-        final List<List<Bundle>> order = new ArrayList<List<Bundle>>();
-
-        if (startLevel != null) {
-
-            // start level 0: framework stopped
-            // start level 1: framework started
-            // start level 2+ : bundle start levels
-
-            final List<Bundle> remaining = new ArrayList<Bundle>(bundles);
-
-            int level = 1;
-            for (final List<Bundle> list : list(bundles)) {
-
-                // make sure no bundle is included that has already been assigned a start level
-                list.retainAll(remaining);
-
-                // no bundle to start at this level: discard the rest
-                if (list.isEmpty()) {
-                    break;
-                }
-
-                remaining.removeAll(list);
-                order.add(list);
-
-                ++level;
-                for (final Bundle bundle : list) {
-                    bundle.adapt(BundleStartLevel.class).setStartLevel(level);
-                }
+        if (initializations != null) {
+            for (final Initialization initialization : initializations) {
+                log.debug("Calling %s initialization", Strings.formatClass(false, true, initialization.getClass()));
+                initialization.initialize(framework, Lists.asArray(Bundle.class, bundles));
             }
+        }
 
-            if (!remaining.isEmpty()) {
-                order.add(remaining);
-
-                ++level;
-                for (final Bundle bundle : remaining) {
-                    bundle.adapt(BundleStartLevel.class).setStartLevel(level);
-                }
+        bundles.clear();
+        for (final Bundle bundle : system.getBundles()) {
+            if (bundle.getBundleContext() != system) {
+                bundles.add(bundle);
             }
         }
 
         for (final Bundle bundle : bundles) {
-            bundle.start(Bundle.START_ACTIVATION_POLICY);
+            switch (bundle.getState()) {
+            case Bundle.INSTALLED:
+            case Bundle.RESOLVED:
+                bundle.start(Bundle.START_ACTIVATION_POLICY);
+            }
         }
 
-        if (startLevel != null) {
-            final int limit = order.size() + 1;
-            final int level = Math.max(1, Math.min(limit, levels.initial(limit)));
-            startLevel.setStartLevel(level);
+        final FrameworkStartLevel levels = framework.adapt(FrameworkStartLevel.class);
 
-            log.debug("OSGi framework (%s) started at level %d of %d", framework.getSymbolicName(), level, limit);
+        if (levels != null) {
+            int max = 0;
+            for (final Bundle bundle : bundles) {
+                max = Math.max(max, bundle.adapt(BundleStartLevel.class).getStartLevel());
+            }
+
+            log.debug("OSGi framework (%s) started at level %d of %d", framework.getSymbolicName(), levels.getStartLevel(), max);
         } else {
             log.debug("OSGi framework (%s) started", framework.getSymbolicName());
         }
@@ -347,11 +320,6 @@ final class OsgiApplication implements Application {
                 return ClassLoaders.readResource(getClass(), name);
             }
         });
-    }
-
-    private List<List<Bundle>> list(final List<Bundle> bundles) {
-        final List<List<Bundle>> lists = levels.bundles(new ArrayList<Bundle>(bundles));
-        return lists == null ? Collections.<List<Bundle>>emptyList() : lists;
     }
 
     private Properties loadProperties(final InputStream stream, final Properties defaults) throws IOException {

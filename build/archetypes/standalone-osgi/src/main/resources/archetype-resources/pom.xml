@@ -29,9 +29,10 @@ limitations under the License.
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>osgi-application-bootstrap</artifactId>
+            <groupId>${fluidity.public.groupId}</groupId>
+            <artifactId>fluid-tools-osgi-application</artifactId>
             <version>${symbol_dollar}{fluid.tools.version}</version>
+            <type>pom</type>
         </dependency>
 
         <dependency>
@@ -64,7 +65,6 @@ limitations under the License.
 
     <profiles>
         <profile>
-            <!-- this ID is used at run time -->
             <id>bundles</id>
             <activation><activeByDefault>true</activeByDefault></activation>
 
