@@ -37,12 +37,12 @@ limitations under the License.
 
         <!--
         Depending on the intended use, you may want to move here the
-        dependencies from either the "standalone" or the "stripped" profile
+        dependencies from either the "standalone" or the "lean" profile
         and delete the profiles themselves.
 
         The "standalone" variant produces a complete OSGi bundle while the
-        "stripped" variant can only be deployed in a standalone OSGi
-        application matching the fluidity-archetype-standalone-osgi archetype.
+        "lean" variant can only be deployed in a standalone OSGi application
+        matching the fluidity-archetype-standalone-osgi archetype.
         -->
 
     </dependencies>
@@ -86,7 +86,7 @@ limitations under the License.
         </profile>
 
         <profile>
-            <id>stripped</id>
+            <id>lean</id>
             <activation><property><name>!standalone-bundles</name></property></activation>
 
             <dependencies>

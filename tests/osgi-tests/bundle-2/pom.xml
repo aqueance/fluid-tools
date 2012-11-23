@@ -77,7 +77,7 @@
         </profile>
 
         <profile>
-            <id>stripped</id>
+            <id>lean</id>
             <activation><property><name>leak-test</name></property></activation>
 
             <dependencies>

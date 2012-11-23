@@ -254,7 +254,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
                 final byte[] buffer = new byte[16384];
 
-                SecurityPolicy policy = new JavaSecurityPolicy(2, false, buffer);
+                SecurityPolicy policy = new JavaSecurityPolicy(2, false, buffer, packageFile, log);
 
                 final AtomicReference<String> dependenciesName = new AtomicReference<String>();
 
@@ -401,7 +401,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
                 outputStream.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
                 manifest.write(outputStream);
 
-                policy.save(packageFile, new SecurityPolicy.Output() {
+                policy.save(new SecurityPolicy.Output() {
                     public void save(final String name, final String content) throws IOException {
                         outputStream.putNextEntry(new JarEntry(name));
                         Streams.store(outputStream, content, "UTF-8", buffer, false);
@@ -529,10 +529,19 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
         private final SecurityPolicy policy;
         private final Iterator<Artifact> iterator;
+        private final Collection<String> excluded = new HashSet<String>();
 
-        DependencyFeed(final SecurityPolicy policy, final Collection<Artifact> unpackedDependencies) {
+        DependencyFeed(final SecurityPolicy policy, final Collection<Artifact> unpackedDependencies) throws IOException {
             this.policy = policy;
             this.iterator = unpackedDependencies.iterator();
+
+            for (final Artifact artifact : unpackedDependencies) {
+                final String name = policy.name(artifact.getFile());
+
+                if (name != null) {
+                    excluded.add(name);
+                }
+            }
         }
 
         public File next() throws IOException {
@@ -544,7 +553,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
         }
 
         public boolean include(final JarEntry entry) {
-            return !entry.getName().equals(policy.name());
+            return !excluded.contains(entry.getName());
         }
     }
 }

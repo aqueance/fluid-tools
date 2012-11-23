@@ -96,8 +96,12 @@ final class OsgiLocalPermissions implements SecurityPolicy {
         }
     }
 
-    public String name() {
+    public String name(final File file) {
         return SECURITY_POLICY_FILE;
+    }
+
+    public File archive() {
+        return delegate.archive();
     }
 
     public byte[] buffer() {
@@ -125,16 +129,15 @@ final class OsgiLocalPermissions implements SecurityPolicy {
         });
     }
 
-    public void save(final File archive, final Output output) throws IOException {
-        final PermissionsOutput permissions = new PermissionsOutput(archive,
-                                                                output,
-                                                                buffer(),
-                                                                dynamicImports,
-                                                                staticImports,
-                                                                staticExports,
-                                                                classpath,
-                                                                Lists.asArray(Dependency.class, dependencies));
-        delegate.save(archive, permissions);
+    public void save(final Output output) throws IOException {
+        delegate.save(new PermissionsOutput(delegate.archive(),
+                                            output,
+                                            buffer(),
+                                            dynamicImports,
+                                            staticImports,
+                                            staticExports,
+                                            classpath,
+                                            Lists.asArray(Dependency.class, dependencies)));
     }
 
     /**

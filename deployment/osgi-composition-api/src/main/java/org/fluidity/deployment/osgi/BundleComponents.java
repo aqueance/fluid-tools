@@ -43,8 +43,8 @@ import org.fluidity.composition.ServiceProvider;
  * <b>Note</b>: Managed components cannot consume or transmit component context. Each bundle will have exactly zero or one instance of every managed component
  * in the empty context and their dependency references will have an empty base context.
  * <h3>Depending on OSGi Services</h3>
- * The constructor parameters of <code>Managed</code> components annotated with the {@link Service @Service} are dependencies to OSGi services while parameters
- * not so annotated are ordinary dependencies.
+ * The dependencies of <code>Managed</code> components annotated with the {@link Service @Service} are dependencies to OSGi services while parameters not so
+ * annotated are ordinary dependencies.
  * <p/>
  * When all of the OSGi services depended on, directly or indirectly through other <code>Managed</code> components, become available, the component is
  * instantiated and its {@link org.fluidity.deployment.osgi.BundleComponents.Managed#start() start()} method is invoked to start the component. The {@link org.fluidity.deployment.osgi.BundleComponents.Stoppable#stop() stop()} method of the component

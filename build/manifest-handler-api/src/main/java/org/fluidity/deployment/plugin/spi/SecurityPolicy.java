@@ -45,11 +45,22 @@ public interface SecurityPolicy {
     }
 
     /**
-     * Returns the name of the security policy entry.
+     * Returns the name of the security policy entry in the given archive.
      *
-     * @return the name of the security policy entry.
+     * @param file the archive to return the embedded security policy name from.
+     *
+     * @return the name of the security policy entry in the given archive; may be <code>null</code>.
+     *
+     * @throws IOException on I/O failure.
      */
-    String name();
+    String name(File file) throws IOException;
+
+    /**
+     * Returns the archive for which the policy is managed.
+     *
+     * @return the archive for which the policy is managed.
+     */
+    File archive();
 
     /**
      * Returns the I/O buffer used by the receiver.
@@ -79,10 +90,9 @@ public interface SecurityPolicy {
     /**
      * Processes all archives and saves the resulting security policy in the given <code>output</code>.
      *
-     * @param archive the the host archive.
      * @param output  the output to save the security policy.
      *
      * @throws IOException on I/O failure.
      */
-    void save(final File archive, Output output) throws IOException;
+    void save(Output output) throws IOException;
 }

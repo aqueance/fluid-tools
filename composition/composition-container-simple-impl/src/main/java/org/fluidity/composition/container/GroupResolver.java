@@ -35,8 +35,6 @@ import org.fluidity.composition.container.spi.DependencyGraph;
 
 /**
  * Component mapping for a component group.
- * <p/>
- * TODO: mention that the instantiation ordering of self referencing group members cannot be established before injecting the group array
  *
  * @author Tibor Varga
  */

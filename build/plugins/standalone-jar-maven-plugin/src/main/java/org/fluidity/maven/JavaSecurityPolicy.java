@@ -17,6 +17,7 @@
 package org.fluidity.maven;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -30,6 +31,8 @@ import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Streams;
 import org.fluidity.foundation.jarjar.Handler;
 
+import org.apache.maven.plugin.logging.Log;
+
 /**
  * Handles security.policy files in nested archives.
  *
@@ -37,11 +40,12 @@ import org.fluidity.foundation.jarjar.Handler;
  */
 final class JavaSecurityPolicy implements SecurityPolicy {
 
-    private static final String SECURITY_POLICY_FILE = String.format("%s/security.policy", Archives.META_INF);
-
     private final byte[] buffer;
     private final List<String> files[];
     private final boolean cached;
+    private final String name;
+    private final File archive;
+    private final Log log;
 
     /**
      * Creates a new security policy file processor.
@@ -49,22 +53,38 @@ final class JavaSecurityPolicy implements SecurityPolicy {
      * @param levels  tells how many lists of files to maintain.
      * @param cached  the flag to send to various methods of {@link org.fluidity.foundation.Archives} when accessing archives.
      * @param buffer  the I/O buffer to use when accessing archives.
+     * @param archive the host archive.
+     * @param log     the log to emit messages to.
      */
     @SuppressWarnings("unchecked")
-    public JavaSecurityPolicy(final int levels, final boolean cached, final byte[] buffer) throws IOException {
+    public JavaSecurityPolicy(final int levels, final boolean cached, final byte[] buffer, final File archive, final Log log) throws IOException {
         assert levels > 0 : levels;
 
-        this.buffer = buffer;
         this.cached = cached;
+        this.buffer = buffer;
+        this.archive = archive;
+        this.log = log;
+
         this.files = new List[levels];
 
         for (int i = 0; i < files.length; i++) {
             files[i] = new ArrayList<String>();
         }
+
+        final String entry = entry(archive);
+        this.name = entry == null ? String.format("%s/security.policy", Archives.META_INF) : entry;
     }
 
-    public String name() {
-        return SECURITY_POLICY_FILE;
+    public String name(final File file) throws IOException {
+        return file.equals(archive) ? name : entry(file);
+    }
+
+    private String entry(final File file) throws IOException {
+        return Archives.attributes(cached, file.toURI().toURL(), Archives.SECURITY_POLICY)[0];
+    }
+
+    public File archive() {
+        return archive;
     }
 
     public byte[] buffer() {
@@ -84,16 +104,20 @@ final class JavaSecurityPolicy implements SecurityPolicy {
         assert archive != null;
 
         final URL url = new URL(Archives.FILE, null, -1, archive.getAbsolutePath());
-        final String entry = entry(url);
+        final String entry = entry(archive);
 
         if (entry != null) {
-            final String content = Streams.load(Archives.open(cached, Archives.Nested.formatURL(url, entry)), "UTF-8", buffer, true);
+            try {
+                final String content = Streams.load(Archives.open(cached, Archives.Nested.formatURL(url, entry)), "UTF-8", buffer, true);
 
-            if (content != null && !content.isEmpty()) {
-                final String file = archive.getName();
-                final String replacement = relativeReferences(location, file, absoluteReferences(location, file, content));
+                if (content != null && !content.isEmpty()) {
+                    final String file = archive.getName();
+                    final String replacement = relativeReferences(location, file, absoluteReferences(location, file, content));
 
-                files[level].add(replacement);
+                    files[level].add(replacement);
+                }
+            } catch (final FileNotFoundException e) {
+                log.warn(String.format("Archive %s refers to missing security policy", archive));
             }
         }
     }
@@ -101,7 +125,7 @@ final class JavaSecurityPolicy implements SecurityPolicy {
     public void update(final Output metadata) throws IOException {
         for (final List<String> file : files) {
             if (!file.isEmpty()) {
-                metadata.save(Archives.SECURITY_POLICY, SECURITY_POLICY_FILE);
+                metadata.save(Archives.SECURITY_POLICY, name);
                 return;
             }
         }
@@ -109,7 +133,7 @@ final class JavaSecurityPolicy implements SecurityPolicy {
         metadata.save(Archives.SECURITY_POLICY, null);
     }
 
-    public void save(final File archive, final Output output) throws IOException {
+    public void save(final Output output) throws IOException {
         final Lists.Delimited content = Lists.delimited(String.format("%n"));
 
         for (final List<String> list : files) {
@@ -117,7 +141,7 @@ final class JavaSecurityPolicy implements SecurityPolicy {
         }
 
         if (!content.isEmpty()) {
-            output.save(SECURITY_POLICY_FILE, content.toString());
+            output.save(name, content.toString());
         }
     }
 
@@ -179,9 +203,5 @@ final class JavaSecurityPolicy implements SecurityPolicy {
         matcher.appendTail(replacement);
 
         return replacement.toString();
-    }
-
-    private String entry(final URL url) throws IOException {
-        return Archives.attributes(cached, url, Archives.SECURITY_POLICY)[0];
     }
 }

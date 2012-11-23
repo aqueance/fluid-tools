@@ -41,13 +41,13 @@
 This project is intended to be the Fluid Tools dependency of Maven modules
 containing OSGi bundles.
 
-For standalone bundles, use the dependency as is; for stripped bundles, set
-the scope of the dependency to "provided".
+For standalone bundles, use the dependency as is; for lean bundles, set the
+scope of the dependency to "provided".
 
 The difference is that standalone bundles include all of Fluid Tools and can
-be deployed in any compliant OSGi container while stripped bundles do not
-contain all of Fluid Tools and can only be deployed in OSGi container that
-have Fluid Tools available through parent class loaders.
+be deployed in any compliant OSGi container while lean bundles do not contain
+all of Fluid Tools and can only be deployed in OSGi container that have Fluid
+Tools available through parent class loaders.
     ]]></description>
 
     <dependencies>

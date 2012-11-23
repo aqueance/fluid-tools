@@ -27,11 +27,12 @@ import org.osgi.framework.startlevel.FrameworkStartLevel;
 final class BundleStartLevels implements Initialization {
 
     public void initialize(final Framework framework, final Bundle... bundles) {
-        int level = 2;
-        for (final Bundle bundle : bundles) {
-            bundle.adapt(BundleStartLevel.class).setStartLevel(level++);
-        }
+        int level = 0;
 
-        framework.adapt(FrameworkStartLevel.class).setStartLevel(1);
+        framework.adapt(FrameworkStartLevel.class).setStartLevel(++level);
+
+        for (final Bundle bundle : bundles) {
+            bundle.adapt(BundleStartLevel.class).setStartLevel(++level);
+        }
     }
 }

@@ -240,7 +240,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
                 if (!dependencyMap.isEmpty()) {
                     final byte[] buffer = new byte[16384];
 
-                    final SecurityPolicy policy = new JavaSecurityPolicy(2, false, buffer);
+                    final SecurityPolicy policy = new JavaSecurityPolicy(2, false, buffer, packageFile, log);
 
                     policy.add(packageFile, 0, null);
 
@@ -266,7 +266,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
                     outputStream.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
                     manifest.write(outputStream);
 
-                    policy.save(packageFile, new SecurityPolicy.Output() {
+                    policy.save(new SecurityPolicy.Output() {
                         public void save(final String name, final String content) throws IOException {
                             outputStream.putNextEntry(new JarEntry(name));
                             Streams.store(outputStream, content, "UTF-8", buffer, false);
@@ -275,6 +275,9 @@ public final class IncludeJarsMojo extends AbstractMojo {
 
                     // copy the original archive, excluding entries from our dependency paths
                     Archives.read(false, packageURL, new Archives.Entry() {
+
+                        private String policyName = policy.name(packageFile);
+
                         public boolean matches(final URL url, final JarEntry entry) throws IOException {
                             final String name = entry.getName();
 
@@ -288,7 +291,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
                                 }
                             }
 
-                            return !name.equals(policy.name());
+                            return !name.equals(policyName);
                         }
 
                         public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
