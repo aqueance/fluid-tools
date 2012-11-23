@@ -43,7 +43,8 @@
         <module>war-bootstrap-spi</module>
         <module>osgi-application-bootstrap-spi</module>
         <module>osgi-composition-api</module>
-        <module>osgi-bundle-bootstrap</module>
+        <module>osgi-bundle-bootstrap-local</module>
+        <module>osgi-bundle-bootstrap-shared</module>
         <module>osgi-application-bootstrap</module>
     </modules>
 

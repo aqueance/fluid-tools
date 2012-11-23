@@ -71,7 +71,7 @@
 
                 <dependency>
                     <groupId>${fluidity.deployment.groupId}</groupId>
-                    <artifactId>osgi-bundle-bootstrap</artifactId>
+                    <artifactId>osgi-bundle-bootstrap-local</artifactId>
                     <version>${project.version}</version>
                 </dependency>
 

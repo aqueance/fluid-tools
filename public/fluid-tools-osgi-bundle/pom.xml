@@ -61,7 +61,13 @@ Tools available through parent class loaders.
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>osgi-bundle-bootstrap</artifactId>
+            <artifactId>osgi-bundle-bootstrap-local</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.deployment.groupId}</groupId>
+            <artifactId>osgi-bundle-bootstrap-shared</artifactId>
             <version>${project.version}</version>
         </dependency>
 

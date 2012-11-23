@@ -18,16 +18,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.fluidity.platform</groupId>
-        <artifactId>public</artifactId>
+        <artifactId>deployment</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.platform</groupId>
-    <artifactId>fluid-tools-osgi-application</artifactId>
+    <artifactId>osgi-bundle-bootstrap-local</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <name>Fluid Tools: OSGi Deployment</name>
+    <packaging>jar</packaging>
+    <name>Deployment: OSGi Bundle Bootstrap (Local)</name>
 
     <licenses>
         <license>
@@ -37,36 +37,49 @@
         </license>
     </licenses>
 
-    <description><![CDATA[
-This project is intended to be the Fluid Tools dependency of Maven modules
-containing OSGi application wrappers.
-    ]]></description>
-
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.public.groupId}</groupId>
-            <artifactId>fluid-tools-cli-application</artifactId>
-            <version>${project.version}</version>
-            <type>pom</type>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>osgi-application-bootstrap</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>osgi-bundle-bootstrap-shared</artifactId>
             <version>${project.version}</version>
+
+            <!-- Lean bundles should not embed this dependency -->
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-bootstrap-support</artifactId>
+            <version>${project.version}</version>
+
+            <!-- Lean bundles should not embed this dependency -->
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>osgi-application-bootstrap-spi</artifactId>
+            <artifactId>osgi-composition-api</artifactId>
             <version>${project.version}</version>
+
+            <!-- Lean bundles should not embed this dependency -->
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.public.groupId}</groupId>
+            <artifactId>fluid-tools-tests</artifactId>
+            <version>${project.version}</version>
+            <type>pom</type>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.public.groupId}</groupId>
+            <artifactId>fluid-tools-generic-application</artifactId>
+            <version>${project.version}</version>
+            <type>pom</type>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -77,5 +90,14 @@ containing OSGi application wrappers.
         </dependency>
 
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>${fluidity.plugin.groupId}</groupId>
+                <artifactId>composition-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

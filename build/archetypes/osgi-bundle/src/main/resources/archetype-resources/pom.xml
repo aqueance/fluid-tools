@@ -116,7 +116,7 @@ limitations under the License.
 
                 <dependency>
                     <groupId>${fluidity.deployment.groupId}</groupId>
-                    <artifactId>osgi-bundle-bootstrap</artifactId>
+                    <artifactId>osgi-bundle-bootstrap-local</artifactId>
                     <version>${symbol_dollar}{fluid.tools.version}</version>
                 </dependency>
             </dependencies>

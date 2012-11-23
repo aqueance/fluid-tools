@@ -116,7 +116,7 @@
     <profiles>
         <profile>
             <id>integration-test</id>
-            <activation><property><name>!leak-test</name></property></activation>
+            <activation><property><name>!lean</name></property></activation>
 
             <build>
                 <plugins>

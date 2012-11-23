@@ -16,6 +16,8 @@
 
 package org.fluidity.foundation.jarjar;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
@@ -97,8 +99,8 @@ public final class Launcher {
     }
 
     private static void start(final String[] args) throws Exception {
-        Archives.Cache.access(new Process<Object, Exception>() {
-            public Object run() throws Exception {
+        Archives.Cache.access(new Process<Void, Exception>() {
+            public Void run() throws Exception {
                 final Class<?> me = Launcher.class;
                 final URL root = Archives.containing(me);
 
@@ -106,7 +108,16 @@ public final class Launcher {
                 final String[] arguments;
 
                 if (Archives.attributes(true, root, ORIGINAL_MAIN_CLASS)[0] == null && args.length > 0 && args[0].startsWith(URL_PARAM)) {
-                    url = new URL(args[0].substring(URL_PARAM.length()));
+                    final String parameter = args[0].substring(URL_PARAM.length());
+
+                    try {
+                        url = new URL(parameter);
+                    } catch (final MalformedURLException e) {
+                        throw new IllegalArgumentException(String.format("Invalid URL: '%s'", parameter), e);
+                    } catch (final IOException e) {
+                        throw new IllegalArgumentException(String.format("Accessing URL %s", parameter), e);
+                    }
+
                     arguments = new String[args.length - 1];
                     System.arraycopy(args, 1, arguments, 0, arguments.length);
                 } else {

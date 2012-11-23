@@ -70,7 +70,7 @@
     <profiles>
         <profile>
             <id>quiet</id>
-            <activation><property><name>leak-test</name></property></activation>
+            <activation><property><name>lean</name></property></activation>
 
             <dependencies>
                 <dependency>

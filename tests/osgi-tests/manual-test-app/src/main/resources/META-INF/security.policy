@@ -1,0 +1,5 @@
+grant codebase "file:\${java.class.path} {
+  permission org.osgi.framework.AdaptPermission "(adaptClass=org.osgi.framework.startlevel.*)", "adapt";
+  permission org.osgi.framework.AdminPermission "(id=0)", "startLevel";
+  permission org.osgi.framework.AdminPermission "(id=*)", "execute,resolve";
+}
