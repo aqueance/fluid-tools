@@ -19,7 +19,6 @@ package org.fluidity.composition.container.spi;
 import org.fluidity.composition.MutableContainer;
 import org.fluidity.composition.ServiceProvider;
 import org.fluidity.composition.container.ContainerServices;
-import org.fluidity.composition.container.SuperContainer;
 
 /**
  * Creates {@linkplain org.fluidity.composition.MutableContainer dependency injection container} instances. This is the entry point to a container

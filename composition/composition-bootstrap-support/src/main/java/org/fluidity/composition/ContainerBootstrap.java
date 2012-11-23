@@ -19,8 +19,8 @@ package org.fluidity.composition;
 import java.util.Map;
 
 import org.fluidity.composition.container.ContainerServices;
-import org.fluidity.composition.container.SuperContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
+import org.fluidity.composition.container.spi.SuperContainer;
 
 /**
  * Bootstraps the component container provided by a {@link ContainerProvider}.

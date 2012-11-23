@@ -24,6 +24,7 @@ import org.fluidity.composition.MutableContainer;
 import org.fluidity.composition.ObservedContainer;
 import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.container.spi.EmptyComponentContainer;
+import org.fluidity.composition.container.spi.SuperContainer;
 
 /**
  * This is a shell around a {@link SimpleContainer} object.

@@ -38,6 +38,7 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.container.spi.ContextNode;
 import org.fluidity.composition.container.spi.DependencyResolver;
+import org.fluidity.composition.container.spi.SuperContainer;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Log;

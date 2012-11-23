@@ -18,6 +18,7 @@ package org.fluidity.composition.container;
 
 import org.fluidity.composition.MutableContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
+import org.fluidity.composition.container.spi.SuperContainer;
 
 /**
  * @author Tibor Varga

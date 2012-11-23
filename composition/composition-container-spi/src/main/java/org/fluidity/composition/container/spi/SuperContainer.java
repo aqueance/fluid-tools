@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.container;
+package org.fluidity.composition.container.spi;
 
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.container.ContextDefinition;
 
 /**
  * Parent container of the root dependency injection container of an application. When available, the implementation integrates the Fluid Tools dependency
@@ -59,7 +60,7 @@ public interface SuperContainer {
      * Tells, without any reservation on the part of the receiver, whether the given group interface can be resolved by the receiver.
      *
      * @param api     the component interface to check.
-     * @param context the current component context.
+     * @param context the component context prevalent at the component reference.
      *
      * @return <code>true</code> if the group interface can be resolved, <code>false</code> otherwise.
      */
@@ -69,7 +70,7 @@ public interface SuperContainer {
      * See {@link org.fluidity.composition.OpenContainer#getComponentGroup(Class)}.
      *
      * @param api     see {@link org.fluidity.composition.OpenContainer#getComponentGroup(Class)}.
-     * @param context the component context prevalent at the group reference site.
+     * @param context the component context prevalent at the group reference.
      * @param <T>     the component group type to return.
      *
      * @return see {@link org.fluidity.composition.OpenContainer#getComponentGroup(Class)}.

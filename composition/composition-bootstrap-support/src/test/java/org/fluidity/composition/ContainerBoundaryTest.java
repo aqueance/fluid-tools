@@ -24,9 +24,9 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.fluidity.composition.container.ContainerServices;
-import org.fluidity.composition.container.SuperContainer;
 import org.fluidity.composition.container.internal.ContainerServicesFactory;
 import org.fluidity.composition.container.spi.ContainerProvider;
+import org.fluidity.composition.container.spi.SuperContainer;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.testing.Simulator;

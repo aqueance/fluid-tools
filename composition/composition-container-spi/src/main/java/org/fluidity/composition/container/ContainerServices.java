@@ -25,9 +25,9 @@ import org.fluidity.foundation.Log;
  * Common services for container implementations. This is an internal interface to be used by dependency injection container implementations.
  * <h3>Usage</h3>
  * <pre>
- * final class MyContainerImpl extends {@linkplain org.fluidity.composition.container.spi.EmptyComponentContainer} {
+ * final class MyContainerImpl extends {@linkplain org.fluidity.composition.container.spi.EmptyComponentContainer EmptyComponentContainer} {
  *
- *   MyContainerImpl(final <span class="hl1">ContainerServices</span> services, final {@linkplain SuperContainer} bridge) {
+ *   MyContainerImpl(final <span class="hl1">ContainerServices</span> services, final {@linkplain org.fluidity.composition.container.spi.SuperContainer SuperContainer} bridge) {
  *     &hellip;
  *   }
  * }
