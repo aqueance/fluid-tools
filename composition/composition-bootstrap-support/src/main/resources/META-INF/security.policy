@@ -1,4 +1,4 @@
-grant codebase "file:${project.build.finalName}.${project.packaging}" {
+grant codebase "file:\${java.class.path}" {
   permission java.lang.RuntimePermission "getClassLoader";
   permission java.lang.RuntimePermission "setContextClassLoader";
 };
