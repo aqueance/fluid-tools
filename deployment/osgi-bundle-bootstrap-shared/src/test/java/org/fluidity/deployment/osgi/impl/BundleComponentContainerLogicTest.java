@@ -55,7 +55,7 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 @SuppressWarnings("unchecked")
-public class BundleComponentContainerImplTest extends Simulator {
+public class BundleComponentContainerLogicTest extends Simulator {
 
     private final ClassLoader loader = BundleComponentContainerImpl.class.getClassLoader();
     private final ComponentContainer root = Containers.global();
@@ -90,7 +90,7 @@ public class BundleComponentContainerImplTest extends Simulator {
     private ComponentContainer container;
 
     private final BundleComponents.Registration.Listener<Consumer> source = dependencies.normal(BundleComponents.Registration.Listener.class);
-    private Log<BundleComponentContainerImpl> log = NoLogFactory.consume(BundleComponentContainerImpl.class);
+    private final Log log = NoLogFactory.consume(BundleComponentContainerImpl.class);
 
     @BeforeMethod
     public void setup() throws Exception {
@@ -112,7 +112,7 @@ public class BundleComponentContainerImplTest extends Simulator {
     public void testServiceRegistration() throws Exception {
         final Class<Service1> componentClass = Service1.class;
 
-        final Deferred.Reference<BundleComponentContainer> services = discover(StatusCheck.class, componentClass);
+        final Deferred.Reference<BundleComponentContainerImpl.Logic> services = discover(StatusCheck.class, componentClass);
 
         // registering the service
         test(new Task() {
@@ -133,7 +133,7 @@ public class BundleComponentContainerImplTest extends Simulator {
 
                 verify(new Task() {
                     public void run() throws Exception {
-                        services.get().start(null, null);
+                        services.get().start();
                     }
                 });
 
@@ -161,7 +161,7 @@ public class BundleComponentContainerImplTest extends Simulator {
     @Test
     public void testServiceListener1() throws Exception {
         final Class<ServiceDependent1> componentClass = ServiceDependent1.class;
-        final Deferred.Reference<BundleComponentContainer> services = discover(StatusCheck.class, componentClass);
+        final Deferred.Reference<BundleComponentContainerImpl.Logic> services = discover(StatusCheck.class, componentClass);
 
         final Service annotation1 = new ServiceImpl(ServiceInterface1.class);
         final Service annotation2 = new ServiceImpl(ServiceInterface2.class);
@@ -177,7 +177,7 @@ public class BundleComponentContainerImplTest extends Simulator {
 
                 verify(new Task() {
                     public void run() throws Exception {
-                        services.get().start(null, null);
+                        services.get().start();
                     }
                 });
 
@@ -295,7 +295,7 @@ public class BundleComponentContainerImplTest extends Simulator {
     @Test
     public void testServiceListener2() throws Exception {
         final Class<ServiceDependent1> componentClass = ServiceDependent1.class;
-        final Deferred.Reference<BundleComponentContainer> services = discover(StatusCheck.class, componentClass);
+        final Deferred.Reference<BundleComponentContainerImpl.Logic> services = discover(StatusCheck.class, componentClass);
 
         final Service annotation1 = new ServiceImpl(ServiceInterface1.class);
         final Service annotation2 = new ServiceImpl(ServiceInterface2.class);
@@ -311,7 +311,7 @@ public class BundleComponentContainerImplTest extends Simulator {
 
                 verify(new Task() {
                     public void run() throws Exception {
-                        services.get().start(null, null);
+                        services.get().start();
                     }
                 });
 
@@ -395,7 +395,7 @@ public class BundleComponentContainerImplTest extends Simulator {
         final String selector1 = "filter-1";
         final String selector2 = "filter-2";
 
-        final Deferred.Reference<BundleComponentContainer> services = discover(Arrays.asList(selector1, selector2), StatusCheck.class, componentClass);
+        final Deferred.Reference<BundleComponentContainerImpl.Logic> services = discover(Arrays.asList(selector1, selector2), StatusCheck.class, componentClass);
 
         final ServiceListener[] listeners = test(new Work<ServiceListener[]>() {
             public ServiceListener[] run() throws Exception {
@@ -407,7 +407,7 @@ public class BundleComponentContainerImplTest extends Simulator {
 
                 verify(new Task() {
                     public void run() throws Exception {
-                        services.get().start(null, null);
+                        services.get().start();
                     }
                 });
 
@@ -445,7 +445,7 @@ public class BundleComponentContainerImplTest extends Simulator {
     @Test
     public void testEventSourcesAndConsumers1() throws Exception {
         final Class<EventSource> componentClass = EventSource.class;
-        final Deferred.Reference<BundleComponentContainer> services = discover(StatusCheck.class, componentClass);
+        final Deferred.Reference<BundleComponentContainerImpl.Logic> services = discover(StatusCheck.class, componentClass);
 
         final EventSource source = new EventSource();
 
@@ -460,7 +460,7 @@ public class BundleComponentContainerImplTest extends Simulator {
 
                 verify(new Task() {
                     public void run() throws Exception {
-                        services.get().start(null, null);
+                        services.get().start();
                     }
                 });
 
@@ -563,7 +563,7 @@ public class BundleComponentContainerImplTest extends Simulator {
     @Test
     public void testEventSourcesAndConsumers2() throws Exception {
         final Class<EventSource> componentClass = EventSource.class;
-        final Deferred.Reference<BundleComponentContainer> services = discover(StatusCheck.class, componentClass);
+        final Deferred.Reference<BundleComponentContainerImpl.Logic> services = discover(StatusCheck.class, componentClass);
 
         final EventSource source = new EventSource();
 
@@ -580,7 +580,7 @@ public class BundleComponentContainerImplTest extends Simulator {
 
                 verify(new Task() {
                     public void run() throws Exception {
-                        services.get().start(null, null);
+                        services.get().start();
                     }
                 });
 
@@ -643,12 +643,12 @@ public class BundleComponentContainerImplTest extends Simulator {
 
     @Test
     public void testManagedComponents() throws Exception {
-        final Deferred.Reference<BundleComponentContainer> services = discover(StatusCheck.class,
-                                                                               Component1Service12.class,
-                                                                               Component2Service2.class,
-                                                                               Component3Service1.class,
-                                                                               Component4Service1.class,
-                                                                               Component5Service2.class);
+        final Deferred.Reference<BundleComponentContainerImpl.Logic> services = discover(StatusCheck.class,
+                                                                                    Component1Service12.class,
+                                                                                    Component2Service2.class,
+                                                                                    Component3Service1.class,
+                                                                                    Component4Service1.class,
+                                                                                    Component5Service2.class);
 
         final ServiceImpl annotation1 = new ServiceImpl(ServiceInterface1.class);
         final ServiceImpl annotation2 = new ServiceImpl(ServiceInterface2.class);
@@ -669,7 +669,7 @@ public class BundleComponentContainerImplTest extends Simulator {
 
                 verify(new Task() {
                     public void run() throws Exception {
-                        services.get().start(null, null);
+                        services.get().start();
                     }
                 });
 
@@ -837,7 +837,7 @@ public class BundleComponentContainerImplTest extends Simulator {
     public void testFailingComponents() throws Exception {
         FailingComponent.delegate = component6;
 
-        final Deferred.Reference<BundleComponentContainer> services = discover(StatusCheck.class, FailingComponent.class, Component4Service1.class);
+        final Deferred.Reference<BundleComponentContainerImpl.Logic> services = discover(StatusCheck.class, FailingComponent.class, Component4Service1.class);
 
         final ServiceImpl annotation = new ServiceImpl(ServiceInterface1.class);
         final Map.Entry<Class<?>, Set<Service>> dependencies1 = dependencies(FailingComponent.class, annotation);
@@ -853,7 +853,7 @@ public class BundleComponentContainerImplTest extends Simulator {
 
                 verify(new Task() {
                     public void run() throws Exception {
-                        services.get().start(null, null);
+                        services.get().start();
                     }
                 });
 
@@ -933,7 +933,7 @@ public class BundleComponentContainerImplTest extends Simulator {
         final String selector1 = "filter-1";
         final String selector2 = "filter-2";
 
-        final Deferred.Reference<BundleComponentContainer> services = discover(Arrays.asList(selector1, selector2), StatusCheck.class, MultipleServiceFiltersComponent.class);
+        final Deferred.Reference<BundleComponentContainerImpl.Logic> services = discover(Arrays.asList(selector1, selector2), StatusCheck.class, MultipleServiceFiltersComponent.class);
 
         final ServiceImpl annotation1 = new ServiceImpl(ServiceInterface1.class, selector1);
         final ServiceImpl annotation2 = new ServiceImpl(ServiceInterface1.class, selector2);
@@ -950,7 +950,7 @@ public class BundleComponentContainerImplTest extends Simulator {
 
                 verify(new Task() {
                     public void run() throws Exception {
-                        services.get().start(null, null);
+                        services.get().start();
                     }
                 });
 
@@ -1188,19 +1188,19 @@ public class BundleComponentContainerImplTest extends Simulator {
         }
     }
 
-    private Deferred.Reference<BundleComponentContainer> discover(final Class... types) throws Exception {
+    private Deferred.Reference<BundleComponentContainerImpl.Logic> discover(final Class... types) throws Exception {
         EasyMock.expect(context.getBundle()).andReturn(bundle);
         EasyMock.expect(bundle.getSymbolicName()).andReturn("test-bundle");
         EasyMock.expect(discovery.findComponentClasses(BundleComponents.Managed.class, BundleComponentContainerImpl.class.getClassLoader(), false)).andReturn(types);
 
-        return Deferred.reference(new Deferred.Factory<BundleComponentContainer>() {
-            public BundleComponentContainer create() {
+        return Deferred.reference(new Deferred.Factory<BundleComponentContainerImpl.Logic>() {
+            public BundleComponentContainerImpl.Logic create() {
                 return new BundleComponentContainerImpl.Logic(context, discovery, container, loader, log);
             }
         });
     }
 
-    private Deferred.Reference<BundleComponentContainer> discover(final List<String> filters, final Class... types) throws Exception {
+    private Deferred.Reference<BundleComponentContainerImpl.Logic> discover(final List<String> filters, final Class... types) throws Exception {
         EasyMock.expect(context.getBundle()).andReturn(bundle);
         EasyMock.expect(bundle.getSymbolicName()).andReturn("test-bundle");
         EasyMock.expect(discovery.findComponentClasses(BundleComponents.Managed.class, BundleComponentContainerImpl.class.getClassLoader(), false)).andReturn(types);
@@ -1209,8 +1209,8 @@ public class BundleComponentContainerImplTest extends Simulator {
             EasyMock.expect(context.createFilter(filter)).andReturn(null);
         }
 
-        return Deferred.reference(new Deferred.Factory<BundleComponentContainer>() {
-            public BundleComponentContainer create() {
+        return Deferred.reference(new Deferred.Factory<BundleComponentContainerImpl.Logic>() {
+            public BundleComponentContainerImpl.Logic create() {
                 return new BundleComponentContainerImpl.Logic(context, discovery, container, loader, log);
             }
         });

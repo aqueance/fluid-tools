@@ -43,6 +43,7 @@ import org.fluidity.deployment.osgi.Service;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Log;
+import org.fluidity.foundation.Strings;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -69,23 +70,29 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
         this.discovery = discovery;
     }
 
-    // postponed "construction" allows use of the container in the constructor
-    private final AtomicReference<BundleComponentContainer> logic = new AtomicReference<BundleComponentContainer>();
+    private final AtomicReference<Logic> logic = new AtomicReference<Logic>();
 
     public void start(final ComponentContainer container, final ClassLoader loader) {
-        logic.set(new Logic(context, discovery, container, loader, log));
-        logic.get().start(null, null);
+        if (!logic.compareAndSet(null, new Logic(context, discovery, container, loader, log))) {
+            throw new IllegalStateException(String.format("%s has already been started", Strings.formatClass(false, false, getClass())));
+        }
+
+        logic.get().start();
     }
 
     public void stop() {
-        assert logic.get() != null;
+        if (logic.get() == null) {
+            throw new IllegalStateException(String.format("%s has not been started", Strings.formatClass(false, false, getClass())));
+        }
+
         logic.getAndSet(null).stop();
     }
 
     /**
      * @author Tibor Varga
      */
-    static class Logic implements BundleComponentContainer {
+    static final class Logic {
+
         private final List<BundleComponents.Stoppable> cleanup = new ArrayList<BundleComponents.Stoppable>();
 
         private final Log log;
@@ -305,7 +312,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
             }
         }
 
-        public void start(final ComponentContainer ignored1, final ClassLoader ignored2) {
+        public void start() {
             startResolved();
 
             for (final ServiceDescriptor service : services) {
