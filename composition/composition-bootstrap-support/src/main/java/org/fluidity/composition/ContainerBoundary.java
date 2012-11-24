@@ -33,7 +33,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.internal.ContainerServicesFactory;
 import org.fluidity.composition.container.spi.ContainerProvider;
-import org.fluidity.composition.container.spi.SuperContainer;
 import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Command.Function;
@@ -109,11 +108,6 @@ public final class ContainerBoundary implements ComponentContainer {
     private ClassLoader rootClassLoader;
 
     /**
-     * The super container.
-     */
-    private SuperContainer bridge;
-
-    /**
      * The class loader associated with the container made accessible by this instance.
      */
     private final ClassLoader classLoader;
@@ -184,17 +178,6 @@ public final class ContainerBoundary implements ComponentContainer {
     public <T> T bindBootComponent(final T instance, final Class<? super T>... api) {
         loadContainer(false).getRegistry().bindInstance(instance, api);
         return instance;
-    }
-
-    /**
-     * Sets the super container. The super container is a bridge between the highest level dependency injection container and the host application's dependency
-     * resolution facilities.
-     *
-     * @param bridge the object that adapts the host application's native dependency resolution logic to the Fluid Tools dependency injection model.
-     */
-    public void setSuperContainer(final SuperContainer bridge) {
-        assert this.bridge == null;
-        this.bridge = bridge;
     }
 
     /**
@@ -293,7 +276,6 @@ public final class ContainerBoundary implements ComponentContainer {
         this.rootClassLoader = null;
         this.containerBootstrap = null;
         this.containerProvider = null;
-        this.bridge = null;
 
         ContainerBoundary.populatedContainers.clear();
         ContainerBoundary.propertiesMap.clear();
@@ -382,9 +364,7 @@ public final class ContainerBoundary implements ComponentContainer {
                                     return containerBootstrap.populateContainer(findServices(loader),
                                                                                 containerProvider,
                                                                                 map == null ? new HashMap() : map,
-                                                                                parent,
-                                                                                bridge,
-                                                                                loader,
+                                                                                parent, loader,
                                                                                 callback);
                                 }
                             });
@@ -511,7 +491,7 @@ public final class ContainerBoundary implements ComponentContainer {
         initFinder();
 
         if (findProvider(classLoader) != null) {
-            return containerProvider.newContainer(findServices(classLoader), null);
+            return containerProvider.newContainer(findServices(classLoader));
         } else {
             throw new IllegalStateException(String.format("Container implementation not found; could not find service providers %s in class loader %s",
                                                           ContainerProvider.class.getName(),

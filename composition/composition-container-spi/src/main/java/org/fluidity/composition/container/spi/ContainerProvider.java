@@ -35,9 +35,8 @@ public interface ContainerProvider {
      * Creates and returns and empty standalone dependency injection container.
      *
      * @param services provides service components for the container; never <code>null</code>.
-     * @param bridge   the container that turns the host application's component container into a super container for Fluid Tools; may be <code>null</code>.
      *
      * @return and empty standalone dependency injection container.
      */
-    MutableContainer newContainer(ContainerServices services, SuperContainer bridge);
+    MutableContainer newContainer(ContainerServices services);
 }

@@ -26,7 +26,6 @@ import java.util.Properties;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.internal.ContainerServicesFactory;
 import org.fluidity.composition.container.spi.ContainerProvider;
-import org.fluidity.composition.container.spi.SuperContainer;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.testing.Simulator;
@@ -43,7 +42,6 @@ public class ContainerBoundaryTest extends Simulator {
     private final MockObjects dependencies = dependencies();
     private final LogFactory logs = new NoLogFactory();
 
-    private final SuperContainer bridge = dependencies.normal(SuperContainer.class);
     private final BootstrapServices providers = dependencies.normal(BootstrapServices.class);
     private final ContainerBootstrap bootstrap = dependencies.normal(ContainerBootstrap.class);
     private final ContainerProvider provider = dependencies.normal(ContainerProvider.class);
@@ -82,8 +80,6 @@ public class ContainerBoundaryTest extends Simulator {
         // set up the test class
         final ContainerBoundary boundary = boundary(classLoader);
 
-        boundary.setSuperContainer(bridge);
-
         for (final Map.Entry<String, String> entry : properties.entrySet()) {
             boundary.setBindingProperty(entry.getKey(), entry.getValue());
         }
@@ -97,15 +93,13 @@ public class ContainerBoundaryTest extends Simulator {
         EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
                                                     EasyMock.same(provider),
                                                     EasyMock.<Properties>notNull(),
-                                                    EasyMock.<MutableContainer>same(null),
-                                                    EasyMock.same(bridge),
-                                                    EasyMock.same(classLoader),
+                                                    EasyMock.<MutableContainer>same(null), EasyMock.same(classLoader),
                                                     EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<MutableContainer>() {
             public MutableContainer answer() throws Throwable {
 
                 // check that the properties received by bootstrap is contains exactly what we set up above
                 assert properties.equals(EasyMock.getCurrentArguments()[2]);
-                callback[0] = ((ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[6]);
+                callback[0] = ((ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[5]);
 
                 return container;
             }
@@ -164,15 +158,13 @@ public class ContainerBoundaryTest extends Simulator {
         EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
                                                     EasyMock.same(provider),
                                                     EasyMock.<Properties>notNull(),
-                                                    EasyMock.<MutableContainer>same(null),
-                                                    EasyMock.<SuperContainer>isNull(),
-                                                    EasyMock.same(getClass().getClassLoader()),
+                                                    EasyMock.<MutableContainer>same(null), EasyMock.same(getClass().getClassLoader()),
                                                     EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<MutableContainer>() {
             public MutableContainer answer() throws Throwable {
 
                 // check that the properties received by bootstrap is contains exactly what we set up above
                 assert properties.equals(EasyMock.getCurrentArguments()[2]);
-                callback[0] = ((ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[6]);
+                callback[0] = ((ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[5]);
 
                 return container;
             }
@@ -230,12 +222,10 @@ public class ContainerBoundaryTest extends Simulator {
             EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
                                                         EasyMock.same(provider),
                                                         EasyMock.<Properties>notNull(),
-                                                        EasyMock.same(containers.get(cl.getParent())),
-                                                        EasyMock.<SuperContainer>isNull(),
-                                                        EasyMock.same(cl),
+                                                        EasyMock.same(containers.get(cl.getParent())), EasyMock.same(cl),
                                                         EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<MutableContainer>() {
                 public MutableContainer answer() throws Throwable {
-                    callback[0] = ((ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[6]);
+                    callback[0] = ((ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[5]);
                     return container;
                 }
             });
@@ -286,7 +276,7 @@ public class ContainerBoundaryTest extends Simulator {
 
                 final MutableContainer local = arguments.normal(MutableContainer.class);
 
-                EasyMock.expect(provider.newContainer(services, null)).andReturn(local);
+                EasyMock.expect(provider.newContainer(services)).andReturn(local);
 
                 final MutableContainer created = verify(new Work<MutableContainer>() {
                     public MutableContainer run() throws Exception {
@@ -302,7 +292,7 @@ public class ContainerBoundaryTest extends Simulator {
             public void run() throws Exception {
                 final MutableContainer local = arguments.normal(MutableContainer.class);
 
-                EasyMock.expect(provider.newContainer(services, null)).andReturn(local);
+                EasyMock.expect(provider.newContainer(services)).andReturn(local);
 
                 final MutableContainer created = verify(new Work<MutableContainer>() {
                     public MutableContainer run() throws Exception {
@@ -333,12 +323,10 @@ public class ContainerBoundaryTest extends Simulator {
                 EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
                                                             EasyMock.same(provider),
                                                             EasyMock.<Properties>notNull(),
-                                                            EasyMock.<MutableContainer>same(null),
-                                                            EasyMock.<SuperContainer>isNull(),
-                                                            EasyMock.same(classLoader),
+                                                            EasyMock.<MutableContainer>same(null), EasyMock.same(classLoader),
                                                             EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<MutableContainer>() {
                     public MutableContainer answer() throws Throwable {
-                        callback[0] = (ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[6];
+                        callback[0] = (ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[5];
                         return container;
                     }
                 });

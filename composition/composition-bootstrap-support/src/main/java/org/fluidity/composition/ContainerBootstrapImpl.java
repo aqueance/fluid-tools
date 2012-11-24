@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.spi.ContainerProvider;
-import org.fluidity.composition.container.spi.SuperContainer;
 import org.fluidity.composition.spi.PackageBindings;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Log;
@@ -43,13 +42,12 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
                                               final ContainerProvider provider,
                                               final Map properties,
                                               final MutableContainer parent,
-                                              final SuperContainer bridge,
                                               final ClassLoader loader,
                                               final Callback callback) {
         final Log log = log(services);
         final ClassDiscovery discovery = services.classDiscovery();
 
-        final MutableContainer container = parent == null ? provider.newContainer(services, bridge) : parent.makeChildContainer();
+        final MutableContainer container = parent == null ? provider.newContainer(services) : parent.makeChildContainer();
 
         log.debug("Created new %s%s", container, (loader == null ? "" : String.format(" for class loader %s", loader)));
 
@@ -91,7 +89,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
                                                       final ContainerServices services,
                                                       final Map properties,
                                                       final Class<PackageBindings>[] bindings) {
-        final MutableContainer container = provider.newContainer(services, null);
+        final MutableContainer container = provider.newContainer(services);
         final ComponentContainer.Registry registry = container.getRegistry();
 
         if (properties != null) {

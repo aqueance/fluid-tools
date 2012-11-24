@@ -22,9 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,7 +36,6 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.container.spi.ContextNode;
 import org.fluidity.composition.container.spi.DependencyResolver;
-import org.fluidity.composition.container.spi.SuperContainer;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Log;
@@ -61,8 +58,8 @@ final class SimpleContainerImpl implements ParentContainer {
 
     private final DependencyInjector injector;
 
-    SimpleContainerImpl(final ContainerServices services, final SuperContainer bridge) {
-        this(bridge == null ? null : new SuperContainerImpl(bridge), null, services);
+    SimpleContainerImpl(final ContainerServices services) {
+        this(null, null, services);
     }
 
     private SimpleContainerImpl(final ParentContainer parent, final ParentContainer domain, final ContainerServices services) {
@@ -511,158 +508,6 @@ final class SimpleContainerImpl implements ParentContainer {
 
         public Annotation[] providedContext() {
             return componentClass.getAnnotations();
-        }
-    }
-
-    private static class SuperContainerImpl implements ParentContainer {
-
-        private final SuperContainer bridge;
-        private final List<GroupResolver> emptyList = Collections.emptyList();
-
-        private final ContextNode noContexts = new ContextNode() {
-            public Class<?> contextConsumer() {
-                return null;
-            }
-
-            public Annotation[] providedContext() {
-                return null;
-            }
-        };
-
-        SuperContainerImpl(final SuperContainer bridge) {
-            this.bridge = bridge;
-        }
-
-        public Node resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal traversal, final Type reference) {
-            return !bridge.containsComponent(api, context) ? null : new Node() {
-                public Class<?> type() {
-                    return api;
-                }
-
-                public Object instance(final Traversal traversal) {
-                    return bridge.getComponent(api, context);
-                }
-
-                public ComponentContext context() {
-                    return null;
-                }
-            };
-        }
-
-        public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal, final Type reference) {
-            return !bridge.containsComponentGroup(api, context) ? null : new Node() {
-                public Class<?> type() {
-                    return api;
-                }
-
-                public Object instance(final Traversal traversal) {
-                    return bridge.getComponentGroup(api, context);
-                }
-
-                public ComponentContext context() {
-                    return null;
-                }
-            };
-        }
-
-        public List<GroupResolver.Node> resolveGroup(final ParentContainer domain,
-                                                     final Class<?> api,
-                                                     final Traversal traversal,
-                                                     final ContextDefinition context,
-                                                     final Type reference) {
-            return !bridge.containsComponentGroup(api, context) ? null : Collections.<GroupResolver.Node>singletonList(new GroupResolver.Node() {
-                public Collection<?> instance(final Traversal traversal) {
-                    return Arrays.asList(bridge.getComponentGroup(api, context));
-                }
-            });
-        }
-
-        public Node resolveGroup(final ParentContainer domain,
-                                 final Class<?> api,
-                                 final ContextDefinition context,
-                                 final Traversal traversal, final Type reference) {
-            return resolveGroup(api, context, traversal, reference);
-        }
-
-        public List<GroupResolver> groupResolvers(final Class<?> api) {
-            return emptyList;
-        }
-
-        public Object cached(final Class<?> api, final ComponentContext context) {
-            return null;
-        }
-
-        public ComponentContainer container(final ContextDefinition context) {
-            return null;
-        }
-
-        public ContextNode contexts(final ParentContainer domain, final Class<?> type, final ContextDefinition context) {
-            return bridge.containsComponent(type, context) ? noContexts : null;
-        }
-
-        public ComponentResolver resolver(final Class<?> api, final boolean ascend) {
-            return null;
-        }
-
-        public void replaceResolver(final Class<?> key, final ComponentResolver previous, final ComponentResolver replacement) {
-            // empty
-        }
-
-        public String id() {
-            return bridge.id();
-        }
-
-        public Node resolveComponent(final ParentContainer domain,
-                                     final boolean ascend,
-                                     final Class<?> api,
-                                     final ContextDefinition context,
-                                     final Traversal traversal,
-                                     final Type reference) {
-            throw new UnsupportedOperationException();
-        }
-
-        public ContainerServices services() {
-            throw new UnsupportedOperationException();
-        }
-
-        public SimpleContainer parentContainer() {
-            throw new UnsupportedOperationException();
-        }
-
-        public SimpleContainer newChildContainer(final boolean domain) {
-            throw new UnsupportedOperationException();
-        }
-
-        public ComponentResolver bindResolver(final Class<?> key, final ComponentResolver entry) throws ComponentContainer.BindingException {
-            throw new UnsupportedOperationException();
-        }
-
-        public void bindComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
-            throw new UnsupportedOperationException();
-        }
-
-        public void bindInstance(final Object instance, final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
-            throw new UnsupportedOperationException();
-        }
-
-        public SimpleContainer linkComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
-            throw new UnsupportedOperationException();
-        }
-
-        public Object initialize(final Object component, final ContextDefinition context, final ComponentContainer.Observer observer) throws ComponentContainer.ResolutionException {
-            throw new UnsupportedOperationException();
-        }
-
-        public Object initialize(final Object component, final ContextDefinition context, final Traversal traversal) throws ComponentContainer.ResolutionException {
-            throw new UnsupportedOperationException();
-        }
-
-        public Object invoke(final Object component, final Method method, final ContextDefinition copy, final Object[] arguments, final boolean explicit) {
-            throw new UnsupportedOperationException();
-        }
-
-        public DependencyResolver dependencyResolver(final ParentContainer domain) {
-            throw new UnsupportedOperationException();
         }
     }
 

@@ -20,7 +20,6 @@ import java.util.Map;
 
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.spi.ContainerProvider;
-import org.fluidity.composition.container.spi.SuperContainer;
 
 /**
  * Bootstraps the component container provided by a {@link ContainerProvider}.
@@ -41,7 +40,6 @@ interface ContainerBootstrap {
      * @param properties is the properties to bind to the container as a means to configure binding instances at run time.
      * @param parent     is the container to use as the parent of the one returned; can be <code>null</code>, in which case a standalone container is
      *                   returned.
-     * @param bridge     the container that turns the host application's component container into a super container for Fluid Tools.
      * @param loader     is the class loader to use to discover package bindings. Package bindings found in the class loader ancestry are ignored when the
      * @param callback   object to notify when a container is initialized or shut down.
      *
@@ -50,17 +48,15 @@ interface ContainerBootstrap {
     MutableContainer populateContainer(ContainerServices services,
                                        ContainerProvider provider,
                                        Map properties,
-                                       MutableContainer parent,
-                                       SuperContainer bridge,
-                                       ClassLoader loader,
+                                       MutableContainer parent, ClassLoader loader,
                                        Callback callback);
 
     /**
      * Calls the {@link org.fluidity.composition.spi.PackageBindings#initialize(OpenContainer, org.fluidity.composition.spi.ContainerTermination)} method on
      * all bindings.
      *
-     * @param container the container, returned by the {@link #populateContainer(ContainerServices, ContainerProvider, Map, MutableContainer, SuperContainer,
-     *                  ClassLoader, ContainerBootstrap.Callback)} method, to initialize.
+     * @param container the container, returned by the {@link #populateContainer(ContainerServices, ContainerProvider, Map, MutableContainer, ClassLoader,
+     *                  ContainerBootstrap.Callback)} method, to initialize.
      * @param services  provides basic services for containers
      */
     void initializeContainer(OpenContainer container, ContainerServices services) throws Exception;

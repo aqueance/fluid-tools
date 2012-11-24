@@ -18,14 +18,13 @@ package org.fluidity.composition.container;
 
 import org.fluidity.composition.MutableContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
-import org.fluidity.composition.container.spi.SuperContainer;
 
 /**
  * @author Tibor Varga
  */
 final class ContainerProviderImpl implements ContainerProvider {
 
-    public MutableContainer newContainer(final ContainerServices services, final SuperContainer bridge) {
-        return new ComponentContainerShell(services, bridge);
+    public MutableContainer newContainer(final ContainerServices services) {
+        return new ComponentContainerShell(services);
     }
 }

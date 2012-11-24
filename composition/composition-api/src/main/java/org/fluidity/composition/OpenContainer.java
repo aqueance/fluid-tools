@@ -81,7 +81,7 @@ public interface OpenContainer extends ComponentContainer {
      * @param api the group interface class.
      * @param <T> the component group type to return.
      *
-     * @return an array of components that belong to the given group; may be <code>null</code>.
+     * @return an array of components that belong to the given group, or <code>null</code> when there is no such group.
      */
     <T> T[] getComponentGroup(Class<T> api);
 }
