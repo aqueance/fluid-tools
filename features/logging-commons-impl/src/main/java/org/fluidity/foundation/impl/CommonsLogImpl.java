@@ -55,59 +55,59 @@ final class CommonsLogImpl<T> extends LogAdapter<Log, T> {
         };
     }
 
-    public void trace(final String format, final Object... args) {
+    public void trace(final String format, final Object... arguments) {
         if (permissions().trace) {
-            log.trace(String.format(format, args));
+            log.trace(String.format(format, arguments));
         }
     }
 
-    public void debug(final String format, final Object... args) {
+    public void debug(final String format, final Object... arguments) {
         if (permissions().debug) {
-            log.debug(String.format(format, args));
+            log.debug(String.format(format, arguments));
         }
     }
 
-    public void info(final String format, final Object... args) {
+    public void info(final String format, final Object... arguments) {
         if (permissions().info) {
-            log.info(String.format(format, args));
+            log.info(String.format(format, arguments));
         }
     }
 
-    public void warning(final String format, final Object... args) {
+    public void warning(final String format, final Object... arguments) {
         if (permissions().info) {
-            log.warn(String.format(format, args));
+            log.warn(String.format(format, arguments));
         }
     }
 
-    public void error(final String format, final Object... args) {
-        log.error(String.format(format, args));
+    public void error(final String format, final Object... arguments) {
+        log.error(String.format(format, arguments));
     }
 
-    public void trace(final Throwable exception, final String format, final Object... args) {
+    public void trace(final Throwable exception, final String format, final Object... arguments) {
         if (permissions().trace) {
-            log.trace(String.format(format, args), exception);
+            log.trace(String.format(format, arguments), exception);
         }
     }
 
-    public void debug(final Throwable exception, final String format, final Object... args) {
+    public void debug(final Throwable exception, final String format, final Object... arguments) {
         if (permissions().debug) {
-            log.debug(String.format(format, args), exception);
+            log.debug(String.format(format, arguments), exception);
         }
     }
 
-    public void info(final Throwable exception, final String format, final Object... args) {
+    public void info(final Throwable exception, final String format, final Object... arguments) {
         if (permissions().info) {
-            log.info(String.format(format, args), exception);
+            log.info(String.format(format, arguments), exception);
         }
     }
 
-    public void warning(final Throwable exception, final String format, final Object... args) {
+    public void warning(final Throwable exception, final String format, final Object... arguments) {
         if (permissions().info) {
-            log.warn(String.format(format, args), exception);
+            log.warn(String.format(format, arguments), exception);
         }
     }
 
-    public void error(final Throwable exception, final String format, final Object... args) {
-        log.error(String.format(format, args), exception);
+    public void error(final Throwable exception, final String format, final Object... arguments) {
+        log.error(String.format(format, arguments), exception);
     }
 }

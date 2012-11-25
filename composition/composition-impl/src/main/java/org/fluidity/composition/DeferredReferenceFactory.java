@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.composition;
 
-import org.fluidity.composition.Component;
-import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.foundation.Deferred;
+import org.fluidity.foundation.Generics;
 
 /**
  * This factory makes it possible to depend on a lazy instantiated component when the deferred reference itself needs to be exposed. Use the {@link
- * Component.Deferred @Component.Deferred} annotation when the deferred reference itself is irrelevant.
+ * Defer @Defer} annotation when the deferred reference itself is irrelevant.
  *
  * @author Tibor Varga
  */

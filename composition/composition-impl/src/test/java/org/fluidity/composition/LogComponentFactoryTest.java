@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.composition;
 
-import org.fluidity.composition.Component;
-import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.Containers;
+import org.fluidity.foundation.Log;
 
 import org.testng.annotations.Test;
 
 /**
  * @author Tibor Varga
  */
-public class LogFactoryTest {
+public class LogComponentFactoryTest {
 
     private final ComponentContainer container = Containers.global();
 

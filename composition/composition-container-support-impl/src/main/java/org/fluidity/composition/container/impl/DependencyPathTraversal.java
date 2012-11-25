@@ -19,6 +19,8 @@ package org.fluidity.composition.container.impl;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,6 +40,7 @@ import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Proxies;
+import org.fluidity.foundation.Security;
 import org.fluidity.foundation.Strings;
 
 /**
@@ -584,7 +587,8 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
             return Proxies.create(context.api, new InvocationHandler() {
                 public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
-                    return method.invoke(delegate.get(), arguments);
+                    final PrivilegedAction<Method> access = Security.setAccessible(method);
+                    return (access == null ? method : AccessController.doPrivileged(access)).invoke(delegate.get(), arguments);
                 }
             });
         }

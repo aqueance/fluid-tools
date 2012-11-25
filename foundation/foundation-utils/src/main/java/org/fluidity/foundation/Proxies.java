@@ -222,17 +222,17 @@ public final class Proxies extends Utility {
         }
 
         @SuppressWarnings("unchecked")
-        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+        public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
             try {
                 return Exceptions.wrap(new Process<Object, Exception>() {
                     public Object run() throws Exception {
                         if (method.getDeclaringClass() == Object.class) {
-                            return method.invoke(MethodInvocations.this, args);
+                            return method.invoke(MethodInvocations.this, arguments);
                         } else if (handler != null) {
 
                             // called without access control privileges to subject the handler to access control
                             try {
-                                return handler.invoke(proxy, method, args);
+                                return handler.invoke(proxy, method, arguments);
                             } catch (final Exception e) {
                                 throw e;
                             } catch (final Error e) {

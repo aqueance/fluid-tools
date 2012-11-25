@@ -14,22 +14,26 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.composition;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
-import org.fluidity.composition.Component;
-import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.spi.ComponentInterceptor;
+import org.fluidity.foundation.Deferred;
+import org.fluidity.foundation.Generics;
+import org.fluidity.foundation.Proxies;
+import org.fluidity.foundation.Security;
 
 /**
- * Implements the semantics of the {@link Component.Deferred @Component.Deferred} annotation.
+ * Implements the semantics of the {@link Defer @Defer} annotation.
  *
  * @author Tibor Varga
  */
-@Component.Context(Component.Deferred.class)
+@Component.Context(Defer.class)
 @SuppressWarnings("UnusedDeclaration")
 final class DeferredReferenceInterceptor implements ComponentInterceptor {
 
@@ -43,8 +47,9 @@ final class DeferredReferenceInterceptor implements ComponentInterceptor {
         return new Dependency() {
             public Object create() {
                 return Proxies.create(Generics.rawType(reference), new InvocationHandler() {
-                    public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                        return method.invoke(deferred.get(), args);
+                    public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
+                        final PrivilegedAction<Method> access = Security.setAccessible(method);
+                        return (access == null ? method : AccessController.doPrivileged(access)).invoke(deferred.get(), arguments);
                     }
                 });
             }

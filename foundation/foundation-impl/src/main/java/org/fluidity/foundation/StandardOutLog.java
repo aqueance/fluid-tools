@@ -49,15 +49,15 @@ final class StandardOutLog<T> implements Log<T> {
         return sw.toString();
     }
 
-    private void log(final String level, final String message, final Object... args) {
+    private void log(final String level, final String message, final Object... arguments) {
         final String prefix = String.format("%s %s [%s] ", df.format(new Date()), level, source);
-        final String suffix = String.format(message, args);
+        final String suffix = String.format(message, arguments);
         System.out.printf("%s%s%n", prefix, suffix);
     }
 
-    private void log(final String level, final Throwable exception, final String message, final Object... args) {
+    private void log(final String level, final Throwable exception, final String message, final Object... arguments) {
         final String prefix = String.format("%s %s [%s] ", df.format(new Date()), level, source);
-        final String suffix = String.format(message, args);
+        final String suffix = String.format(message, arguments);
         System.out.printf("%s%s%s%n", prefix, suffix, stackTrace(exception));
     }
 
@@ -77,43 +77,43 @@ final class StandardOutLog<T> implements Log<T> {
         return true;
     }
 
-    public void trace(final String format, final Object... args) {
-        log("TRACE", format, args);
+    public void trace(final String format, final Object... arguments) {
+        log("TRACE", format, arguments);
     }
 
-    public void trace(final Throwable exception, final String format, final Object... args) {
-        log("TRACE", exception, format, args);
+    public void trace(final Throwable exception, final String format, final Object... arguments) {
+        log("TRACE", exception, format, arguments);
     }
 
-    public void debug(final String format, final Object... args) {
-        log("DEBUG", format, args);
+    public void debug(final String format, final Object... arguments) {
+        log("DEBUG", format, arguments);
     }
 
-    public void debug(final Throwable exception, final String format, final Object... args) {
-        log("DEBUG", exception, format, args);
+    public void debug(final Throwable exception, final String format, final Object... arguments) {
+        log("DEBUG", exception, format, arguments);
     }
 
-    public void info(final String format, final Object... args) {
-        log("INFO", format, args);
+    public void info(final String format, final Object... arguments) {
+        log("INFO", format, arguments);
     }
 
-    public void info(final Throwable exception, final String format, final Object... args) {
-        log("INFO", exception, format, args);
+    public void info(final Throwable exception, final String format, final Object... arguments) {
+        log("INFO", exception, format, arguments);
     }
 
-    public void warning(final String format, final Object... args) {
-        log("WARN", format, args);
+    public void warning(final String format, final Object... arguments) {
+        log("WARN", format, arguments);
     }
 
-    public void warning(final Throwable exception, final String format, final Object... args) {
-        log("WARN", exception, format, args);
+    public void warning(final Throwable exception, final String format, final Object... arguments) {
+        log("WARN", exception, format, arguments);
     }
 
-    public void error(final String format, final Object... args) {
-        log("ERROR", format, args);
+    public void error(final String format, final Object... arguments) {
+        log("ERROR", format, arguments);
     }
 
-    public void error(final Throwable exception, final String format, final Object... args) {
-        log("ERROR", exception, format, args);
+    public void error(final Throwable exception, final String format, final Object... arguments) {
+        log("ERROR", exception, format, arguments);
     }
 }

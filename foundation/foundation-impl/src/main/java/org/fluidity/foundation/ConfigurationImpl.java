@@ -16,6 +16,7 @@
 
 package org.fluidity.foundation;
 
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
@@ -159,7 +160,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
             });
         }
 
-        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+        public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
             assert method.getDeclaringClass().isAssignableFrom(api) : method;
 
             final Property setting = method.getAnnotation(Property.class);
@@ -178,16 +179,16 @@ final class ConfigurationImpl<T> implements Configuration<T> {
 
                             return property(setting.split(),
                                             setting.grouping(),
-                                            String.format(setting.ids(), args),
-                                            String.format(setting.list(), args),
-                                            String.format(setting.undefined(), args),
+                                            String.format(setting.ids(), arguments),
+                                            String.format(setting.list(), arguments),
+                                            String.format(setting.undefined(), arguments),
                                             type,
                                             genericType,
                                             prefixes,
-                                            String.format(setting.key(), args),
+                                            String.format(setting.key(), arguments),
                                             defaults,
                                             method,
-                                            args);
+                                            arguments);
                         }
                     };
 
@@ -207,7 +208,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                                 final String suffix,
                                 final T defaults,
                                 final Method method,
-                                final Object[] args) {
+                                final Object[] arguments) {
             if (ids == null || ids.isEmpty()) {
                 Object value = null;
 
@@ -225,7 +226,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                     }
 
                     if (value == null) {
-                        final Object fallback = defaults == null ? null : Methods.invoke(method, defaults, args);
+                        final Object fallback = defaults == null ? null : Methods.invoke(method, defaults, arguments);
                         value = fallback == null ? (undefined.length() == 0 ? null : undefined) : fallback;
                     }
 
@@ -318,7 +319,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
         private Object composite(final Class<?> type, final String suffix) throws IllegalAccessException, InstantiationException {
             if (type.isInterface()) {
                 return Proxies.create(type, new InvocationHandler() {
-                    public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+                    public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
                         final Property setting = method.getAnnotation(Property.class);
 
                         if (setting == null) {
@@ -327,13 +328,13 @@ final class ConfigurationImpl<T> implements Configuration<T> {
 
                         return property(setting.split(),
                                         setting.grouping(),
-                                        String.format(setting.ids(), args),
-                                        String.format(setting.list(), args),
-                                        String.format(setting.undefined(), args),
+                                        String.format(setting.ids(), arguments),
+                                        String.format(setting.list(), arguments),
+                                        String.format(setting.undefined(), arguments),
                                         method.getReturnType(),
                                         method.getGenericReturnType(),
                                         prefixes,
-                                        String.format("%s.%s", suffix, String.format(setting.key(), args)),
+                                        String.format("%s.%s", suffix, String.format(setting.key(), arguments)),
                                         null,
                                         null,
                                         null);
@@ -343,11 +344,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                 final Object instance = type.newInstance();
                 final Field[] fields = type.getFields();
 
-                final PrivilegedAction<Void> access = Security.setAccessible(fields);
-
-                if (access != null) {
-                    AccessController.doPrivileged(access);
-                }
+                AccessibleObject.setAccessible(fields, true);
 
                 for (final Field field : fields) {
                     final Property setting = field.getAnnotation(Property.class);

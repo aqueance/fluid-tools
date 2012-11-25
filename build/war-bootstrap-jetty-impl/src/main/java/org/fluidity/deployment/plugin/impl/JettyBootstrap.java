@@ -50,7 +50,7 @@ import org.eclipse.jetty.webapp.WebDescriptor;
 @SuppressWarnings("UnusedDeclaration")
 final class JettyBootstrap implements ServerBootstrap {
 
-    public void bootstrap(final int httpPort, final boolean extract, final File bootApp, final List<File> managedApps, final String args[]) throws IOException {
+    public void bootstrap(final int httpPort, final boolean extract, final File bootApp, final List<File> managedApps, final String arguments[]) throws IOException {
         final WebAppContext defaultContext = deployWar(bootApp, true, extract);
         final List<WebAppContext> contextList = new ArrayList<WebAppContext>();
 

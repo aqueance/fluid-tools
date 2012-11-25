@@ -51,43 +51,43 @@ public final class NoLogFactory implements LogFactory {
             return false;
         }
 
-        public void trace(final String format, final Object... args) {
+        public void trace(final String format, final Object... arguments) {
             // empty
         }
 
-        public void debug(final String format, final Object... args) {
+        public void debug(final String format, final Object... arguments) {
             // empty
         }
 
-        public void info(final String format, final Object... args) {
+        public void info(final String format, final Object... arguments) {
             // empty
         }
 
-        public void warning(final String format, final Object... args) {
+        public void warning(final String format, final Object... arguments) {
             // empty
         }
 
-        public void error(final String format, final Object... args) {
+        public void error(final String format, final Object... arguments) {
             // empty
         }
 
-        public void trace(final Throwable exception, final String format, final Object... args) {
+        public void trace(final Throwable exception, final String format, final Object... arguments) {
             // empty
         }
 
-        public void debug(final Throwable exception, final String format, final Object... args) {
+        public void debug(final Throwable exception, final String format, final Object... arguments) {
             // empty
         }
 
-        public void info(final Throwable exception, final String format, final Object... args) {
+        public void info(final Throwable exception, final String format, final Object... arguments) {
             // empty
         }
 
-        public void warning(final Throwable exception, final String format, final Object... args) {
+        public void warning(final Throwable exception, final String format, final Object... arguments) {
             // empty
         }
 
-        public void error(final Throwable exception, final String format, final Object... args) {
+        public void error(final Throwable exception, final String format, final Object... arguments) {
             // empty
         }
     };

@@ -36,13 +36,13 @@ public final class ShellApplicationBootstrap {
     /**
      * Command line application entry point.
      *
-     * @param args the command line arguments.
+     * @param arguments the command line arguments.
      *
      * @throws IllegalStateException if no {@link Application} component is found.
      * @throws Exception whatever {@link Application#run(String[])} throws.
      */
-    public static void main(final String[] args) throws Exception {
-        Containers.global().instantiate(ShellApplicationBootstrap.class).run(args);
+    public static void main(final String[] arguments) throws Exception {
+        Containers.global().instantiate(ShellApplicationBootstrap.class).run(arguments);
     }
 
     private final Application application;

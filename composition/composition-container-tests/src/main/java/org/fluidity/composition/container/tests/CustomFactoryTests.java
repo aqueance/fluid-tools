@@ -815,11 +815,11 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     private static class DynamicFactory1 implements ComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            final Dependency<?>[] args = dependencies.discover(DynamicComponent1.class);
+            final Dependency<?>[] arguments = dependencies.discover(DynamicComponent1.class);
 
             return new Instance() {
                 public void bind(final Registry registry) throws Exception {
-                    registry.bindInstance(new DynamicComponent1((ComponentContainer) args[0].instance()));
+                    registry.bindInstance(new DynamicComponent1((ComponentContainer) arguments[0].instance()));
                 }
             };
         }
@@ -844,11 +844,11 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     private static class DynamicFactory2 implements ComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            final Dependency<?>[] args = dependencies.discover(DynamicComponent1.class);
+            final Dependency<?>[] arguments = dependencies.discover(DynamicComponent1.class);
 
             return new Instance() {
                 public void bind(final Registry registry) throws Exception {
-                    registry.bindInstance(new DynamicComponent2((ComponentContainer) args[0].instance()));
+                    registry.bindInstance(new DynamicComponent2((ComponentContainer) arguments[0].instance()));
                 }
             };
         }

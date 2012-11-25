@@ -274,7 +274,7 @@ public final class ServiceProviders extends Utility {
          * Emits a DEBUG level message, provided that DEBUG level message emission is {@link org.fluidity.foundation.Log#isDebugEnabled() permitted}.
          *
          * @param format    the format parameter of a {@link String#format(String, Object...)} call.
-         * @param arguments the args parameter of a {@link String#format(String, Object...)} call.
+         * @param arguments the arguments parameter of a {@link String#format(String, Object...)} call.
          */
         void debug(String format, Object... arguments);
 
@@ -282,7 +282,7 @@ public final class ServiceProviders extends Utility {
          * Emits an ERROR level message.
          *
          * @param format    the format parameter of a {@link String#format(String, Object...)} call.
-         * @param arguments the args parameter of a {@link String#format(String, Object...)} call.
+         * @param arguments the arguments parameter of a {@link String#format(String, Object...)} call.
          */
         void error(String format, Object... arguments);
 
@@ -291,7 +291,7 @@ public final class ServiceProviders extends Utility {
          *
          * @param error     the exception to log the stack trace of.
          * @param format    the format parameter of a {@link String#format(String, Object...)} call.
-         * @param arguments the args parameter of a {@link String#format(String, Object...)} call.
+         * @param arguments the arguments parameter of a {@link String#format(String, Object...)} call.
          */
         void error(Exception error, String format, Object... arguments);
     }

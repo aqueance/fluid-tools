@@ -76,21 +76,15 @@ final class DynamicConfigurationFactory implements ComponentFactory {
                         private Configuration.Query<T, T> all = new Configuration.Query<T, T>() {
                             public T run(final T settings) throws Exception {
                                 final Map<Method, Object> cache = new HashMap<Method, Object>();
-                                final Method[] methods = type.getMethods();
 
-                                final PrivilegedAction<Void> access = Security.setAccessible(methods);
-
-                                if (access != null) {
-                                    AccessController.doPrivileged(access);
-                                }
-
-                                for (final Method method : methods) {
+                                final PrivilegedAction<Method[]> access = Security.setMethodsAccessible(type, false);
+                                for (final Method method : (Security.CONTROLLED ? AccessController.doPrivileged(access) : access.run())) {
                                     assert method.getParameterTypes().length == 0 : method;
                                     cache.put(method, method.invoke(settings));
                                 }
 
                                 return Proxies.create(type, new InvocationHandler() {
-                                    public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+                                    public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
                                         return cache.get(method);
                                     }
                                 });

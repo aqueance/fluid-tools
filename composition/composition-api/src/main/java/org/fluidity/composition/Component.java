@@ -278,32 +278,4 @@ public @interface Component {
          */
         Class<?> parameter(int index);
     }
-
-    /**
-     * Marks a dependency for lazy instantiation. If the dependency reference is not to an interface, an {@link IllegalArgumentException} is thrown.
-     * <h3>Usage</h3>
-     * <pre>
-     * {@linkplain Component @Component}
-     * public final class MyComponent {
-     *
-     *   MyComponent(final <span class="hl1">&#64;Component.Deferred</span> <span class="hl2">SomeDependency</span> dependency) {
-     *     &hellip;
-     *   }
-     *
-     *   &hellip;
-     * }
-     * </pre>
-     * <pre>
-     * public <b>interface</b> <span class="hl2">SomeDependency</span> {
-     *   &hellip;
-     * }
-     * </pre>
-     *
-     * @author Tibor Varga
-     */
-    @Documented
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target({ElementType.PARAMETER, ElementType.FIELD})
-    @Context(collect = Context.Collection.IMMEDIATE)
-    @interface Deferred { }
 }

@@ -55,15 +55,15 @@ public final class WebApplicationBootstrap {
     /**
      * Command line application entry point.
      *
-     * @param args the command line arguments.
+     * @param arguments the command line arguments.
      *
      * @throws Exception whatever is thrown by the web application bootstrap component.
      */
-    public static void main(final String[] args) throws Exception {
-        new WebApplicationBootstrap().boot(args);
+    public static void main(final String[] arguments) throws Exception {
+        new WebApplicationBootstrap().boot(arguments);
     }
 
-    private void boot(final String[] args) throws Exception {
+    private void boot(final String[] arguments) throws Exception {
         final Class<? extends WebApplicationBootstrap> bootstrapClass = getClass();
         final String name = ClassLoaders.classResourceName(bootstrapClass);
         final ClassLoader bootstrapLoader = bootstrapClass.getClassLoader();
@@ -82,8 +82,8 @@ public final class WebApplicationBootstrap {
 
             final List<String> params = new ArrayList<String>();
 
-            for (int i = 0; i < args.length; i++) {
-                String param = args[i];
+            for (int i = 0; i < arguments.length; i++) {
+                String param = arguments[i];
 
                 if (param.endsWith(".war")) {
                     final File file = new File(param);
@@ -93,13 +93,13 @@ public final class WebApplicationBootstrap {
                 } else if (param.equals("-http")) {
                     final int j = i + 1;
 
-                    if (args.length > j) {
+                    if (arguments.length > j) {
                         try {
-                            httpPort[0] = Integer.parseInt(args[j]);
+                            httpPort[0] = Integer.parseInt(arguments[j]);
                             i = j;
                         } catch (final NumberFormatException e) {
-                            if (!args[j].startsWith("-")) {
-                                throw new IllegalArgumentException(String.format("Parameter %s is not a port number", args[j]));
+                            if (!arguments[j].startsWith("-")) {
+                                throw new IllegalArgumentException(String.format("Parameter %s is not a port number", arguments[j]));
                             }
                         }
                     } else {
@@ -151,14 +151,14 @@ public final class WebApplicationBootstrap {
                                  final List<URL> classpath,
                                  final File bootApp,
                                  final List<File> managedApps,
-                                 final String args[]) throws Exception {
+                                 final String arguments[]) throws Exception {
         final ClassLoader classLoader = ClassLoaders.create(classpath, null);
         final ServerBootstrap server = ServiceProviders.findInstance(ServerBootstrap.class, classLoader);
 
         if (server != null) {
             ClassLoaders.context(classLoader, new Function<Void, ClassLoader, Exception>() {
                 public Void run(final ClassLoader loader) throws Exception {
-                    server.bootstrap(httpPort, extract, bootApp, managedApps, args);
+                    server.bootstrap(httpPort, extract, bootApp, managedApps, arguments);
                     return null;
                 }
             });

@@ -61,8 +61,8 @@ import static org.fluidity.foundation.Command.Process;
  * {@linkplain Component @Component}(automatic = false)
  * public final class <span class="hl2">Main</span> {
  *
- *   public static void main(final String[] args) throws Exception {
- *     <span class="hl1">{@linkplain Containers}.{@linkplain Containers#global() global}</span>().{@linkplain ComponentContainer#instantiate(Class, ComponentContainer.Bindings...) instantiate}(<span class="hl2">Main</span>.class).<span class="hl3">run</span>(args);
+ *   public static void main(final String[] arguments) throws Exception {
+ *     <span class="hl1">{@linkplain Containers}.{@linkplain Containers#global() global}</span>().{@linkplain ComponentContainer#instantiate(Class, ComponentContainer.Bindings...) instantiate}(<span class="hl2">Main</span>.class).<span class="hl3">run</span>(arguments);
  *   }
  *
  *   private void <span class="hl3">run</span>(final String[] parameters) throws Exception {

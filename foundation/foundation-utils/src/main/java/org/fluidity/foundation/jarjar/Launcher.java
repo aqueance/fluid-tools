@@ -51,7 +51,7 @@ import static org.fluidity.foundation.Command.Process;
 public final class Launcher {
 
     /**
-     * The JAR manifest attribute that specifies the application's main class, one with a <code>public static void main(final String[] args) throws
+     * The JAR manifest attribute that specifies the application's main class, one with a <code>public static void main(final String[] arguments) throws
      * Exception</code> method.
      */
     public static final String ORIGINAL_MAIN_CLASS = "Original-Main-Class";
@@ -71,23 +71,23 @@ public final class Launcher {
     /**
      * The command line entry point.
      *
-     * @param args the command line arguments.
+     * @param arguments the command line arguments.
      *
      * @throws Exception when anything goes wrong.
      */
-    public static void main(final String[] args) throws Exception {
+    public static void main(final String[] arguments) throws Exception {
         try {
             Exceptions.wrap(new Process<Void, Exception>() {
                 public Void run() throws Exception {
                     if (Security.CONTROLLED) {
                         AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
                             public Void run() throws Exception {
-                                start(args);
+                                start(arguments);
                                 return null;
                             }
                         });
                     } else {
-                        start(args);
+                        start(arguments);
                     }
 
                     return null;

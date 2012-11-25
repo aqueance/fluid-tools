@@ -140,8 +140,7 @@ public final class ContainerBootstrapImplTest extends Simulator {
                 EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
                     @SuppressWarnings("unchecked")
                     public Object answer() throws Throwable {
-                        Object[] args = EasyMock.getCurrentArguments();
-                        job.set(((Command.Job<Exception>) args[0]));
+                        job.set(((Command.Job<Exception>) EasyMock.getCurrentArguments()[0]));
                         return null;
                     }
                 });

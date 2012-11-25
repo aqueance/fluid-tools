@@ -52,9 +52,9 @@ import org.fluidity.foundation.Log;
  *     };
  *   }
  *
- *   public void trace(final String message, final Object... args) {
+ *   public void trace(final String message, final Object... arguments) {
  *     if (<span class="hl1">{@linkplain LogAdapter#permissions()}.trace</span>) {
- *       <span class="hl1">log</span>.<b>trace</b>(message, args);
+ *       <span class="hl1">log</span>.<b>trace</b>(message, arguments);
  *     }
  *   }
  *

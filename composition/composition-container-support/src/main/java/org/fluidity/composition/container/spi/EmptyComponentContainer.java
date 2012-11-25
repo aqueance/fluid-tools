@@ -271,7 +271,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
 
             private final Map<Method, Boolean> injectMap = new ConcurrentHashMap<Method, Boolean>();
 
-            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+            public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
                 Boolean inject = injectMap.get(method);
 
                 if (inject == null) {
@@ -296,7 +296,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
                     }
                 }
 
-                return inject ? EmptyComponentContainer.this.invoke(component, false, method, args) : method.invoke(component, args);
+                return inject ? EmptyComponentContainer.this.invoke(component, false, method, arguments) : method.invoke(component, arguments);
             }
         });
     }

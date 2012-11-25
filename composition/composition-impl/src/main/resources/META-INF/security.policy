@@ -1,0 +1,4 @@
+grant codebase "file:\${java.class.path}" {
+  permission java.lang.RuntimePermission "accessDeclaredMembers";
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+};

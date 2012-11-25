@@ -131,10 +131,10 @@ final class BundleBoundaryImpl implements BundleBoundary {
             this.tunnel = classLoader;
         }
 
-        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+        public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
             return ClassLoaders.context(tunnel, new Function<Object, ClassLoader, Exception>() {
                 public Object run(final ClassLoader loader) throws Exception {
-                    return method.invoke(implementation, args);
+                    return method.invoke(implementation, arguments);
                 }
             });
         }

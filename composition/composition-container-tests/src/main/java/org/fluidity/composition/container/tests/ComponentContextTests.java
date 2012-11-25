@@ -420,13 +420,13 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Component.Context(Setting2.class)
     private static final class SecondFactory implements ComponentFactory {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            final Dependency<?>[] args = dependencies.discover(SecondComponent.class);
+            final Dependency<?>[] arguments = dependencies.discover(SecondComponent.class);
 
             return new Instance() {
                 public void bind(final Registry registry) throws Exception {
 
                     // direct instantiation to bypass the container when instantiating ThirdComponent
-                    registry.bindInstance(new SecondComponent((ThirdComponent) args[0].instance(),
+                    registry.bindInstance(new SecondComponent((ThirdComponent) arguments[0].instance(),
                                                               context.annotations(Setting1.class),
                                                               context.annotations(Setting2.class),
                                                               context.annotations(Setting3.class)));

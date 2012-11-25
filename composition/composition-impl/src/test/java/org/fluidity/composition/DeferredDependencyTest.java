@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.composition;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.fluidity.composition.Component;
-import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.Containers;
-import org.fluidity.composition.Inject;
+import org.fluidity.foundation.Deferred;
 
 import org.testng.annotations.Test;
 
@@ -182,8 +178,8 @@ public class DeferredDependencyTest {
     @Component(automatic = false)
     private static class AnnotatedDependent1 {
 
-        public AnnotatedDependent1(final @Data("1") @Component.Deferred AnnotatedDependency deferred1,
-                                   final @Data("2") @Component.Deferred AnnotatedDependency deferred2,
+        public AnnotatedDependent1(final @Data("1") @Defer AnnotatedDependency deferred1,
+                                   final @Data("2") @Defer AnnotatedDependency deferred2,
                                    final @Data("1") AnnotatedDependency instance1,
                                    final @Data("2") AnnotatedDependency instance2) {
             assert deferred1 != null;
@@ -216,8 +212,8 @@ public class DeferredDependencyTest {
     @Component(automatic = false)
     private static class AnnotatedDependent2 {
 
-        public AnnotatedDependent2(final @Data("3") @Component.Deferred AnnotatedDependency deferred1,
-                                   final @Data("4") @Component.Deferred AnnotatedDependency deferred2) {
+        public AnnotatedDependent2(final @Data("3") @Defer AnnotatedDependency deferred1,
+                                   final @Data("4") @Defer AnnotatedDependency deferred2) {
             assert deferred1 != null;
             assert deferred2 != null;
 

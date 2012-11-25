@@ -84,85 +84,85 @@ public interface Log<T> {
     /**
      * Emits a TRACE level message, provided that TRACE level message emission is {@link #isTraceEnabled() permitted}.
      *
-     * @param format the format parameter of a {@link String#format(String, Object...)} call.
-     * @param args   the args parameter of a {@link String#format(String, Object...)} call.
+     * @param format    the format parameter of a {@link String#format(String, Object...)} call.
+     * @param arguments the arguments parameter of a {@link String#format(String, Object...)} call.
      */
-    void trace(String format, Object... args);
+    void trace(String format, Object... arguments);
 
     /**
      * Emits a DEBUG level message, provided that DEBUG level message emission is {@link #isDebugEnabled() permitted}.
      *
-     * @param format the format parameter of a {@link String#format(String, Object...)} call.
-     * @param args   the args parameter of a {@link String#format(String, Object...)} call.
+     * @param format    the format parameter of a {@link String#format(String, Object...)} call.
+     * @param arguments the arguments parameter of a {@link String#format(String, Object...)} call.
      */
-    void debug(String format, Object... args);
+    void debug(String format, Object... arguments);
 
     /**
      * Emits an INFO level message, provided that INFO level message emission is {@link #isInfoEnabled() permitted}.
      *
-     * @param format the format parameter of a {@link String#format(String, Object...)} call.
-     * @param args   the args parameter of a {@link String#format(String, Object...)} call.
+     * @param format    the format parameter of a {@link String#format(String, Object...)} call.
+     * @param arguments the arguments parameter of a {@link String#format(String, Object...)} call.
      */
-    void info(String format, Object... args);
+    void info(String format, Object... arguments);
 
     /**
      * Emits a WARNING level message, provided that WARNING level message emission is {@link #isWarningEnabled() permitted}.
      *
-     * @param format the format parameter of a {@link String#format(String, Object...)} call.
-     * @param args   the args parameter of a {@link String#format(String, Object...)} call.
+     * @param format    the format parameter of a {@link String#format(String, Object...)} call.
+     * @param arguments the arguments parameter of a {@link String#format(String, Object...)} call.
      */
-    void warning(String format, Object... args);
+    void warning(String format, Object... arguments);
 
     /**
      * Emits an ERROR level message.
      *
-     * @param format the format parameter of a {@link String#format(String, Object...)} call.
-     * @param args   the args parameter of a {@link String#format(String, Object...)} call.
+     * @param format    the format parameter of a {@link String#format(String, Object...)} call.
+     * @param arguments the arguments parameter of a {@link String#format(String, Object...)} call.
      */
-    void error(String format, Object... args);
+    void error(String format, Object... arguments);
 
     /**
      * Emits a TRACE level message and an exception stack trace, provided that TRACE level message emission is {@link #isTraceEnabled() permitted}.
      *
      * @param exception the exception to log the stack trace of.
      * @param format    the format parameter of a {@link String#format(String, Object...)} call.
-     * @param args      the args parameter of a {@link String#format(String, Object...)} call.
+     * @param arguments the arguments parameter of a {@link String#format(String, Object...)} call.
      */
-    void trace(Throwable exception, String format, Object... args);
+    void trace(Throwable exception, String format, Object... arguments);
 
     /**
      * Emits a DEBUG level message and an exception stack trace, provided that DEBUG level message emission is {@link #isDebugEnabled() permitted}.
      *
      * @param exception the exception to log the stack trace of.
      * @param format    the format parameter of a {@link String#format(String, Object...)} call.
-     * @param args      the args parameter of a {@link String#format(String, Object...)} call.
+     * @param arguments the arguments parameter of a {@link String#format(String, Object...)} call.
      */
-    void debug(Throwable exception, String format, Object... args);
+    void debug(Throwable exception, String format, Object... arguments);
 
     /**
      * Emits an INFO level message and an exception stack trace, provided that INFO level message emission is {@link #isInfoEnabled() permitted}.
      *
      * @param exception the exception to log the stack trace of.
      * @param format    the format parameter of a {@link String#format(String, Object...)} call.
-     * @param args      the args parameter of a {@link String#format(String, Object...)} call.
+     * @param arguments the arguments parameter of a {@link String#format(String, Object...)} call.
      */
-    void info(Throwable exception, String format, Object... args);
+    void info(Throwable exception, String format, Object... arguments);
 
     /**
      * Emits a WARNING level message and an exception stack trace, provided that WARNING level message emission is {@link #isWarningEnabled() permitted}.
      *
      * @param exception the exception to log the stack trace of.
      * @param format    the format parameter of a {@link String#format(String, Object...)} call.
-     * @param args      the args parameter of a {@link String#format(String, Object...)} call.
+     * @param arguments the arguments parameter of a {@link String#format(String, Object...)} call.
      */
-    void warning(Throwable exception, String format, Object... args);
+    void warning(Throwable exception, String format, Object... arguments);
 
     /**
      * Emits an ERROR level message and an exception stack trace.
      *
      * @param exception the exception to log the stack trace of.
      * @param format    the format parameter of a {@link String#format(String, Object...)} call.
-     * @param args      the args parameter of a {@link String#format(String, Object...)} call.
+     * @param arguments the arguments parameter of a {@link String#format(String, Object...)} call.
      */
-    void error(Throwable exception, String format, Object... args);
+    void error(Throwable exception, String format, Object... arguments);
 }

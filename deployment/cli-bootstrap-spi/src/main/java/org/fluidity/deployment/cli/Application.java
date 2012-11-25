@@ -32,7 +32,7 @@ package org.fluidity.deployment.cli;
  * {@linkplain org.fluidity.composition.Component @Component}
  * final class MyApplication implements <span class="hl1">Application</span> {
  *
- *   public void <span class="hl1">run</span>(final {@linkplain String}[] args) throws {@linkplain Exception} {
+ *   public void <span class="hl1">run</span>(final {@linkplain String}[] arguments) throws {@linkplain Exception} {
  *     &hellip;
  *   }
  * }
@@ -44,9 +44,9 @@ public interface Application {
      * Entry point to the command line application. This method is invoked from the main thread. The application terminates when this method returns unless
      * non-daemon threads were left active.
      *
-     * @param args the command line arguments.
+     * @param arguments the command line arguments.
      *
      * @throws Exception reported to the command launcher.
      */
-    void run(String[] args) throws Exception;
+    void run(String[] arguments) throws Exception;
 }

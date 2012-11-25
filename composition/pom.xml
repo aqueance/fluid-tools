@@ -39,6 +39,7 @@
 
     <modules>
         <module>composition-api</module>
+        <module>composition-impl</module>
         <module>composition-container-support-impl</module>
         <module>composition-container-simple-impl</module>
         <module>composition-container-tests</module>

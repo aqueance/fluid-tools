@@ -32,16 +32,16 @@ public interface ServerBootstrap {
     /**
      * Bootstraps a web server and deploys a list of WAR files.
      *
-     * @param httpPort    The HTTP port to listen on. If == 0 then no HTTP listener is needed.
+     * @param httpPort    the HTTP port to listen on. If == 0 then no HTTP listener is needed.
      * @param extract     specifies whether the WAR content should be extracted (<code>true</code>) or not (<code>false</code>).
-     * @param bootApp     The web application WAR file used to establish the boot class path. The list of JAR files to be added to the boot class path will
+     * @param bootApp     the web application WAR file used to establish the boot class path. The list of JAR files to be added to the boot class path will
      *                    be found under <code>WEB-INF/boot</code> of this WAR file. This WAR file shall be deployed under the root (<code>/</code>)
      *                    context.
-     * @param managedApps The web application WAR files to deploy. These WAR files shall be deployed under a context that is derived from the WAR name
+     * @param managedApps the web application WAR files to deploy. These WAR files shall be deployed under a context that is derived from the WAR name
      *                    excluding the version number and the extension.
-     * @param args        The list of command line arguments left unprocessed by the invoker.
+     * @param arguments   the list of command line arguments left unprocessed by the invoker.
      *
      * @throws Exception thrown when something goes wrong.
      */
-    void bootstrap(int httpPort, boolean extract, File bootApp, List<File> managedApps, String args[]) throws Exception;
+    void bootstrap(int httpPort, boolean extract, File bootApp, List<File> managedApps, String arguments[]) throws Exception;
 }

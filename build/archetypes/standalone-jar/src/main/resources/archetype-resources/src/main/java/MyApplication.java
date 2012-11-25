@@ -29,7 +29,7 @@ final class MyApplication implements Application {
         this.sink = sink;
     }
 
-    public void run(final String[] args) {
+    public void run(final String[] arguments) {
         sink.receiveText("--- Hello from the main application!");
     }
 }

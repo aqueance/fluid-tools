@@ -59,7 +59,7 @@ public final class Methods extends Utility {
                 final Collection<Method> methods = new ArrayList<Method>();
 
                 invoker.invoke(Proxies.create(type, new InvocationHandler() {
-                    public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+                    public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
                         methods.add(method);
 
                         final Class<?> type = method.getReturnType();

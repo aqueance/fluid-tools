@@ -39,8 +39,8 @@ public class ProxiesTest extends Simulator {
     @Test
     public void testIntrospection() throws Exception {
         final InvocationHandler handler = new InvocationHandler() {
-            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                return method.invoke(mock, args);
+            public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
+                return method.invoke(mock, arguments);
             }
         };
 
@@ -57,14 +57,14 @@ public class ProxiesTest extends Simulator {
     @Test
     public void testDefaultIdentity() throws Exception {
         final TestObject instance1 = Proxies.create(TestObject.class, new InvocationHandler() {
-            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                return method.invoke(mock, args);
+            public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
+                return method.invoke(mock, arguments);
             }
         });
 
         final TestObject instance2 = Proxies.create(TestObject.class, new InvocationHandler() {
-            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                return method.invoke(mock, args);
+            public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
+                return method.invoke(mock, arguments);
             }
         });
 
@@ -101,14 +101,14 @@ public class ProxiesTest extends Simulator {
         };
 
         final TestObject instance1 = Proxies.create(TestObject.class, identity, new InvocationHandler() {
-            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                return method.invoke(mock, args);
+            public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
+                return method.invoke(mock, arguments);
             }
         });
 
         final TestObject instance2 = Proxies.create(TestObject.class, identity, new InvocationHandler() {
-            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                return method.invoke(mock, args);
+            public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
+                return method.invoke(mock, arguments);
             }
         });
 
