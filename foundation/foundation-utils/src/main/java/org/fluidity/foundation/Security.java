@@ -17,9 +17,6 @@
 package org.fluidity.foundation;
 
 import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.security.AccessControlException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -110,74 +107,5 @@ public final class Security extends Utility {
             object.setAccessible(true);
             return null;
         }
-    }
-
-    /**
-     * Convenience method to safely set {@linkplain AccessibleObject#setAccessible(AccessibleObject[], boolean) accessible} the constructors of a class.
-     * <p/>
-     * The method returns a {@link PrivilegedAction} that can either be fed to {@link AccessController#doPrivileged(PrivilegedAction)} to make the constructors
-     * {@linkplain AccessibleObject#setAccessible(AccessibleObject[], boolean) accessible} if access control is {@link #CONTROLLED enabled}, or can be directly
-     * {@linkplain PrivilegedAction#run() run} when not.
-     *
-     * @param type     is the class the constructors of which are to be made accessible.
-     * @param declared if <code>true</code>, the {@linkplain Class#getDeclaredConstructors() declared} constructors are made accessible, if <code>false</code>,
-     *                 only the {@linkplain Class#getConstructors() public} ones are.
-     *
-     * @return a {@link PrivilegedAction}; never <code>null</code>.
-     */
-    public static PrivilegedAction<Constructor[]> setConstructorsAccessible(final Class<?> type, final boolean declared) {
-        return new PrivilegedAction<Constructor[]>() {
-            public Constructor[] run() {
-                final Constructor<?>[] constructors = declared ? type.getDeclaredConstructors() : type.getConstructors();
-                AccessibleObject.setAccessible(constructors, true);
-                return constructors;
-            }
-        };
-    }
-
-    /**
-     * Convenience method to safely set {@linkplain AccessibleObject#setAccessible(AccessibleObject[], boolean) accessible} the methods of a class.
-     * <p/>
-     * The method returns a {@link PrivilegedAction} that can either be fed to {@link AccessController#doPrivileged(PrivilegedAction)} to make the methods
-     * {@linkplain AccessibleObject#setAccessible(AccessibleObject[], boolean) accessible} if access control is {@link #CONTROLLED enabled}, or can be directly
-     * {@linkplain PrivilegedAction#run() run} when not.
-     *
-     * @param type     is the class the methods of which are to be made accessible.
-     * @param declared if <code>true</code>, the {@linkplain Class#getDeclaredConstructors() declared} methods are made accessible, if <code>false</code>,
-     *                 only the {@linkplain Class#getConstructors() public} ones are.
-     *
-     * @return a {@link PrivilegedAction}; never <code>null</code>.
-     */
-    public static PrivilegedAction<Method[]> setMethodsAccessible(final Class<?> type, final boolean declared) {
-        return new PrivilegedAction<Method[]>() {
-            public Method[] run() {
-                final Method[] methods = declared ? type.getDeclaredMethods() : type.getMethods();
-                AccessibleObject.setAccessible(methods, true);
-                return methods;
-            }
-        };
-    }
-
-    /**
-     * Convenience method to safely set {@linkplain AccessibleObject#setAccessible(AccessibleObject[], boolean) accessible} the fields of a class.
-     * <p/>
-     * The method returns a {@link PrivilegedAction} that can either be fed to {@link AccessController#doPrivileged(PrivilegedAction)} to make the fields
-     * {@linkplain AccessibleObject#setAccessible(AccessibleObject[], boolean) accessible} if access control is {@link #CONTROLLED enabled}, or can be directly
-     * {@linkplain PrivilegedAction#run() run} when not.
-     *
-     * @param type     is the class the fields of which are to be made accessible.
-     * @param declared if <code>true</code>, the {@linkplain Class#getDeclaredConstructors() declared} fields are made accessible, if <code>false</code>,
-     *                 only the {@linkplain Class#getConstructors() public} ones are.
-     *
-     * @return a {@link PrivilegedAction}; never <code>null</code>.
-     */
-    public static PrivilegedAction<Field[]> setFieldsAccessible(final Class<?> type, final boolean declared) {
-        return new PrivilegedAction<Field[]>() {
-            public Field[] run() {
-                final Field[] fields = declared ? type.getDeclaredFields() : type.getFields();
-                AccessibleObject.setAccessible(fields, true);
-                return fields;
-            }
-        };
     }
 }
