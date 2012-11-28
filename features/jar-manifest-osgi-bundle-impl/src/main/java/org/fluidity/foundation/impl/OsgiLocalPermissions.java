@@ -379,6 +379,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
             } else {
                 list = permissions.get(key);
             }
+
             return list;
         }
 
@@ -410,9 +411,8 @@ final class OsgiLocalPermissions implements SecurityPolicy {
         }
 
         private void policy(final Map<String, Collection<String>> permissions, final String original) throws IOException {
-            final Lists.Delimited sequence = Lists.delimited(" ");
-
-            final List<String> texts = reduce(original, sequence);
+            final List<String> texts = new ArrayList<String>();
+            final Lists.Delimited sequence = reduce(" ", original, texts);
 
             // pattern for a non-reserved word
             final String word = String.format("%d:\\d+", StreamTokenizer.TT_WORD);
@@ -424,7 +424,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
             final String signature = String.format(" %1$d %2$s %3$s|%2$s %3$s %1$d ", (int) ',', keyword(Keyword.SIGNEDBY), text);
 
             // matches a principal list with a comma before or after
-            final String principal = String.format(" %1$d:%2$s %3$s %3$s|:%2$s %3$s %4$s %1$d ", (int) ',', keyword(Keyword.PRINCIPAL), word, text);
+            final String principal = String.format(" %1$d %2$s %3$s %4$s|%2$s %3$s %4$s %1$d ", (int) ',', keyword(Keyword.PRINCIPAL), word, text);
 
             // removes signedBy clauses and principal lists
             final String content = sequence.toString().replaceAll(String.format("(%s|%s)", signature, principal), "");
@@ -478,29 +478,29 @@ final class OsgiLocalPermissions implements SecurityPolicy {
             }
         }
 
-        private List<String> reduce(final String original, final Lists.Delimited sequence) throws IOException {
-            final StreamTokenizer tokens = new StreamTokenizer(new BufferedReader(new StringReader(original)));
+        private Lists.Delimited reduce(final String delimiter, final String original, final List<String> values) throws IOException {
+            final StreamTokenizer parser = new StreamTokenizer(new BufferedReader(new StringReader(original)));
 
-            tokens.resetSyntax();
-            tokens.wordChars('a', 'z');
-            tokens.wordChars('A', 'Z');
-            tokens.wordChars('.', '.');
-            tokens.wordChars('0', '9');
-            tokens.wordChars('_', '_');
-            tokens.wordChars('$', '$');
-            tokens.wordChars(128 + 32, 255);
-            tokens.whitespaceChars(0, ' ');
-            tokens.commentChar('/');
-            tokens.quoteChar('\'');
-            tokens.quoteChar('"');
-            tokens.lowerCaseMode(false);
-            tokens.ordinaryChar('/');
-            tokens.slashSlashComments(true);
-            tokens.slashStarComments(true);
+            parser.resetSyntax();
+            parser.wordChars('a', 'z');
+            parser.wordChars('A', 'Z');
+            parser.wordChars('.', '.');
+            parser.wordChars('0', '9');
+            parser.wordChars('_', '_');
+            parser.wordChars('$', '$');
+            parser.wordChars(128 + 32, 255);
+            parser.whitespaceChars(0, ' ');
+            parser.commentChar('/');
+            parser.quoteChar('\'');
+            parser.quoteChar('"');
+            parser.lowerCaseMode(false);
+            parser.ordinaryChar('/');
+            parser.slashSlashComments(true);
+            parser.slashStarComments(true);
 
-            final List<String> values = new ArrayList<String>();
-            for (int type = tokens.nextToken(); type != StreamTokenizer.TT_EOF; type = tokens.nextToken()) {
-                final String value = tokens.sval == null ? null : tokens.sval.toLowerCase();
+            final Lists.Delimited sequence = Lists.delimited(delimiter);
+            for (int type = parser.nextToken(); type != StreamTokenizer.TT_EOF; type = parser.nextToken()) {
+                final String value = parser.sval == null ? null : parser.sval.toLowerCase();
 
                 if (value == null) {
                     sequence.add(String.format("%d", type));
@@ -510,12 +510,12 @@ final class OsgiLocalPermissions implements SecurityPolicy {
                         assert type == StreamTokenizer.TT_WORD : value;
                     } catch (final IllegalArgumentException e) {
                         sequence.add(String.format("%d:%d", type, values.size()));
-                        values.add(tokens.sval);
+                        values.add(parser.sval);
                     }
                 }
             }
 
-            return values;
+            return sequence;
         }
 
         private String keyword(final Keyword keyword) {

@@ -175,7 +175,7 @@ public class Lists extends Utility {
         /**
          * The underlying {@link StringBuilder} object.
          */
-        public final StringBuilder builder = new StringBuilder();
+        public final StringBuilder text = new StringBuilder();
 
         private final String delimiter;
 
@@ -194,7 +194,7 @@ public class Lists extends Utility {
          * @return the underlying {@link StringBuilder} object.
          */
         public StringBuilder next() {
-            return builder.length() > 0 ? builder.append(delimiter) : builder;
+            return text.length() > 0 ? text.append(delimiter) : text;
         }
 
         /**
@@ -203,7 +203,7 @@ public class Lists extends Utility {
          * @return the underlying {@link StringBuilder} object.
          */
         public StringBuilder previous() {
-            return builder.length() > 0 ? builder.insert(0, delimiter) : builder;
+            return text.length() > 0 ? text.insert(0, delimiter) : text;
         }
 
         /**
@@ -225,7 +225,7 @@ public class Lists extends Utility {
                 next().append(text instanceof String ? text: Strings.formatObject(false, true, text));
             }
 
-            return builder;
+            return text;
         }
 
         /**
@@ -238,7 +238,7 @@ public class Lists extends Utility {
                 next().append(text instanceof String ? text: Strings.formatObject(false, true, text));
             }
 
-            return builder;
+            return text;
         }
 
         /**
@@ -249,9 +249,9 @@ public class Lists extends Utility {
          * @return the underlying {@link StringBuilder} object.
          */
         public StringBuilder set(final Object text) {
-            builder.setLength(0);
-            builder.append(text);
-            return builder;
+            this.text.setLength(0);
+            this.text.append(text);
+            return this.text;
         }
 
         /**
@@ -262,7 +262,7 @@ public class Lists extends Utility {
          * @return the underlying {@link StringBuilder} object.
          */
         public StringBuilder append(final Object text) {
-            return builder.append(text);
+            return this.text.append(text);
         }
 
         /**
@@ -280,7 +280,7 @@ public class Lists extends Utility {
                 surround(bracket.substring(0, half + length % 2), bracket.substring(half));
             }
 
-            return builder;
+            return text;
         }
 
         /**
@@ -292,7 +292,7 @@ public class Lists extends Utility {
          * @return the underlying {@link StringBuilder} object.
          */
         public StringBuilder surround(final String prefix, final String suffix) {
-            return builder.insert(0, prefix).append(suffix);
+            return text.insert(0, prefix).append(suffix);
         }
 
         /**
@@ -303,7 +303,7 @@ public class Lists extends Utility {
          * @return the underlying {@link StringBuilder} object.
          */
         public StringBuilder prepend(final String prefix) {
-            return builder.insert(0, prefix);
+            return text.insert(0, prefix);
         }
 
         /**
@@ -312,12 +312,12 @@ public class Lists extends Utility {
          * @return <code>true</code> if the underlying {@link StringBuilder} is empty; <code>false</code> otherwise.
          */
         public boolean isEmpty() {
-            return builder.length() == 0;
+            return text.length() == 0;
         }
 
         @Override
         public String toString() {
-            return builder.toString();
+            return text.toString();
         }
     }
 }

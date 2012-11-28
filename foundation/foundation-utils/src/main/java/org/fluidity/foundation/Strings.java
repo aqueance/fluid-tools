@@ -201,7 +201,7 @@ public final class Strings extends Utility {
 
         try {
             if (methods.length == 1 && methods[0].getName().equals("value")) {
-                appendValue(identity, list.builder, methods[0].invoke(annotation));
+                appendValue(identity, list.text, methods[0].invoke(annotation));
             } else {
                 Arrays.sort(methods, new Comparator<Method>() {
                     public int compare(final Method method1, final Method method2) {

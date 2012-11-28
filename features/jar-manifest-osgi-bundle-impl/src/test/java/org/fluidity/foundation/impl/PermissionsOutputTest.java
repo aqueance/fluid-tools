@@ -49,9 +49,9 @@ public class PermissionsOutputTest extends Simulator {
                                                    + "  permission java.io.FilePermission \"<<ALL FILES>>\", \"read\", signedBy \"whoever\";";
     private static final String SECURITY_POLICY = String.format("grant codebase \"file:${java.class.path}\" {\n%1$s\n};\n"
                                                        + "\n"
-                                                       + "grant signedBy \"whatever\", codebase \"jarjar:file:${java.class.path}!:/%2$s\" {\n%1$s\n};\n"
+                                                       + "grant signedBy \"whatever\", codebase \"jarjar:file:${java.class.path}!:/%2$s\", principal some.class.name \"some name\" {\n%1$s\n};\n"
                                                        + "\n"
-                                                       + "grant codebase \"jarjar:file:${java.class.path}!:/%3$s\", signedBy \"whatever\" {\n%1$s\n};\n"
+                                                       + "grant principal some.class.name \"some name\", codebase \"jarjar:file:${java.class.path}!:/%3$s\", signedBy \"whatever\" {\n%1$s\n};\n"
                                                        + "\n"
                                                        + "grant signedBy \"whatever\" {\n%1$s\n};", JAVA_PERMISSIONS, DEPENDENCY_1, DEPENDENCY_2);
 
