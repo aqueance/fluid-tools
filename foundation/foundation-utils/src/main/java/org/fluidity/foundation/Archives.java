@@ -784,21 +784,41 @@ public final class Archives extends Utility {
 
             return Lists.asArray(String.class, list);
         }
-
-        /**
-         * Unloads from the cache the root JAR archive that contains the archive identified by the given URL.
-         *
-         * @param url the URL identifying the Java archive to unload.
-         */
-        public static void unload(final URL url) {
-            Handler.unload(url);
-        }
     }
 
     /**
      * Archives cache related functions.
      * <h3>Usage</h3>
-     * TODO
+     * <h4>Automatic Cache Eviction</h4>
+     * <pre>
+     * final <span class="hl3">String[]</span> values = <span class="hl1">Archives.Cache</span>.{@linkplain #access(Command.Process) access}(new {@linkplain Command.Process}&lt;<span class="hl3">String[]</span>, <span class="hl3">IOException</span>>() {
+     *   public <span class="hl3">String[]</span> run() throws <span class="hl3">IOException</span> {
+     *     &hellip; // cache access
+     *
+     *     return …;
+     *   }
+     * });
+     * </pre>
+     * <h4>Capturing Cache Contents</h4>
+     * <pre>
+     * final <span class="hl3">Object</span> <span class="hl2">context</span> = <span class="hl1">Archives.Cache</span>.{@linkplain #access(Command.Process) access}(new {@linkplain Command.Process}&lt;<span class="hl3">Object</span>, RuntimeException>() {
+     *   public <span class="hl3">Object</span> run() {
+     *     &hellip; // cache access
+     *
+     *     return <span class="hl1">Archives.Cache</span>.{@linkplain #capture(boolean) capture}(true);
+     *   }
+     * });
+     *
+     * &hellip;
+     *
+     * final <span class="hl3">String[]</span> values = <span class="hl1">Archives.Cache</span>.{@linkplain #access(Object, Command.Process) access}(<span class="hl2">context</span>, new {@linkplain Command.Process}&lt;<span class="hl3">String[]</span>, <span class="hl3">IOException</span>>() {
+     *   public <span class="hl3">String[]</span> run() throws <span class="hl3">IOException</span> {
+     *     &hellip; // computation
+     *
+     *     return …;
+     *   }
+     * });
+     * </pre>
      *
      * @author Tibor Varga
      */

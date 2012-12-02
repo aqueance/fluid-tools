@@ -114,13 +114,13 @@ public class HandlerTest {
                         assert Handler.Cache.loaded(url2, true);
                         assert !Handler.Cache.loaded(url2, false);
 
-                        Archives.Nested.unload(url1);
+                        Handler.Cache.unload(url1);
                         assert !Handler.Cache.loaded(url1, true);
                         assert Handler.Cache.loaded(url1, false);
 
                         assert Handler.Cache.loaded(url2, true);
                         assert !Handler.Cache.loaded(url2, false);
-                        Archives.Nested.unload(url2);
+                        Handler.Cache.unload(url2);
                         assert !Handler.Cache.loaded(url2, true);
                         assert !Handler.Cache.loaded(url2, false);
 
@@ -131,7 +131,7 @@ public class HandlerTest {
                 assert Handler.Cache.loaded(url1, true);
                 assert Handler.Cache.loaded(url1, false);
 
-                Archives.Nested.unload(url1);
+                Handler.Cache.unload(url1);
                 assert !Handler.Cache.loaded(url1, true);
                 assert Handler.Cache.loaded(url1, false);
 
@@ -142,7 +142,7 @@ public class HandlerTest {
         assert Handler.Cache.loaded(url1, true);
         assert Handler.Cache.loaded(url1, false);
 
-        Archives.Nested.unload(url1);
+        Handler.Cache.unload(url1);
         assert !Handler.Cache.loaded(url1, true);
         assert !Handler.Cache.loaded(url1, false);
     }
@@ -157,8 +157,8 @@ public class HandlerTest {
         final AtomicBoolean running = new AtomicBoolean();
         final AtomicReference<Exception> error = new AtomicReference<Exception>();
 
-        Handler.unload(url1);
-        Handler.unload(url2);
+        Handler.Cache.unload(url1);
+        Handler.Cache.unload(url2);
 
         final Thread thread = new Thread() {
             @Override
@@ -177,11 +177,11 @@ public class HandlerTest {
                             Handler.Cache.contents(url2);
                             assert Handler.Cache.loaded(url2, true);
 
-                            Archives.Nested.unload(url1);
+                            Handler.Cache.unload(url1);
                             assert !Handler.Cache.loaded(url1, true);
 
                             assert Handler.Cache.loaded(url2, true);
-                            Archives.Nested.unload(url2);
+                            Handler.Cache.unload(url2);
                             assert !Handler.Cache.loaded(url2, true);
 
                             return null;
@@ -197,7 +197,7 @@ public class HandlerTest {
                             Handler.Cache.contents(url2);
                             assert Handler.Cache.loaded(url2, true);
 
-                            Archives.Nested.unload(url2);
+                            Handler.Cache.unload(url2);
                             assert !Handler.Cache.loaded(url2, true);
 
                             return null;
@@ -219,7 +219,7 @@ public class HandlerTest {
                     barrier.await(100, TimeUnit.MILLISECONDS);
                     assert running.get();
 
-                    Archives.Nested.unload(url1);
+                    Handler.Cache.unload(url1);
                     assert !Handler.Cache.loaded(url1, true);
 
                     return null;

@@ -116,20 +116,26 @@ final class OsgiApplication implements Application {
     }
 
     public void run(final String[] arguments) throws Exception {
-        if (Security.CONTROLLED) {
-            try {
-                AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
-                    public Void run() throws Exception {
-                        start();
-                        return null;
+        Archives.Cache.access(new Command.Process<Void, Exception>() {
+            public Void run() throws Exception {
+                if (Security.CONTROLLED) {
+                    try {
+                        AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
+                            public Void run() throws Exception {
+                                start();
+                                return null;
+                            }
+                        });
+                    } catch (final PrivilegedActionException e) {
+                        throw (Exception) e.getCause();
                     }
-                });
-            } catch (final PrivilegedActionException e) {
-                throw (Exception) e.getCause();
+                } else {
+                    start();
+                }
+
+                return null;
             }
-        } else {
-            start();
-        }
+        });
     }
 
     private void start() throws Exception {
@@ -259,8 +265,6 @@ final class OsgiApplication implements Application {
                 } catch (final Exception e) {
                     log.error(e, "Error stopping the OSGi framework");
                 }
-
-                Archives.Nested.unload(frameworkURL);
             }
         });
 
