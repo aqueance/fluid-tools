@@ -155,7 +155,7 @@ final class BundleJarManifest implements JarManifest {
                 final String skippedId = project.getArtifact().getId();
                 for (final Artifact dependency : artifacts) {
 
-                    // we don't need the project artifact and opening it may cause Windows to lock the file and prevent the caller from overwriting it
+                    // we don't need the project artifact and don't want to prevent the caller from overwriting it by locking the file...
                     if (!skippedId.equals(dependency.getId())) {
                         urls.add(dependency.getFile().toURI().toURL());
                     }
