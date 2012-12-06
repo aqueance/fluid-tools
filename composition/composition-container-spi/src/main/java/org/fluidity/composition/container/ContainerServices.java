@@ -78,15 +78,6 @@ public interface ContainerServices {
     DependencyGraph.Traversal graphTraversal(ComponentContainer.Observer observer);
 
     /**
-     * Returns an observer that delegates to all of the given observers.
-     *
-     * @param observers the observers to aggregate.
-     *
-     * @return an aggregate observer; never <code>null</code>.
-     */
-    ComponentContainer.Observer aggregateObserver(ComponentContainer.Observer... observers);
-
-    /**
      * Creates and returns a new component cache instance.
      *
      * @param stateless specifies whether the component can actually be cached or not. Value <code>true</code> means the component can be cached.

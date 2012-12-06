@@ -16,8 +16,6 @@
 
 package org.fluidity.foundation;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * Double-checked locking with <code>volatile</code> acquire/release semantics.
  * <h3>Usage</h3>
@@ -85,11 +83,11 @@ public final class Deferred extends Utility {
      * @return a lazy initialized {@link Label} object; never <code>null</code>.
      */
     public static Label label(final String format, final Object... arguments) {
-        return new LabelImpl(new Factory<String>() {
-            public String create() {
+        return new Label() {
+            public String toString() {
                 return String.format(format, arguments);
             }
-        });
+        };
     }
 
     /**
@@ -101,11 +99,16 @@ public final class Deferred extends Utility {
      * @return a lazy initialized {@link Label} object; never <code>null</code>.
      */
     public static Label label(final Factory<String> factory) {
-        return new LabelImpl(factory);
+        return new Label() {
+            public String toString() {
+                return factory.create();
+            }
+        };
     }
 
     /**
-     * A factory of some object to be {@link Deferred lazily} instantiated. This is used by {@link Deferred#reference(Factory)}.
+     * A factory of some object to be {@link Deferred lazily} instantiated. This is used by the {@link Deferred#reference(Factory) Deferred.reference(&hellip;)}
+     * and the <code>Deferred.label(&hellip;)</code> methods.
      * <h3>Usage</h3>
      * See {@link Deferred}.
      *
@@ -180,24 +183,30 @@ public final class Deferred extends Utility {
     private static class ReferenceImpl<T> implements Reference<T> {
 
         private final Factory<T> factory;
-        private final AtomicReference<DCL<T>> state = new AtomicReference<DCL<T>>();
+        private volatile DCL<T> state;
 
         ReferenceImpl(final Factory<T> factory) {
             this.factory = factory;
-            this.state.set(new DCL<T>(factory));
+            this.state = new DCL<T>(factory);
         }
 
         public T get() {
-            return state.get().get();
+            return state.get();
         }
 
         public boolean resolved() {
-            return state.get().resolved();
+            return state.resolved();
         }
 
         public T invalidate() {
-            final DCL<T> reference = state.getAndSet(new DCL<T>(factory));
-            return reference.resolved() ? reference.get() : null;
+            final DCL<T> reference = state;
+
+            if (reference.resolved()) {
+                state = new DCL<T>(factory);
+                return reference.get();
+            } else {
+                return null;
+            }
         }
 
         /**
@@ -235,23 +244,6 @@ public final class Deferred extends Utility {
             public boolean resolved() {
                 return delegate != null;
             }
-        }
-    }
-
-    /**
-     * @author Tibor Varga
-     */
-    private static class LabelImpl implements Label {
-
-        private final Factory<String> text;
-
-        public LabelImpl(final Factory<String> factory) {
-            this.text = factory;
-        }
-
-        @Override
-        public String toString() {
-            return text.create();
         }
     }
 }

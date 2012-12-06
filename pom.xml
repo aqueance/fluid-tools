@@ -240,6 +240,14 @@
                 </plugins>
             </build>
         </profile>
+
+        <profile>
+            <id>tutorials</id>
+
+            <modules>
+                <module>tutorials</module>
+            </modules>
+        </profile>
     </profiles>
 
     <build>

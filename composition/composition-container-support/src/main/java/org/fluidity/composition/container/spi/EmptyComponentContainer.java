@@ -36,6 +36,7 @@ import org.fluidity.composition.ObservedContainer;
 import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.ContextDefinition;
+import org.fluidity.composition.container.impl.CompositeObserver;
 import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Proxies;
@@ -138,7 +139,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
     public final ObservedContainer observed(final Observer observer) {
         return observer == null
                ? this
-               : container(container, context, services.aggregateObserver(this.observer, observer));    // TODO: this is the only call to ContainerServices#aggregateObserver()
+               : container(container, context, CompositeObserver.combine(this.observer, observer));
     }
 
     /**

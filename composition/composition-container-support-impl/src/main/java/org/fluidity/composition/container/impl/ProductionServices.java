@@ -66,10 +66,6 @@ final class ProductionServices implements ContainerServices {
         return new DependencyPathTraversal(observer);
     }
 
-    public ComponentContainer.Observer aggregateObserver(final ComponentContainer.Observer... observers) {
-        return CompositeObserver.combine(observers);
-    }
-
     public ComponentCache newCache(final boolean stateless) {
         return new ComponentCacheImpl(cacheLog, stateless);
     }

@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.container.impl;
+package org.fluidity.composition.container.spi;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.DependencyPath;
+import org.fluidity.composition.container.impl.CompositeObserver;
 import org.fluidity.testing.Simulator;
 
 import org.testng.annotations.Test;

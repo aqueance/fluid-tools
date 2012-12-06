@@ -96,7 +96,7 @@
                 <executions>
                     <execution>
                         <id>default-deploy</id>
-                        <phase>none</phase> <!-- don't install the artifact -->
+                        <phase>none</phase> <!-- don't deploy the artifact -->
                     </execution>
                 </executions>
             </plugin>

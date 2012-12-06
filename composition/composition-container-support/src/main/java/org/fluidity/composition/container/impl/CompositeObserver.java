@@ -30,7 +30,7 @@ import org.fluidity.composition.DependencyPath;
  *
  * @author Tibor Varga
  */
-final class CompositeObserver implements ComponentContainer.Observer {
+public final class CompositeObserver implements ComponentContainer.Observer {
 
     private final Set<ComponentContainer.Observer> observers = new LinkedHashSet<ComponentContainer.Observer>();
 
