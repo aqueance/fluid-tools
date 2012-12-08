@@ -162,6 +162,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         }
 
         final Log log = getLog();
+        final boolean debug = log.isDebugEnabled();
 
         for (final Map.Entry<String, Map<String, Collection<String>>> entry : serviceProviderMap.entrySet()) {
             final String type = entry.getKey();
@@ -184,7 +185,9 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
             for (final Map.Entry<String, Collection<String>> providerEntry : providerMap.entrySet()) {
                 if (!providerEntry.getValue().isEmpty()) {
-                    log.info(String.format("Service provider descriptor %s/%s contains:", root, providerEntry.getKey()));
+                    if (debug) {
+                        log.debug(String.format("Service provider descriptor %s/%s contains:", root, providerEntry.getKey()));
+                    }
 
                     final File serviceProviderFile = new File(servicesDirectory, providerEntry.getKey());
                     serviceProviderFile.delete();
@@ -195,7 +198,9 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                         try {
                             for (final String className : providerEntry.getValue()) {
                                 writer.println(className);
-                                log.info(String.format("  %s%s", className, componentMap.containsKey(className) ? " (generated)" : ""));
+                                if (debug) {
+                                    log.debug(String.format("  %s%s", className, componentMap.containsKey(className) ? " (generated)" : ""));
+                                }
                             }
                         } finally {
                             writer.close();
@@ -215,14 +220,22 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                 final Collection<String> bindings = bindingsMap.get(PACKAGE_BINDINGS);
                 assert bindings != null && bindings.contains(bindingsClassName);
 
-                log.info(String.format("Binding %s adds:", bindingsClassName));
+                if (debug) {
+                    log.debug(String.format("Binding %s adds:", bindingsClassName));
+                }
+
                 final Set<String> allBindings = entry.getValue();
 
-                printBindings("  ", "Component", allBindings);
+                if (debug) {
+                    printBindings("  ", "Component", allBindings);
+                }
 
                 final Set<String> groupBindings = componentGroupMap.remove(bindingsClassName);
                 if (groupBindings != null) {
-                    printBindings("  ", "Group", groupBindings);
+                    if (debug) {
+                        printBindings("  ", "Group", groupBindings);
+                    }
+
                     allBindings.addAll(groupBindings);
                 }
 
@@ -237,8 +250,10 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
                 final Set<String> groupBindings = entry.getValue();
 
-                log.info(String.format("Binding %s adds:", bindingsClassName));
-                printBindings("  ", "Group", groupBindings);
+                if (debug) {
+                    log.debug(String.format("Binding %s adds:", bindingsClassName));
+                    printBindings("  ", "Group", groupBindings);
+                }
 
                 generateBindingClass(bindingsClassName, groupBindings, classesDirectory);
             }
@@ -248,9 +263,9 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     private void printBindings(final String indent, final String type, final Set<String> bindings) {
         final Log log = getLog();
 
-        log.info(String.format("%s%s bindings:", indent, type));
+        log.debug(String.format("%s%s bindings:", indent, type));
         for (final String implementationName : bindings) {
-            log.info(String.format("%s%s%s", indent, indent, implementationName));
+            log.debug(String.format("%s%s%s", indent, indent, implementationName));
         }
     }
 

@@ -178,9 +178,11 @@ final class BundleJarManifest implements JarManifest {
                     addEntry(attributes, BUNDLE_ACTIVATOR, activator);
                 }
 
-                final String value = attributes.getValue(BUNDLE_ACTIVATOR);
-                log.info(String.format("Bundle activator: %s",
-                                       value == null ? "none" : value.equals(BundleBootstrap.class.getName()) ? JarManifest.FRAMEWORK_ID : value));
+                if (log.isDebugEnabled()) {
+                    final String value = attributes.getValue(BUNDLE_ACTIVATOR);
+                    log.debug(String.format("Bundle activator: %s",
+                                            value == null ? "none" : value.equals(BundleBootstrap.class.getName()) ? "built in" : value));
+                }
             } catch (final ClassNotFoundException e) {
                 // that's OK
             } catch (final Exception e) {
@@ -364,11 +366,6 @@ final class BundleJarManifest implements JarManifest {
         }
 
         return partCount;
-    }
-
-    @Override
-    public String toString() {
-        return "Fluid Tools OSGi bundle JAR manifest handler";
     }
 
     /**

@@ -87,7 +87,9 @@ public final class Strings extends Utility {
                     public Method run() {
                         for (Class<?> check = type; check != Object.class; check = check.getSuperclass()) {
                             try {
-                                return check.getDeclaredMethod("toString");
+                                final Method method = check.getDeclaredMethod("toString");
+                                method.setAccessible(true);
+                                return method;
                             } catch (final NoSuchMethodException e) {
                                 // ignored
                             }

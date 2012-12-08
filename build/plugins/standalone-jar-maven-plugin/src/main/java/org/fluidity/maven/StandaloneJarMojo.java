@@ -43,6 +43,7 @@ import org.fluidity.deployment.maven.DependenciesSupport;
 import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
+import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.Streams;
@@ -185,6 +186,12 @@ public final class StandaloneJarMojo extends AbstractMojo {
         }
 
         final Log log = getLog();
+        final boolean debug = log.isDebugEnabled();
+        final Command.Operation<String, RuntimeException> list = new Command.Operation<String, RuntimeException>() {
+            public void run(final String line) throws RuntimeException {
+                log.debug("  ".concat(line));
+            }
+        };
 
         final List<JarManifest> handlers = ServiceProviders.findInstances(JarManifest.class, getClass().getClassLoader());
 
@@ -245,10 +252,6 @@ public final class StandaloneJarMojo extends AbstractMojo {
                                         ? JarManifest.FRAMEWORK_ID
                                         : original.contains(JarManifest.FRAMEWORK_ID) ? original : String.format("%s, %s", JarManifest.FRAMEWORK_ID, original));
 
-                if (log.isDebugEnabled()) {
-                    log.debug(String.format("Packaged dependencies: %s", runtimeDependencies));
-                }
-
                 final Map<String, Inclusion> includedDependencies = new HashMap<String, Inclusion>();
                 final Collection<Artifact> unpackedDependencies = new HashSet<Artifact>();
 
@@ -282,8 +285,8 @@ public final class StandaloneJarMojo extends AbstractMojo {
                         }
                     }
 
-                    if (log.isDebugEnabled()) {
-                        log.debug(String.format("Invoking manifest handler %s", Strings.formatObject(false, true, handler)));
+                    if (debug) {
+                        log.debug(String.format("Manifest handler %s", Archives.containing(handlerClass)));
                     }
 
                     final AtomicBoolean inclusionNameSet = new AtomicBoolean();
@@ -294,10 +297,15 @@ public final class StandaloneJarMojo extends AbstractMojo {
                         }
 
                         public void attribute(final String name, final String delimiter) throws MojoExecutionException {
+                            if (name == null) {
+                                throw new MojoExecutionException(String.format("Dependencies attribute must have a name when explicitly set (%s)",
+                                                                               Strings.formatObject(false, true, handler)));
+                            }
+
                             if (dependenciesName.compareAndSet(null, name)) {
                                 includedDependencies.put(name, new Inclusion(dependencyPath, runtimeDependencies, delimiter));
                             } else {
-                                throw new MojoExecutionException(String.format("Secondary manifest handler %s may not set the dependencies attribute",
+                                throw new MojoExecutionException(String.format("Dependencies attribute can only be set once (%s)",
                                                                                Strings.formatObject(false, true, handler)));
                             }
                         }
@@ -326,6 +334,11 @@ public final class StandaloneJarMojo extends AbstractMojo {
                                 }
 
                                 includedDependencies.put(attribute, new Inclusion(String.format("%s%s/", dependencyPath, name), includedClosure, " "));
+
+                                if (debug) {
+                                    log.debug(String.format("Included archives '%s':", name));
+                                    DependenciesSupport.list(includedClosure, list);
+                                }
                             } else {
                                 throw new MojoExecutionException(String.format("Manifest handler %s tried to specify the inclusion name more than once",
                                                                                Strings.formatObject(false, true, handler)));
@@ -356,6 +369,14 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
                 if (compact) {
                     includedDependencies.get(dependenciesName.get()).artifacts.removeAll(unpackedDependencies);
+                }
+
+                if (debug) {
+                    log.debug("Dependency archives:");
+                    DependenciesSupport.list(includedDependencies.get(dependenciesName.get()).artifacts, list);
+
+                    log.debug("Unpacked archives:");
+                    DependenciesSupport.list(unpackedDependencies, list);
                 }
 
                 // list the various dependencies in manifest attributes

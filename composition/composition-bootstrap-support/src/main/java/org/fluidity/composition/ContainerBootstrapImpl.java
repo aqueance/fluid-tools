@@ -56,8 +56,6 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
          */
         final Class<PackageBindings>[] classes = discovery.findComponentClasses(PackageBindings.class, loader, parent != null);
 
-        log.debug("Found %s binding set(s) for %s", classes.length, container);
-
         /*
          * Let the container provider instantiate them using an actual container to resolve inter-binding dependencies.
          */

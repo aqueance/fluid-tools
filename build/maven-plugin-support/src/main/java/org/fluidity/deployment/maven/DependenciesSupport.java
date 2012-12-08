@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.fluidity.foundation.Archives;
+import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Utility;
 
@@ -479,6 +480,12 @@ public final class DependenciesSupport extends Utility {
         }
 
         return artifacts;
+    }
+
+    public static void list(final Collection<Artifact> artifacts, final Command.Operation<String, RuntimeException> command) {
+        for (final Artifact artifact : artifacts) {
+            command.run(artifact.getFile().getName());
+        }
     }
 
     /**

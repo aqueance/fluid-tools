@@ -61,14 +61,11 @@ final class CommandLineJarManifest implements JarManifest {
             attributes.put(Attributes.Name.MAIN_CLASS, LAUNCHER);
         }
 
-        final String value = executable ? attributes.getValue(Launcher.ORIGINAL_MAIN_CLASS) : attributes.getValue(Attributes.Name.MAIN_CLASS);
-        log.info(String.format("Main class: %s", value == null ? "none" : value.equals(LAUNCHER) ? JarManifest.FRAMEWORK_ID : value));
+        if (log.isDebugEnabled()) {
+            final String value = executable ? attributes.getValue(Launcher.ORIGINAL_MAIN_CLASS) : attributes.getValue(Attributes.Name.MAIN_CLASS);
+            log.debug(String.format("Main class: %s", value == null ? "none" : value.equals(LAUNCHER) ? "built in" : value));
+        }
 
         return null;
-    }
-
-    @Override
-    public String toString() {
-        return "Fluid Tools executable JAR manifest handler";
     }
 }

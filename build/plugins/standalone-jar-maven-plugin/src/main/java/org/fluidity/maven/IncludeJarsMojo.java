@@ -40,6 +40,7 @@ import org.fluidity.deployment.maven.DependenciesSupport;
 import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
+import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Streams;
 
@@ -159,6 +160,8 @@ public final class IncludeJarsMojo extends AbstractMojo {
         }
 
         final Log log = getLog();
+        final boolean debug = log.isDebugEnabled();
+        final String delimiter = String.format("%n  ");
 
         try {
             final File file = createTempFile();
@@ -198,8 +201,13 @@ public final class IncludeJarsMojo extends AbstractMojo {
                             throw new MojoExecutionException(String.format("Profile %s has no dependencies", id));
                         }
 
-                        if (log.isDebugEnabled()) {
-                            log.debug(String.format("Packaged %s dependencies: %s", id, dependencies));
+                        if (debug) {
+                            log.debug(String.format("Profile '%s' archives:", id));
+                            DependenciesSupport.list(dependencies, new Command.Operation<String, RuntimeException>() {
+                                public void run(final String line) throws RuntimeException {
+                                    log.debug("  ".concat(line));
+                                }
+                            });
                         }
 
                         final String projectId = project.getArtifact().getId();
