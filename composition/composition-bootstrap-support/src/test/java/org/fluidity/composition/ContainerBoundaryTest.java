@@ -276,11 +276,11 @@ public class ContainerBoundaryTest extends Simulator {
 
                 final MutableContainer local = arguments.normal(MutableContainer.class);
 
-                EasyMock.expect(provider.newContainer(services)).andReturn(local);
+                EasyMock.expect(provider.newContainer(services, false)).andReturn(local);
 
                 final MutableContainer created = verify(new Work<MutableContainer>() {
                     public MutableContainer run() throws Exception {
-                        return boundary.create();
+                        return boundary.create(false);
                     }
                 });
 
@@ -292,11 +292,11 @@ public class ContainerBoundaryTest extends Simulator {
             public void run() throws Exception {
                 final MutableContainer local = arguments.normal(MutableContainer.class);
 
-                EasyMock.expect(provider.newContainer(services)).andReturn(local);
+                EasyMock.expect(provider.newContainer(services, false)).andReturn(local);
 
                 final MutableContainer created = verify(new Work<MutableContainer>() {
                     public MutableContainer run() throws Exception {
-                        return boundary.create();
+                        return boundary.create(false);
                     }
                 });
 

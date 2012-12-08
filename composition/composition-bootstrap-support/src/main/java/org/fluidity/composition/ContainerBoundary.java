@@ -485,13 +485,15 @@ public final class ContainerBoundary implements ComponentContainer {
     /**
      * Creates an empty independent container.
      *
+     * @param quiet tells whether the returned container should keep quite about what it is doing (<code>true</code>) or can be verbose (<code>false</code>).
+     *
      * @return an empty independent container.
      */
-    /* package */ MutableContainer create() {
+    /* package */ MutableContainer create(final boolean quiet) {
         initFinder();
 
         if (findProvider(classLoader) != null) {
-            return containerProvider.newContainer(findServices(classLoader));
+            return containerProvider.newContainer(findServices(classLoader), quiet);
         } else {
             throw new IllegalStateException(String.format("Container implementation not found; could not find service providers %s in class loader %s",
                                                           ContainerProvider.class.getName(),

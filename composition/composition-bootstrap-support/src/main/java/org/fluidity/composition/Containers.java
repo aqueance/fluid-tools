@@ -85,9 +85,11 @@ public final class Containers extends Utility {
      *
      * @param loader the class loader to find the container implementation in; may be <code>null</code>, in which case the class loader that loaded this class
      *               will be used.
+     * @param quiet  tells whether the returned container should keep quite about what it is doing (<code>true</code>) or can be verbose (<code>false</code>).
+     *
      * @return a new empty component container.
      */
-    public static MutableContainer create(final ClassLoader loader) {
-        return new ContainerBoundary(loader == null ? LOADER : loader).create();
+    public static MutableContainer create(final ClassLoader loader, final boolean quiet) {
+        return new ContainerBoundary(loader == null ? LOADER : loader).create(quiet);
     }
 }

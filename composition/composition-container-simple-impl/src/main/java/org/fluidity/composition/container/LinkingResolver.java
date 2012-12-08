@@ -29,10 +29,10 @@ import org.fluidity.composition.container.spi.DependencyGraph;
  */
 final class LinkingResolver extends AbstractResolver {
 
-    private final SimpleContainer target;
+    private final ParentContainer target;
     private ComponentResolver delegate;
 
-    LinkingResolver(final SimpleContainer container, final Class<?> api, final ComponentResolver delegate) {
+    LinkingResolver(final ParentContainer container, final Class<?> api, final ComponentResolver delegate) {
         super(delegate.priority(), api, null);
 
         this.delegate = delegate;
@@ -48,16 +48,16 @@ final class LinkingResolver extends AbstractResolver {
     }
 
     public DependencyGraph.Node resolve(final ParentContainer domain,
+                                        final ParentContainer container,
                                         final DependencyGraph.Traversal traversal,
-                                        final SimpleContainer container,
                                         final ContextDefinition context,
                                         final Type reference) {
         assert target.parentContainer() == container : api;
-        return delegate.resolve(domain, traversal, target, context, reference);
+        return delegate.resolve(domain, target, traversal, context, reference);
     }
 
     @Override
-    public Object cached(final Object domain, final String source, final ComponentContext context) {
+    public Object cached(final ComponentCache.Domain domain, final String source, final ComponentContext context) {
         return delegate.cached(domain, source, context);
     }
 

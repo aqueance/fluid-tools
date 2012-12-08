@@ -72,7 +72,7 @@ public abstract class ContainerProviderAbstractTest extends Simulator {
 
         final MutableContainer container = verify(new Work<MutableContainer>() {
             public MutableContainer run() throws Exception {
-                return provider.newContainer(services);
+                return provider.newContainer(services, false);
             }
         });
 

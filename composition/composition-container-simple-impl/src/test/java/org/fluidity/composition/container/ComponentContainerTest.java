@@ -26,6 +26,6 @@ public class ComponentContainerTest extends ComponentContainerAbstractTest {
 
     @Override
     protected MutableContainer newContainer(final ContainerServices services) {
-        return new ComponentContainerShell(services);
+        return new ComponentContainerShell(services, false);
     }
 }

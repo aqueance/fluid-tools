@@ -32,8 +32,8 @@ import org.fluidity.composition.container.spi.EmptyComponentContainer;
  */
 final class ComponentContainerShell extends EmptyComponentContainer<SimpleContainer> {
 
-    ComponentContainerShell(final ContainerServices services) {
-        this(new SimpleContainerImpl(services), services.emptyContext(), false, false, null);
+    ComponentContainerShell(final ContainerServices services, final boolean quiet) {
+        this(new SimpleContainerImpl(services, quiet), services.emptyContext(), false, false, null);
     }
 
     ComponentContainerShell(final SimpleContainer container, final ContextDefinition context, final boolean child) {

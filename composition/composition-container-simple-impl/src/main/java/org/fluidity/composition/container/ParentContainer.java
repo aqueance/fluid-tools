@@ -28,7 +28,7 @@ import org.fluidity.composition.container.spi.ContextNode;
  *
  * @author Tibor Varga
  */
-interface ParentContainer extends SimpleContainer {
+interface ParentContainer extends SimpleContainer, ComponentCache.Domain {
 
     /**
      * Returns a context node either from the receiver or from its parent.

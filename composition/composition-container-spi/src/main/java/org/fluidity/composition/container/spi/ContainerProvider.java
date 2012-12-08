@@ -35,8 +35,9 @@ public interface ContainerProvider {
      * Creates and returns and empty standalone dependency injection container.
      *
      * @param services provides service components for the container; never <code>null</code>.
+     * @param quiet    tells whether the returned container should keep quite about what it is doing (<code>true</code>) or can be verbose (<code>false</code>).
      *
      * @return and empty standalone dependency injection container.
      */
-    MutableContainer newContainer(ContainerServices services);
+    MutableContainer newContainer(ContainerServices services, boolean quiet);
 }

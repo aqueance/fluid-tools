@@ -34,16 +34,16 @@ interface ComponentResolver extends ContextNode {
      * Resolves the represented component.
      *
      * @param domain    the domain container.
-     * @param traversal the graph traversal to use.
      * @param container the container calling the resolver.
+     * @param traversal the graph traversal to use.
      * @param context   the context in which the resolution takes place.
      * @param reference the parameterized type of the dependency reference.
      *
      * @return a node representing the component.
      */
     DependencyGraph.Node resolve(ParentContainer domain,
+                                 ParentContainer container,
                                  DependencyGraph.Traversal traversal,
-                                 SimpleContainer container,
                                  ContextDefinition context,
                                  Type reference);
 
@@ -95,5 +95,5 @@ interface ComponentResolver extends ContextNode {
      *
      * @return the instance if found cached, <code>null</code> otherwise.
      */
-    Object cached(Object domain, String source, ComponentContext context);
+    Object cached(ComponentCache.Domain domain, String source, ComponentContext context);
 }

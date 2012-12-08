@@ -77,8 +77,8 @@ abstract class FactoryResolver extends AbstractResolver {
     }
 
     public final DependencyGraph.Node resolve(final ParentContainer domain,
+                                              final ParentContainer container,
                                               final DependencyGraph.Traversal traversal,
-                                              final SimpleContainer container,
                                               final ContextDefinition context,
                                               final Type reference) {
         final SimpleContainer child = container.newChildContainer(false);

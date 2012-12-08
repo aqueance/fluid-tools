@@ -59,8 +59,8 @@ final class ConstructingResolver extends AbstractResolver {
     }
 
     public DependencyGraph.Node resolve(final ParentContainer domain,
+                                        final ParentContainer container,
                                         final DependencyGraph.Traversal traversal,
-                                        final SimpleContainer container,
                                         final ContextDefinition context,
                                         final Type reference) {
         final Class<?> group = Generics.rawType(Generics.arrayComponentType(reference));

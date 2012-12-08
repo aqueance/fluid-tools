@@ -24,7 +24,7 @@ import org.fluidity.composition.container.spi.ContainerProvider;
  */
 final class ContainerProviderImpl implements ContainerProvider {
 
-    public MutableContainer newContainer(final ContainerServices services) {
-        return new ComponentContainerShell(services);
+    public MutableContainer newContainer(final ContainerServices services, final boolean quiet) {
+        return new ComponentContainerShell(services, quiet);
     }
 }

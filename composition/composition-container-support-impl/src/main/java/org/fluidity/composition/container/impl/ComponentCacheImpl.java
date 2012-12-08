@@ -23,6 +23,7 @@ import java.util.WeakHashMap;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.container.ComponentCache;
 import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.Strings;
 
@@ -39,7 +40,7 @@ final class ComponentCacheImpl implements ComponentCache {
         this.caches = stateless ? new WeakHashMap<Object, Map<String, Object>>() : null;
     }
 
-    public Object lookup(final Object domain, final String source, final ComponentContext context, final Class<?> api, final Entry factory) {
+    public Object lookup(final Domain domain, final String source, final ComponentContext context, final Class<?> api, final Entry factory) {
         assert context != null : api;
         final boolean stateful = caches == null;
 
@@ -57,16 +58,16 @@ final class ComponentCacheImpl implements ComponentCache {
             }
         }
 
-        return cache == null ? null : lookup(cache, source, context, api, factory, log);
+        return cache == null ? null : lookup(domain, cache, source, context, api, factory, log);
     }
 
-    private synchronized Object lookup(final Map<String, Object> cache,
+    private synchronized Object lookup(final Domain domain,
+                                       final Map<String, Object> cache,
                                        final String source,
                                        final ComponentContext context,
                                        final Class<?> api,
                                        final Entry factory,
                                        final Log log) {
-        final boolean report = !ComponentFactory.class.isAssignableFrom(api) && log.isInfoEnabled();
         final String key = context.key();
 
         if (factory != null) {
@@ -76,11 +77,14 @@ final class ComponentCacheImpl implements ComponentCache {
                 if (!cache.containsKey(key)) {
                     cache.put(key, component);
 
-                    if (report) {
-                        log.debug("%s: using %s%s",
-                                  source,
-                                  component == null ? String.format("no %s", api.getName()) : Strings.formatId(component),
-                                  context.types().isEmpty() ? "" : String.format(" for %s", key));
+                    assert domain != null;
+
+                    if (!domain.quiet() && !ComponentFactory.class.isAssignableFrom(api) && !ComponentInterceptor.class.isAssignableFrom(api)) {
+                        domain.log(log,
+                                   "%s: using %s%s",
+                                   source,
+                                   component == null ? String.format("no %s", api.getName()) : Strings.formatId(component),
+                                   context.types().isEmpty() ? "" : String.format(" for %s", key));
                     }
                 }
             }

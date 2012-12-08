@@ -48,8 +48,8 @@ final class InstanceResolver extends AbstractResolver {
     }
 
     public DependencyGraph.Node resolve(final ParentContainer domain,
+                                        final ParentContainer container,
                                         final DependencyGraph.Traversal traversal,
-                                        final SimpleContainer container,
                                         final ContextDefinition context,
                                         final Type reference) {
         return traversal.follow(InstanceResolver.this, api, api, context, new DependencyGraph.Node.Reference() {
@@ -60,7 +60,7 @@ final class InstanceResolver extends AbstractResolver {
     }
 
     @Override
-    public Object cached(final Object domain, final String source, final ComponentContext context) {
+    public Object cached(final ComponentCache.Domain domain, final String source, final ComponentContext context) {
         return instance;
     }
 

@@ -52,23 +52,38 @@ final class SimpleContainerImpl implements ParentContainer {
 
     private final ParentContainer parent;
     private final ParentContainer domain;
+    private final boolean quiet;
 
     private final Map<Class<?>, ComponentResolver> components = new HashMap<Class<?>, ComponentResolver>();
     private final Map<Class<?>, GroupResolver> groups = new HashMap<Class<?>, GroupResolver>();
 
     private final DependencyInjector injector;
 
-    SimpleContainerImpl(final ContainerServices services) {
-        this(null, null, services);
+    SimpleContainerImpl(final ContainerServices services, final boolean quiet) {
+        this(null, null, services, quiet);
     }
 
-    private SimpleContainerImpl(final ParentContainer parent, final ParentContainer domain, final ContainerServices services) {
+    private SimpleContainerImpl(final ParentContainer parent, final ParentContainer domain, final ContainerServices services, final boolean quiet) {
         this.parent = parent;
         this.domain = domain == null ? this : domain;
         this.services = services;
+        this.quiet = quiet;
+
         this.injector = this.services.dependencyInjector();
 
-        log.compareAndSet(null, this.services.createLog(log.get(), getClass()));
+        if (!quiet) {
+            log.compareAndSet(null, this.services.createLog(log.get(), getClass()));
+        }
+    }
+
+    public boolean quiet() {
+        return quiet;
+    }
+
+    public void log(final Log log, final String format, final Object... arguments) {
+        if (!quiet) {
+            log.debug(format, arguments);
+        }
     }
 
     public ContainerServices services() {
@@ -79,8 +94,8 @@ final class SimpleContainerImpl implements ParentContainer {
         return parent;
     }
 
-    public SimpleContainer newChildContainer(final boolean domain) {
-        return new SimpleContainerImpl(this, domain ? null : this, services);
+    public ParentContainer newChildContainer(final boolean domain) {
+        return new SimpleContainerImpl(this, domain ? null : this, services, quiet);
     }
 
     public ComponentResolver bindResolver(final Class<?> api, final ComponentResolver resolver) {
@@ -192,12 +207,13 @@ final class SimpleContainerImpl implements ParentContainer {
         final boolean isStateful = componentSpec != null && componentSpec.stateful();
         final boolean isFallback = componentSpec != null && !componentSpec.primary();
 
-        log.get().debug("%s: binding %s to %s (%s, %s)",
-                        this,
-                        Strings.formatClass(true, true, implementation),
-                        interfaces,
-                        isStateful ? "stateful" : "stateless",
-                        isFallback ? "fallback" : "primary");
+        log(log.get(),
+            "%s: binding %s to %s (%s, %s)",
+            this,
+            Strings.formatClass(true, true, implementation),
+            interfaces,
+            isStateful ? "stateful" : "stateless",
+            isFallback ? "fallback" : "primary");
 
         bindResolvers(implementation, interfaces.api, isStateful, new ContentResolvers() {
 
@@ -224,7 +240,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
             final String value = instance instanceof String || instance instanceof Number ? String.format("'%s'", instance) : Strings.formatId(instance);
 
-            log.get().debug("%s: binding %s to %s (%s)", this, value, interfaces, isFallback ? "fallback" : "primary");
+            log(log.get(), "%s: binding %s to %s (%s)", this, value, interfaces, isFallback ? "fallback" : "primary");
 
             bindResolvers(implementation, interfaces.api, false, new ContentResolvers() {
 
@@ -245,7 +261,7 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public SimpleContainer linkComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
-        final SimpleContainer child = newChildContainer(false);
+        final ParentContainer child = newChildContainer(false);
 
         child.bindComponent(interfaces);
 
@@ -320,7 +336,7 @@ final class SimpleContainerImpl implements ParentContainer {
                      ? domain == null || domain == this ? null : domain.resolveComponent(null, false, api, context, traversal, reference)
                      : parent.resolveComponent(domain, true, api, context, traversal, reference);
         } else {
-            final Node node = resolver.resolve(domain, traversal, SimpleContainerImpl.this, context, reference);
+            final Node node = resolver.resolve(domain, SimpleContainerImpl.this, traversal, context, reference);
 
             return new Node() {
                 public Class<?> type() {

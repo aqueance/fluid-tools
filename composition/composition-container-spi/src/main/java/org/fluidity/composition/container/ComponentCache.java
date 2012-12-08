@@ -17,6 +17,7 @@
 package org.fluidity.composition.container;
 
 import org.fluidity.composition.ComponentContext;
+import org.fluidity.foundation.Log;
 
 /**
  * Caches components by <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">context</a> on behalf of a container. Instances of this
@@ -62,7 +63,7 @@ public interface ComponentCache {
      * Looks up, and instantiates if necessary using the supplied factory, the cached component. If <code>factory</code> is <code>null</code>, only lookup is
      * done with no instantiation on cache miss.
      *
-     * @param domain  the object that segregates cached instances, or <code>null</code>; a separate instance will be cached for different domains.
+     * @param domain  the object that segregates cached instances, never <code>null</code>; a separate instance will be cached for different domains.
      * @param source  identifies in log messages the entity that is creating instances through this cache.
      * @param context the context for the component to cache against.
      * @param api     the interface the component implements.
@@ -71,7 +72,7 @@ public interface ComponentCache {
      *
      * @return the component instance or <code>null</code>.
      */
-    Object lookup(Object domain, String source, ComponentContext context, Class<?> api, Entry factory);
+    Object lookup(Domain domain, String source, ComponentContext context, Class<?> api, Entry factory);
 
     /**
      * A factory to provide a component instance on {@linkplain ComponentCache cache} miss. This interface is used to tell a {@link ComponentCache} how to
@@ -89,5 +90,29 @@ public interface ComponentCache {
          * @return a new instance of the component, or <code>null</code>, which will also be cached.
          */
         Object create();
+    }
+
+    /**
+     * A caching domain.
+     *
+     * @author Tibor Varga
+     */
+    interface Domain {
+
+        /**
+         * Tells if logging is disabled for this domain.
+         *
+         * @return <code>true</code> if logging is disabled for this domain; <code>false</code> otherwise.
+         */
+        boolean quiet();
+
+        /**
+         * Emits a log message for this domain through the given <code>log</code>.
+         *
+         * @param log       the log to emit the message through.
+         * @param format    the message format.
+         * @param arguments the message arguments.
+         */
+        void log(Log log, String format, Object... arguments);
     }
 }
