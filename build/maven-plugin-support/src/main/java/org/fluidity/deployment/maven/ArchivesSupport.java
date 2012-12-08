@@ -35,8 +35,6 @@ import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.Streams;
 import org.fluidity.foundation.Utility;
 
-import org.apache.maven.plugin.logging.Log;
-
 /**
  * Common JAR processing utilities for standalone archive processing plugins.
  *
@@ -63,7 +61,7 @@ public final class ArchivesSupport extends Utility {
     public static void load(final Map<String, Attributes> attributes,
                             final Map<String, String[]> providers,
                             final byte[] buffer,
-                            final Log log,
+                            final Logger log,
                             final Feed feed) throws IOException {
         for (File input; (input = feed.next()) != null; ) {
             Archives.read(true, input.toURI().toURL(), new Archives.Entry() {
@@ -111,11 +109,11 @@ public final class ArchivesSupport extends Utility {
     /**
      * Iterates through the {@link File}s returned by the given {@link Feed feed} and stores all entries found therein in the output JAR stream,
      * except the JAR manifest, JAR indexes, signatures, and whatever else is not {@linkplain ArchivesSupport.Feed#include(JarEntry) included} by the
-     * <code>feed</code>. The service providers in the given map loaded by {@link #load(Map, Map, byte[], Log, ArchivesSupport.Feed)} are saved as well.
+     * <code>feed</code>. The service providers in the given map loaded by {@link #load(Map, Map, byte[], Logger, ArchivesSupport.Feed)} are saved as well.
      *
      * @param output   the JAR output stream to add entries to.
      * @param buffer   the buffer to use when {@linkplain Streams#copy(java.io.InputStream, java.io.OutputStream, byte[], boolean, boolean) copying} data.
-     * @param services the service provider map computed by {@link #load(Map, Map, byte[], Log, ArchivesSupport.Feed)}.
+     * @param services the service provider map computed by {@link #load(Map, Map, byte[], Logger, ArchivesSupport.Feed)}.
      * @param feed     the provider of the list of JAR inputs to expand.
      *
      * @throws IOException when JAR processing fails.
@@ -192,7 +190,7 @@ public final class ArchivesSupport extends Utility {
     }
 
     /**
-     * Provides input files to {@link ArchivesSupport#load(Map, Map, byte[], Log, ArchivesSupport.Feed)} and {@link
+     * Provides input files to {@link ArchivesSupport#load(Map, Map, byte[], Logger, ArchivesSupport.Feed)} and {@link
      * ArchivesSupport#expand(JarOutputStream, byte[], Map, ArchivesSupport.Feed)}.
      *
      * @author Tibor Varga
@@ -200,7 +198,7 @@ public final class ArchivesSupport extends Utility {
     public interface Feed {
 
         /**
-         * Returns the next JAR {@link File} to {@link ArchivesSupport#load(Map, Map, byte[], Log, ArchivesSupport.Feed)} or {@link
+         * Returns the next JAR {@link File} to {@link ArchivesSupport#load(Map, Map, byte[], Logger, ArchivesSupport.Feed)} or {@link
          * ArchivesSupport#expand(JarOutputStream, byte[], Map, ArchivesSupport.Feed)}.
          *
          * @return a {@link File} object or <code>null</code> if there is no more.
@@ -210,7 +208,7 @@ public final class ArchivesSupport extends Utility {
         File next() throws IOException;
 
         /**
-         * Tells if the given entry should be included when {@linkplain ArchivesSupport#load(Map, Map, byte[], Log, ArchivesSupport.Feed) loading} or
+         * Tells if the given entry should be included when {@linkplain ArchivesSupport#load(Map, Map, byte[], Logger, ArchivesSupport.Feed) loading} or
          * {@linkplain ArchivesSupport#expand(JarOutputStream, byte[], Map, ArchivesSupport.Feed) expanding} JAR entries.
          *
          * @param entry the entry to consider for inclusion.

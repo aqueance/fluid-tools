@@ -47,6 +47,7 @@ import org.fluidity.composition.spi.PackageBindings;
 import org.fluidity.deployment.maven.ClassReaders;
 import org.fluidity.deployment.maven.ClassRepository;
 import org.fluidity.deployment.maven.DependenciesSupport;
+import org.fluidity.deployment.maven.Logger;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Methods;
@@ -56,7 +57,6 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.objectweb.asm.AnnotationVisitor;
@@ -121,6 +121,14 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     @SuppressWarnings("UnusedDeclaration")
     private MavenProject project;
 
+    /**
+     * Tells the plugin to emit details about its operation. The default value of this parameter is <code>false</code>.
+     *
+     * @parameter default-value="${fluidity.maven.verbose}"
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    private boolean verbose;
+
     private String projectName;
 
     protected final Build build() {
@@ -161,8 +169,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             throw new MojoExecutionException("Error processing service providers", e);
         }
 
-        final Log log = getLog();
-        final boolean debug = log.isDebugEnabled();
+        final Logger log = Logger.initialize(getLog(), verbose);
 
         for (final Map.Entry<String, Map<String, Collection<String>>> entry : serviceProviderMap.entrySet()) {
             final String type = entry.getKey();
@@ -185,9 +192,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
             for (final Map.Entry<String, Collection<String>> providerEntry : providerMap.entrySet()) {
                 if (!providerEntry.getValue().isEmpty()) {
-                    if (debug) {
-                        log.debug(String.format("Service provider descriptor %s/%s contains:", root, providerEntry.getKey()));
-                    }
+                    log.detail("Service provider descriptor %s/%s contains:", root, providerEntry.getKey());
 
                     final File serviceProviderFile = new File(servicesDirectory, providerEntry.getKey());
                     serviceProviderFile.delete();
@@ -198,9 +203,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                         try {
                             for (final String className : providerEntry.getValue()) {
                                 writer.println(className);
-                                if (debug) {
-                                    log.debug(String.format("  %s%s", className, componentMap.containsKey(className) ? " (generated)" : ""));
-                                }
+                                log.detail("  %s%s", className, componentMap.containsKey(className) ? " (generated)" : "");
                             }
                         } finally {
                             writer.close();
@@ -220,20 +223,18 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                 final Collection<String> bindings = bindingsMap.get(PACKAGE_BINDINGS);
                 assert bindings != null && bindings.contains(bindingsClassName);
 
-                if (debug) {
-                    log.debug(String.format("Binding %s adds:", bindingsClassName));
-                }
+                log.detail("Binding %s adds:", bindingsClassName);
 
                 final Set<String> allBindings = entry.getValue();
 
-                if (debug) {
-                    printBindings("  ", "Component", allBindings);
+                if (log.active()) {
+                    printBindings(log, "  ", "Component", allBindings);
                 }
 
                 final Set<String> groupBindings = componentGroupMap.remove(bindingsClassName);
                 if (groupBindings != null) {
-                    if (debug) {
-                        printBindings("  ", "Group", groupBindings);
+                    if (log.active()) {
+                        printBindings(log, "  ", "Group", groupBindings);
                     }
 
                     allBindings.addAll(groupBindings);
@@ -250,9 +251,9 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
                 final Set<String> groupBindings = entry.getValue();
 
-                if (debug) {
-                    log.debug(String.format("Binding %s adds:", bindingsClassName));
-                    printBindings("  ", "Group", groupBindings);
+                if (log.active()) {
+                    log.detail("Binding %s adds:", bindingsClassName);
+                    printBindings(log, "  ", "Group", groupBindings);
                 }
 
                 generateBindingClass(bindingsClassName, groupBindings, classesDirectory);
@@ -260,12 +261,11 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         }
     }
 
-    private void printBindings(final String indent, final String type, final Set<String> bindings) {
-        final Log log = getLog();
+    private void printBindings(final Logger log, final String indent, final String type, final Set<String> bindings) {
+        log.detail("%s%s bindings:", indent, type);
 
-        log.debug(String.format("%s%s bindings:", indent, type));
         for (final String implementationName : bindings) {
-            log.debug(String.format("%s%s%s", indent, indent, implementationName));
+            log.detail("%s%s%s", indent, indent, implementationName);
         }
     }
 

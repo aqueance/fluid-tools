@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Properties;
 import java.util.jar.Attributes;
 
+import org.fluidity.deployment.maven.Logger;
 import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.testing.Simulator;
@@ -83,7 +84,7 @@ public class BundleJarManifestTest extends Simulator {
 
         verify(new Task() {
             public void run() throws Exception {
-                manifest.processManifest(project, attributes, policy, log, dependencies);
+                manifest.processManifest(project, attributes, policy, logger(), dependencies);
             }
         });
 
@@ -91,6 +92,10 @@ public class BundleJarManifestTest extends Simulator {
 
         final String version = attributes.getValue(BUNDLE_VERSION);
         assert BundleJarManifest.DEFAULT_BUNDLE_VERSION.equals(version) : version;
+    }
+
+    private Logger logger() {
+        return Logger.initialize(log, false);
     }
 
     @DataProvider(name = "bundle-versions")
@@ -118,7 +123,7 @@ public class BundleJarManifestTest extends Simulator {
 
         verify(new Task() {
             public void run() throws Exception {
-                manifest.processManifest(project, attributes, policy, log, dependencies);
+                manifest.processManifest(project, attributes, policy, logger(), dependencies);
             }
         });
 
@@ -150,7 +155,7 @@ public class BundleJarManifestTest extends Simulator {
 
         verify(new Task() {
             public void run() throws Exception {
-                manifest.processManifest(project, attributes, policy, log, dependencies);
+                manifest.processManifest(project, attributes, policy, logger(), dependencies);
             }
         });
 
@@ -188,7 +193,7 @@ public class BundleJarManifestTest extends Simulator {
 
         verify(new Task() {
             public void run() throws Exception {
-                manifest.processManifest(project, attributes, policy, log, dependencies);
+                manifest.processManifest(project, attributes, policy, logger(), dependencies);
             }
         });
 

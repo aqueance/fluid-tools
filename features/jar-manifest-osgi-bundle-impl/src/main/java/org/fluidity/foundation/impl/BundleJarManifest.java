@@ -27,6 +27,7 @@ import java.util.jar.Attributes;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ContainerBoundary;
+import org.fluidity.deployment.maven.Logger;
 import org.fluidity.deployment.osgi.impl.BundleBootstrap;
 import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
@@ -38,7 +39,6 @@ import org.fluidity.foundation.Methods;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.interpolation.InterpolationException;
 import org.codehaus.plexus.interpolation.InterpolationPostProcessor;
@@ -84,7 +84,7 @@ final class BundleJarManifest implements JarManifest {
     public SecurityPolicy processManifest(final MavenProject project,
                                           final Attributes attributes,
                                           final SecurityPolicy policy,
-                                          final Log log,
+                                          final Logger log,
                                           final Dependencies dependencies) throws MojoExecutionException {
         dependencies.attribute(BUNDLE_CLASSPATH, ",");
 
@@ -178,10 +178,9 @@ final class BundleJarManifest implements JarManifest {
                     addEntry(attributes, BUNDLE_ACTIVATOR, activator);
                 }
 
-                if (log.isDebugEnabled()) {
+                if (log.active()) {
                     final String value = attributes.getValue(BUNDLE_ACTIVATOR);
-                    log.debug(String.format("Bundle activator: %s",
-                                            value == null ? "none" : value.equals(BundleBootstrap.class.getName()) ? "built in" : value));
+                    log.detail("Bundle activator: %s", value == null ? "none" : value.equals(BundleBootstrap.class.getName()) ? "built in" : value);
                 }
             } catch (final ClassNotFoundException e) {
                 // that's OK

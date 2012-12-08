@@ -37,6 +37,7 @@ import java.util.jar.Manifest;
 import org.fluidity.deployment.launcher.WebApplicationBootstrap;
 import org.fluidity.deployment.maven.ArchivesSupport;
 import org.fluidity.deployment.maven.DependenciesSupport;
+import org.fluidity.deployment.maven.Logger;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.Streams;
 
@@ -45,7 +46,6 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
@@ -95,6 +95,13 @@ public final class StandaloneWarMojo extends AbstractMojo {
      */
     @SuppressWarnings("UnusedDeclaration")
     private String classifier;
+
+    /**
+     * Tells the plugin to emit details about its operation. The default value of this parameter is <code>false</code>.
+     *
+     * @parameter default-value="${fluidity.maven.verbose}"
+     */
+    private boolean verbose;
 
     /**
      * The location of the compiled classes.
@@ -201,7 +208,7 @@ public final class StandaloneWarMojo extends AbstractMojo {
         serverDependencies.removeAll(pluginDependencies);
         serverDependencies.remove(pluginArtifact);
 
-        final Log log = getLog();
+        final Logger log = Logger.initialize(getLog(), verbose);
 
         try {
             final byte buffer[] = new byte[16384];

@@ -37,10 +37,10 @@ import java.util.jar.Manifest;
 
 import org.fluidity.deployment.maven.ArchivesSupport;
 import org.fluidity.deployment.maven.DependenciesSupport;
+import org.fluidity.deployment.maven.Logger;
 import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
-import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Streams;
 
@@ -48,7 +48,6 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Profile;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
@@ -93,6 +92,13 @@ public final class IncludeJarsMojo extends AbstractMojo {
      */
     @SuppressWarnings("UnusedDeclaration")
     private String classifier;
+
+    /**
+     * Tells the plugin to emit details about its operation. The default value of this parameter is <code>false</code>.
+     *
+     * @parameter default-value="${fluidity.maven.verbose}"
+     */
+    private boolean verbose;
 
     /**
      * List of profile IDs to package the dependencies of into the artifact.
@@ -159,9 +165,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
             throw new MojoExecutionException(String.format("%s does not exist", packageFile));
         }
 
-        final Log log = getLog();
-        final boolean debug = log.isDebugEnabled();
-        final String delimiter = String.format("%n  ");
+        final Logger log = Logger.initialize(getLog(), verbose);
 
         try {
             final File file = createTempFile();
@@ -201,13 +205,9 @@ public final class IncludeJarsMojo extends AbstractMojo {
                             throw new MojoExecutionException(String.format("Profile %s has no dependencies", id));
                         }
 
-                        if (debug) {
-                            log.debug(String.format("Profile '%s' archives:", id));
-                            DependenciesSupport.list(dependencies, new Command.Operation<String, RuntimeException>() {
-                                public void run(final String line) throws RuntimeException {
-                                    log.debug("  ".concat(line));
-                                }
-                            });
+                        if (log.active()) {
+                            log.detail(String.format("Profile '%s' archives:", id));
+                            DependenciesSupport.list(dependencies, "  ", log);
                         }
 
                         final String projectId = project.getArtifact().getId();

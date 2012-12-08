@@ -25,13 +25,12 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.fluidity.deployment.maven.Logger;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Streams;
 import org.fluidity.foundation.jarjar.Handler;
-
-import org.apache.maven.plugin.logging.Log;
 
 /**
  * Handles security.policy files in nested archives.
@@ -45,7 +44,7 @@ final class JavaSecurityPolicy implements SecurityPolicy {
     private final boolean cached;
     private final String name;
     private final File archive;
-    private final Log log;
+    private final Logger log;
 
     /**
      * Creates a new security policy file processor.
@@ -57,7 +56,7 @@ final class JavaSecurityPolicy implements SecurityPolicy {
      * @param log     the log to emit messages to.
      */
     @SuppressWarnings("unchecked")
-    public JavaSecurityPolicy(final int levels, final boolean cached, final byte[] buffer, final File archive, final Log log) throws IOException {
+    public JavaSecurityPolicy(final int levels, final boolean cached, final byte[] buffer, final File archive, final Logger log) throws IOException {
         assert levels > 0 : levels;
 
         this.cached = cached;

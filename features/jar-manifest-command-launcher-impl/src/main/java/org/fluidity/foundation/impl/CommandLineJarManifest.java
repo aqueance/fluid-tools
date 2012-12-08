@@ -19,12 +19,12 @@ package org.fluidity.foundation.impl;
 import java.util.jar.Attributes;
 
 import org.fluidity.deployment.launcher.ShellApplicationBootstrap;
+import org.fluidity.deployment.maven.Logger;
 import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.jarjar.Launcher;
 
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
 /**
@@ -42,7 +42,7 @@ final class CommandLineJarManifest implements JarManifest {
     public SecurityPolicy processManifest(final MavenProject project,
                                           final Attributes attributes,
                                           final SecurityPolicy policy,
-                                          final Log log,
+                                          final Logger log,
                                           final Dependencies dependencies) throws MojoExecutionException {
         final boolean executable = dependencies.unpacked();
 
@@ -61,9 +61,9 @@ final class CommandLineJarManifest implements JarManifest {
             attributes.put(Attributes.Name.MAIN_CLASS, LAUNCHER);
         }
 
-        if (log.isDebugEnabled()) {
+        if (log.active()) {
             final String value = executable ? attributes.getValue(Launcher.ORIGINAL_MAIN_CLASS) : attributes.getValue(Attributes.Name.MAIN_CLASS);
-            log.debug(String.format("Main class: %s", value == null ? "none" : value.equals(LAUNCHER) ? "built in" : value));
+            log.detail("Main class: %s", value == null ? "none" : value.equals(LAUNCHER) ? "built in" : value);
         }
 
         return null;

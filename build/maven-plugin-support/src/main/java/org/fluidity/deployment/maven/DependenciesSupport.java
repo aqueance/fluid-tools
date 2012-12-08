@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.fluidity.foundation.Archives;
-import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Utility;
 
@@ -42,7 +41,6 @@ import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Exclusion;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
@@ -411,7 +409,7 @@ public final class DependenciesSupport extends Utility {
                                     final String finalName,
                                     final String classifier,
                                     final String packaging,
-                                    final Log log) throws MojoExecutionException {
+                                    final Logger log) throws MojoExecutionException {
         final boolean unclassified = classifier == null || classifier.isEmpty();
         final String outputName = unclassified ? String.format("%s.%s", finalName, packaging) : String.format("%s-%s.%s", finalName, classifier, packaging);
 
@@ -482,9 +480,11 @@ public final class DependenciesSupport extends Utility {
         return artifacts;
     }
 
-    public static void list(final Collection<Artifact> artifacts, final Command.Operation<String, RuntimeException> command) {
-        for (final Artifact artifact : artifacts) {
-            command.run(artifact.getFile().getName());
+    public static void list(final Collection<Artifact> artifacts, final String prefix, final Logger log) {
+        if (log.active()) {
+            for (final Artifact artifact : artifacts) {
+                log.detail(prefix.concat(artifact.getFile().getName()));
+            }
         }
     }
 

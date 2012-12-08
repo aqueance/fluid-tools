@@ -40,10 +40,10 @@ import java.util.jar.Manifest;
 
 import org.fluidity.deployment.maven.ArchivesSupport;
 import org.fluidity.deployment.maven.DependenciesSupport;
+import org.fluidity.deployment.maven.Logger;
 import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
-import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.Streams;
@@ -54,7 +54,6 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
@@ -97,6 +96,13 @@ public final class StandaloneJarMojo extends AbstractMojo {
      * @parameter default-value="true"
      */
     private boolean executable;
+
+    /**
+     * Tells the plugin to emit details about its operation. The default value of this parameter is <code>false</code>.
+     *
+     * @parameter default-value="${fluidity.maven.verbose}"
+     */
+    private boolean verbose;
 
     /**
      * The location of the compiled classes.
@@ -185,13 +191,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
             throw new MojoExecutionException(String.format("%s does not exist", packageFile));
         }
 
-        final Log log = getLog();
-        final boolean debug = log.isDebugEnabled();
-        final Command.Operation<String, RuntimeException> list = new Command.Operation<String, RuntimeException>() {
-            public void run(final String line) throws RuntimeException {
-                log.debug("  ".concat(line));
-            }
-        };
+        final Logger log = Logger.initialize(getLog(), verbose);
 
         final List<JarManifest> handlers = ServiceProviders.findInstances(JarManifest.class, getClass().getClassLoader());
 
@@ -285,8 +285,8 @@ public final class StandaloneJarMojo extends AbstractMojo {
                         }
                     }
 
-                    if (debug) {
-                        log.debug(String.format("Manifest handler %s", Archives.containing(handlerClass)));
+                    if (log.active()) {
+                        log.detail("Manifest handler %s", Archives.containing(handlerClass));
                     }
 
                     final AtomicBoolean inclusionNameSet = new AtomicBoolean();
@@ -335,9 +335,9 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
                                 includedDependencies.put(attribute, new Inclusion(String.format("%s%s/", dependencyPath, name), includedClosure, " "));
 
-                                if (debug) {
-                                    log.debug(String.format("Included archives '%s':", name));
-                                    DependenciesSupport.list(includedClosure, list);
+                                if (log.active()) {
+                                    log.detail("Included archives '%s':", name);
+                                    DependenciesSupport.list(includedClosure, "  ", log);
                                 }
                             } else {
                                 throw new MojoExecutionException(String.format("Manifest handler %s tried to specify the inclusion name more than once",
@@ -371,12 +371,12 @@ public final class StandaloneJarMojo extends AbstractMojo {
                     includedDependencies.get(dependenciesName.get()).artifacts.removeAll(unpackedDependencies);
                 }
 
-                if (debug) {
-                    log.debug("Dependency archives:");
-                    DependenciesSupport.list(includedDependencies.get(dependenciesName.get()).artifacts, list);
+                if (log.active()) {
+                    log.detail("Dependency archives:");
+                    DependenciesSupport.list(includedDependencies.get(dependenciesName.get()).artifacts, "  ", log);
 
-                    log.debug("Unpacked archives:");
-                    DependenciesSupport.list(unpackedDependencies, list);
+                    log.detail("Unpacked archives:");
+                    DependenciesSupport.list(unpackedDependencies, "  ", log);
                 }
 
                 // list the various dependencies in manifest attributes
@@ -390,7 +390,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
                         if (!dependency.exists()) {
                             throw new MojoExecutionException(String.format("Dependency %s not found (tried: %s)", artifact, dependency));
                         } else if (dependency.isDirectory()) {
-                            log.warn(String.format("Ignoring non-JAR dependency %s", dependency));
+                            log.warn("Ignoring non-JAR dependency %s", dependency);
                         } else {
                             final String entryName = inclusion.folder.concat(dependency.getName());
 

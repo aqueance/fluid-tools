@@ -113,11 +113,6 @@
 
             <plugin>
                 <groupId>org.fluidity.platform</groupId>
-                <artifactId>composition-maven-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.fluidity.platform</groupId>
                 <artifactId>standalone-jar-maven-plugin</artifactId>
 
                 <dependencies>
