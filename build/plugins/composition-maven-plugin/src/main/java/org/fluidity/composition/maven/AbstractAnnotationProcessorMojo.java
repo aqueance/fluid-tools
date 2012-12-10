@@ -234,7 +234,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                 final Set<String> groupBindings = componentGroupMap.remove(bindingsClassName);
                 if (groupBindings != null) {
                     if (log.active()) {
-                        printBindings(log, "  ", "Group", groupBindings);
+                        printBindings(log, "  ", "Group member", groupBindings);
                     }
 
                     allBindings.addAll(groupBindings);
@@ -262,7 +262,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     }
 
     private void printBindings(final Logger log, final String indent, final String type, final Set<String> bindings) {
-        log.detail("%s%s bindings:", indent, type);
+        log.detail("%s%ss:", indent, type);
 
         for (final String implementationName : bindings) {
             log.detail("%s%s%s", indent, indent, implementationName);
