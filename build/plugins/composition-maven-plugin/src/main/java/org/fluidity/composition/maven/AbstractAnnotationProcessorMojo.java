@@ -223,7 +223,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                 final Collection<String> bindings = bindingsMap.get(PACKAGE_BINDINGS);
                 assert bindings != null && bindings.contains(bindingsClassName);
 
-                log.detail("Binding %s adds:", bindingsClassName);
+                log.detail("Class %s registers:", bindingsClassName);
 
                 final Set<String> allBindings = entry.getValue();
 
