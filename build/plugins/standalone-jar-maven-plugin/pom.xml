@@ -61,7 +61,7 @@ class loader that can load classes from those embedded dependencies.
         </dependency>
 
         <dependency>
-            <groupId>org.sonatype.aether</groupId>
+            <groupId>org.eclipse.aether</groupId>
             <artifactId>aether-impl</artifactId>
         </dependency>
 

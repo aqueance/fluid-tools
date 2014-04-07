@@ -68,7 +68,7 @@ Utilities that aid in finding Maven project dependencies.
         </dependency>
 
         <dependency>
-            <groupId>org.sonatype.aether</groupId>
+            <groupId>org.eclipse.aether</groupId>
             <artifactId>aether-impl</artifactId>
             <scope>provided</scope>
         </dependency>

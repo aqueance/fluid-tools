@@ -42,23 +42,23 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Exclusion;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
-import org.sonatype.aether.RepositorySystem;
-import org.sonatype.aether.RepositorySystemSession;
-import org.sonatype.aether.collection.CollectRequest;
-import org.sonatype.aether.collection.DependencyCollectionContext;
-import org.sonatype.aether.collection.DependencyCollectionException;
-import org.sonatype.aether.collection.DependencySelector;
-import org.sonatype.aether.graph.DependencyFilter;
-import org.sonatype.aether.graph.DependencyNode;
-import org.sonatype.aether.graph.DependencyVisitor;
-import org.sonatype.aether.repository.RemoteRepository;
-import org.sonatype.aether.resolution.DependencyRequest;
-import org.sonatype.aether.resolution.DependencyResolutionException;
-import org.sonatype.aether.util.FilterRepositorySystemSession;
-import org.sonatype.aether.util.artifact.ArtifactProperties;
-import org.sonatype.aether.util.artifact.DefaultArtifactType;
-import org.sonatype.aether.util.artifact.JavaScopes;
-import org.sonatype.aether.util.graph.selector.StaticDependencySelector;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.collection.CollectRequest;
+import org.eclipse.aether.collection.DependencyCollectionContext;
+import org.eclipse.aether.collection.DependencyCollectionException;
+import org.eclipse.aether.collection.DependencySelector;
+import org.eclipse.aether.graph.DependencyFilter;
+import org.eclipse.aether.graph.DependencyNode;
+import org.eclipse.aether.graph.DependencyVisitor;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.resolution.DependencyRequest;
+import org.eclipse.aether.resolution.DependencyResolutionException;
+import org.eclipse.aether.AbstractForwardingRepositorySystemSession;
+import org.eclipse.aether.artifact.ArtifactProperties;
+import org.eclipse.aether.artifact.DefaultArtifactType;
+import org.eclipse.aether.util.artifact.JavaScopes;
+import org.eclipse.aether.util.graph.selector.StaticDependencySelector;
 
 /**
  * Convenience methods to access the Maven dependency resolution mechanism.
@@ -79,11 +79,11 @@ public final class DependenciesSupport extends Utility {
     private static final String MANIFEST_MAVEN_GROUP_ID = "Maven-Group-Id";
     private static final String MANIFEST_MAVEN_ARTIFACT_ID = "Maven-Artifact-Id";
 
-    public static String artifactSpecification(final org.sonatype.aether.artifact.Artifact artifact) {
+    public static String artifactSpecification(final org.eclipse.aether.artifact.Artifact artifact) {
         return artifact.getGroupId() + ':' + artifact.getArtifactId();
     }
 
-    public static String artifactSpecification(final org.sonatype.aether.graph.Exclusion artifact) {
+    public static String artifactSpecification(final org.eclipse.aether.graph.Exclusion artifact) {
         return artifact.getGroupId() + ':' + artifact.getArtifactId();
     }
 
@@ -172,17 +172,19 @@ public final class DependenciesSupport extends Utility {
                                                 final List<RemoteRepository> repositories,
                                                 final DependencySelector selector,
                                                 final boolean runtime,
-                                                final org.sonatype.aether.graph.Dependency root) throws MojoExecutionException {
+                                                final org.eclipse.aether.graph.Dependency root) throws MojoExecutionException {
 
         /*
-         * https://docs.sonatype.org/display/AETHER/Home
-         * https://docs.sonatype.org/display/AETHER/Using+Aether+in+Maven+Plugins
-         * https://docs.sonatype.org/display/AETHER/Introduction
+         * http://wiki.eclipse.org/Aether
+         * http://wiki.eclipse.org/Aether/Using_Aether_in_Maven_Plugins
+         * http://wiki.eclipse.org/Aether/Dependency_Graph
+         * http://wiki.eclipse.org/Aether/Transitive_Dependency_Resolution
+         * http://git.eclipse.org/c/aether/aether-demo.git/tree/aether-demo-snippets/src/main/java/org/eclipse/aether/examples
          */
 
         final CollectRequest collectRequest = new CollectRequest(root, new ArrayList<RemoteRepository>(repositories));
         final DependencyFilterSession filter = new DependencyFilterSession(session, new DependencySelector() {
-            public boolean selectDependency(final org.sonatype.aether.graph.Dependency dependency) {
+            public boolean selectDependency(final org.eclipse.aether.graph.Dependency dependency) {
                 return true;  // always accept the root artifact
             }
 
@@ -207,7 +209,7 @@ public final class DependenciesSupport extends Utility {
 
         final Collection<Artifact> dependencies = new HashSet<Artifact>();
 
-        for (final org.sonatype.aether.artifact.Artifact artifact : new ArtifactCollector(runtime, node).artifacts()) {
+        for (final org.eclipse.aether.artifact.Artifact artifact : new ArtifactCollector(runtime, node).artifacts()) {
             final Artifact mavenArtifact = mavenArtifact(artifact);
 
             if (!mavenArtifact.isResolved()) {
@@ -268,7 +270,7 @@ public final class DependenciesSupport extends Utility {
      *
      * @return the Maven artifact.
      */
-    public static Artifact mavenArtifact(final org.sonatype.aether.artifact.Artifact original) {
+    public static Artifact mavenArtifact(final org.eclipse.aether.artifact.Artifact original) {
         final String setClassifier = original.getClassifier();
         final String classifier = (setClassifier == null || setClassifier.length() == 0) ? null : setClassifier;
 
@@ -296,7 +298,7 @@ public final class DependenciesSupport extends Utility {
      *
      * @return the Aether artifact.
      */
-    public static org.sonatype.aether.artifact.Artifact aetherArtifact(final Artifact original) {
+    public static org.eclipse.aether.artifact.Artifact aetherArtifact(final Artifact original) {
         final String explicitVersion = original.getVersion();
         final VersionRange versionRange = original.getVersionRange();
         final String version = explicitVersion == null && versionRange != null ? versionRange.toString() : explicitVersion;
@@ -315,13 +317,13 @@ public final class DependenciesSupport extends Utility {
                                                                  handler.isAddedToClasspath(),
                                                                  handler.isIncludesDependencies());
 
-        final org.sonatype.aether.artifact.Artifact artifact = new org.sonatype.aether.util.artifact.DefaultArtifact(original.getGroupId(),
-                                                                                                                     original.getArtifactId(),
-                                                                                                                     original.getClassifier(),
-                                                                                                                     extension,
-                                                                                                                     version,
-                                                                                                                     properties,
-                                                                                                                     type);
+        final org.eclipse.aether.artifact.Artifact artifact = new org.eclipse.aether.artifact.DefaultArtifact(original.getGroupId(),
+                                                                                                              original.getArtifactId(),
+                                                                                                              original.getClassifier(),
+                                                                                                              extension,
+                                                                                                              version,
+                                                                                                              properties,
+                                                                                                              type);
         return artifact.setFile(original.getFile());
     }
 
@@ -333,17 +335,17 @@ public final class DependenciesSupport extends Utility {
      *
      * @return the Maven dependency.
      */
-    public static org.sonatype.aether.graph.Dependency aetherDependency(final Artifact original, final Collection<Exclusion> exclusions) {
-        final List<org.sonatype.aether.graph.Exclusion> exclusionList = new ArrayList<org.sonatype.aether.graph.Exclusion>();
+    public static org.eclipse.aether.graph.Dependency aetherDependency(final Artifact original, final Collection<Exclusion> exclusions) {
+        final List<org.eclipse.aether.graph.Exclusion> exclusionList = new ArrayList<org.eclipse.aether.graph.Exclusion>();
 
         if (exclusions != null) {
             for (final Exclusion exclusion : exclusions) {
-                exclusionList.add(new org.sonatype.aether.graph.Exclusion(exclusion.getGroupId(), exclusion.getArtifactId(), "*", "*"));
+                exclusionList.add(new org.eclipse.aether.graph.Exclusion(exclusion.getGroupId(), exclusion.getArtifactId(), "*", "*"));
             }
         }
 
-        final org.sonatype.aether.artifact.Artifact artifact = aetherArtifact(original);
-        return new org.sonatype.aether.graph.Dependency(artifact, original.getScope(), original.isOptional(), exclusions == null ? null : exclusionList);
+        final org.eclipse.aether.artifact.Artifact artifact = aetherArtifact(original);
+        return new org.eclipse.aether.graph.Dependency(artifact, original.getScope(), original.isOptional(), exclusions == null ? null : exclusionList);
     }
 
     /**
@@ -491,13 +493,19 @@ public final class DependenciesSupport extends Utility {
     /**
      * @author Tibor Varga
      */
-    private static class DependencyFilterSession extends FilterRepositorySystemSession {
+    private static class DependencyFilterSession extends AbstractForwardingRepositorySystemSession {
 
         private final DependencySelector selector;
+        private final RepositorySystemSession parent;
 
         DependencyFilterSession(final RepositorySystemSession parent, final DependencySelector selector) {
-            super(parent);
+            this.parent = parent;
             this.selector = selector;
+        }
+
+        @Override
+        protected RepositorySystemSession getSession() {
+            return parent;
         }
 
         @Override
@@ -527,7 +535,7 @@ public final class DependenciesSupport extends Utility {
             this.acceptedScopes = compile ? COMPILE_SCOPES : RUNTIME_SCOPES;
         }
 
-        public boolean selectDependency(final org.sonatype.aether.graph.Dependency dependency) {
+        public boolean selectDependency(final org.eclipse.aether.graph.Dependency dependency) {
             return dependency != null
                    && !excludedArtifacts.contains(artifactSpecification(dependency.getArtifact()))
                    && acceptedScopes.contains(dependency.getScope())
@@ -535,19 +543,19 @@ public final class DependenciesSupport extends Utility {
         }
 
         public DependencySelector deriveChildSelector(final DependencyCollectionContext context) {
-            final org.sonatype.aether.graph.Dependency dependency = context.getDependency();
+            final org.eclipse.aether.graph.Dependency dependency = context.getDependency();
 
             if (dependency == null || JavaScopes.PROVIDED.equals(dependency.getScope()) || (!compile && dependency.isOptional())) {
                 return NO_SELECTOR;
             } else {
-                final Collection<org.sonatype.aether.graph.Exclusion> exclusions = dependency.getExclusions();
+                final Collection<org.eclipse.aether.graph.Exclusion> exclusions = dependency.getExclusions();
 
                 if (optionals || !exclusions.isEmpty()) {
                     final Set<String> excluded = new HashSet<String>(exclusions.size() + excludedArtifacts.size());
 
                     excluded.addAll(excludedArtifacts);
 
-                    for (final org.sonatype.aether.graph.Exclusion exclusion : exclusions) {
+                    for (final org.eclipse.aether.graph.Exclusion exclusion : exclusions) {
                         excluded.add(artifactSpecification(exclusion));
                     }
 
@@ -569,7 +577,7 @@ public final class DependenciesSupport extends Utility {
 
         private final Set<String> ignored = new HashSet<String>();
         private final Set<String> visited = new HashSet<String>();
-        private final List<org.sonatype.aether.artifact.Artifact> collected = new ArrayList<org.sonatype.aether.artifact.Artifact>();
+        private final List<org.eclipse.aether.artifact.Artifact> collected = new ArrayList<org.eclipse.aether.artifact.Artifact>();
 
         private final boolean runtime;
 
@@ -579,9 +587,9 @@ public final class DependenciesSupport extends Utility {
         }
 
         public boolean visitEnter(final DependencyNode node) {
-            final org.sonatype.aether.graph.Dependency dependency = node.getDependency();
+            final org.eclipse.aether.graph.Dependency dependency = node.getDependency();
 
-            final org.sonatype.aether.artifact.Artifact artifact = dependency.getArtifact();
+            final org.eclipse.aether.artifact.Artifact artifact = dependency.getArtifact();
             final String identity = identity(artifact);
 
             if (!visited.add(identity)) {
@@ -604,11 +612,11 @@ public final class DependenciesSupport extends Utility {
             return true;
         }
 
-        public Collection<org.sonatype.aether.artifact.Artifact> artifacts() {
+        public Collection<org.eclipse.aether.artifact.Artifact> artifacts() {
             return collected;
         }
 
-        private static String identity(final org.sonatype.aether.artifact.Artifact artifact) {
+        private static String identity(final org.eclipse.aether.artifact.Artifact artifact) {
             return String.format("%s:%s:%s:%s:%s", artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(), artifact.getVersion(), artifact.getExtension());
         }
     }

@@ -48,7 +48,7 @@
 
         <osgi.specification.version>4.3.1</osgi.specification.version>
         <maven.api.version>3.0.4</maven.api.version>
-        <aether.version>1.13.1</aether.version>
+        <aether.version>0.9.1.v20140329</aether.version>
         <asm.version>4.1</asm.version>
 
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
@@ -146,7 +146,7 @@
             </dependency>
 
             <dependency>
-                <groupId>org.sonatype.aether</groupId>
+                <groupId>org.eclipse.aether</groupId>
                 <artifactId>aether-impl</artifactId>
                 <version>${aether.version}</version>
             </dependency>
