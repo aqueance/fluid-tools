@@ -30,7 +30,7 @@
     <name>Fluid Tools: Build Support</name>
 
     <properties>
-        <jetty.version>8.1.7.v20120910</jetty.version>
+        <jetty.version>8.1.14.v20131031</jetty.version>
     </properties>
 
     <licenses>
