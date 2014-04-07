@@ -107,7 +107,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
     /**
      * The location of the compiled classes.
      *
-     * @parameter expression="${project.build.directory}"
+     * @parameter property="project.build.directory"
      * @required
      * @readonly
      */
@@ -115,19 +115,19 @@ public final class StandaloneJarMojo extends AbstractMojo {
     private File outputDirectory;
 
     /**
-     * The project artifact file.
+     * The project artifact file name.
      *
-     * @parameter expression="${project.build.directory}/${project.build.finalName}.jar"
+     * @parameter property="standalone.archive.name" default-value="${project.build.finalName}.jar"
      * @required
      * @readonly
      */
     @SuppressWarnings("UnusedDeclaration")
-    private File packageFile;
+    private String archiveName;
 
     /**
      * The project artifact's final name.
      *
-     * @parameter expression="${project.build.directory}/${project.build.finalName}"
+     * @parameter property="project.build.finalName"
      * @required
      * @readonly
      */
@@ -135,7 +135,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
     private String finalName;
 
     /**
-     * @parameter expression="${plugin.groupId}"
+     * @parameter property="plugin.groupId"
      * @readonly
      * @required
      */
@@ -143,7 +143,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
     private String pluginGroupId;
 
     /**
-     * @parameter expression="${plugin.artifactId}"
+     * @parameter property="plugin.artifactId"
      * @readonly
      * @required
      */
@@ -153,7 +153,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
     /**
      * The Maven project.
      *
-     * @parameter expression="${project}"
+     * @parameter property="project"
      * @required
      * @readonly
      */
@@ -187,6 +187,8 @@ public final class StandaloneJarMojo extends AbstractMojo {
     private List<RemoteRepository> repositories;
 
     public void execute() throws MojoExecutionException {
+        final File packageFile = new File(outputDirectory, archiveName);
+
         if (!packageFile.exists()) {
             throw new MojoExecutionException(String.format("%s does not exist", packageFile));
         }
@@ -478,7 +480,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
                 }
             }
 
-            DependenciesSupport.saveArtifact(project, file, finalName, classifier, DependenciesSupport.JAR_TYPE, log);
+            DependenciesSupport.saveArtifact(project, file, String.format("%s/%s", outputDirectory, finalName), classifier, DependenciesSupport.JAR_TYPE, log);
         } catch (final IOException e) {
             throw new MojoExecutionException(String.format("Processing %s", packageFile), e);
         }

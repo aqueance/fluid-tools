@@ -68,7 +68,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
     /**
      * The location of the compiled classes.
      *
-     * @parameter expression="${project.build.directory}"
+     * @parameter property="project.build.directory"
      * @required
      * @readonly
      */
@@ -78,7 +78,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
     /**
      * The project artifact's final name.
      *
-     * @parameter expression="${project.build.directory}/${project.build.finalName}"
+     * @parameter property="project.build.finalName"
      * @required
      * @readonly
      */
@@ -109,7 +109,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
     private List<String> profiles;
 
     /**
-     * @parameter expression="${plugin.artifactId}"
+     * @parameter property="plugin.artifactId"
      * @readonly
      * @required
      */
@@ -119,7 +119,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
     /**
      * The Maven project.
      *
-     * @parameter expression="${project}"
+     * @parameter property="project"
      * @required
      * @readonly
      */
@@ -157,9 +157,11 @@ public final class IncludeJarsMojo extends AbstractMojo {
             return;
         }
 
+        final String baseName = String.format("%s/%s", outputDirectory, finalName);
+
         final File packageFile = new File(classifier == null || classifier.isEmpty()
-                                          ? String.format("%s.%s", finalName, DependenciesSupport.JAR_TYPE)
-                                          : String.format("%s-%s.%s", finalName, classifier, DependenciesSupport.JAR_TYPE));
+                                          ? String.format("%s.%s", baseName, DependenciesSupport.JAR_TYPE)
+                                          : String.format("%s-%s.%s", baseName, classifier, DependenciesSupport.JAR_TYPE));
 
         if (!packageFile.exists()) {
             throw new MojoExecutionException(String.format("%s does not exist", packageFile));
@@ -321,7 +323,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
                         }
                     }
 
-                    DependenciesSupport.saveArtifact(project, file, finalName, classifier, DependenciesSupport.JAR_TYPE, log);
+                    DependenciesSupport.saveArtifact(project, file, baseName, classifier, DependenciesSupport.JAR_TYPE, log);
                 }
             } finally {
                 try {

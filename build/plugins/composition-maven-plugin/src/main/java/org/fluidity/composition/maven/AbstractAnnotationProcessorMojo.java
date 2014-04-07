@@ -115,7 +115,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     /**
      * Reference to the maven project
      *
-     * @parameter expression="${project}"
+     * @parameter property="project"
      * @required
      */
     @SuppressWarnings("UnusedDeclaration")
