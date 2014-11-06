@@ -476,7 +476,7 @@ public class URLClassLoader extends SecureClassLoader {
         public Entry entry(final String resource) throws IOException {
             final Entry found = map.get(resource);
 
-            if (found == null && found != Archive.Entry.NOT_FOUND) {
+            if (found == null) {
                 final URL url = Handler.relativeURL(root, resource);
 
                 try {
