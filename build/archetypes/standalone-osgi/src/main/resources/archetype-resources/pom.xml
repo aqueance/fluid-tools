@@ -68,11 +68,11 @@ limitations under the License.
             <id>bundles</id>
             <activation><activeByDefault>true</activeByDefault></activation>
 
-<!-- Add dependencies to your bundles like this one.
+<!-- Add bundles to the OSGi application like so:
             <dependency>
-                <groupId>\${project.groupId}</groupId>
+                <groupId>${symbol_dollar}{project.groupId}</groupId>
                 <artifactId>some-osgi-bundle</artifactId>
-                <version>\${project.version}</version>
+                <version>${symbol_dollar}{project.version}</version>
 
                 Remove or edit the classifier to match the particulars:
                 <classifier>bundle</classifier>

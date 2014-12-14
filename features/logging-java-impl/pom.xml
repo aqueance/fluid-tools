@@ -23,7 +23,6 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.platform</groupId>
     <artifactId>logging-java-impl</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
