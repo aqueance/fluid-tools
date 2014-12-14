@@ -33,7 +33,7 @@ interface ParentContainer extends SimpleContainer, ComponentCache.Domain {
     /**
      * Returns a context node either from the receiver or from its parent.
      *
-     * @param domain  the domain container to resolve missing dependencies in.
+     * @param domain  the domain container, or <code>null</code>.
      * @param type    the component interface.
      * @param context the component context.
      *
@@ -44,7 +44,7 @@ interface ParentContainer extends SimpleContainer, ComponentCache.Domain {
     /**
      * Resolves the group API to a list of implementations.
      *
-     * @param domain    the domain container to resolve missing dependencies in.
+     * @param domain    the domain container, or <code>null</code>.
      * @param api       the group API.
      * @param traversal the current graph traversal.
      * @param context   the current context.
@@ -58,7 +58,7 @@ interface ParentContainer extends SimpleContainer, ComponentCache.Domain {
     /**
      * Resolves a component group with the given traversal in the given context.
      *
-     * @param domain    the domain container to resolve missing dependencies in.
+     * @param domain    the domain container, or <code>null</code>.
      * @param api       the group interface.
      * @param context   the component context at the point of resolution.
      * @param traversal the graph traversal to use.
@@ -78,15 +78,16 @@ interface ParentContainer extends SimpleContainer, ComponentCache.Domain {
     List<GroupResolver> groupResolvers(Class<?> api);
 
     /**
-     * Checks if an instance has been cached for the given component interface and component context, and returns the instance of found. This method never
+     * Checks if an instance has been cached for the given component interface and component context, and returns the instance if found. This method never
      * instantiates classes.
      *
+     * @param domain  the domain container, or <code>null</code>.
      * @param api     the component interface to check.
      * @param context the component context to check.
      *
      * @return the instance if found cached, <code>null</code> otherwise.
      */
-    Object cached(Class<?> api, ComponentContext context);
+    Object cached(ParentContainer domain, Class<?> api, ComponentContext context);
 
     /**
      * Wraps this container around a new context.

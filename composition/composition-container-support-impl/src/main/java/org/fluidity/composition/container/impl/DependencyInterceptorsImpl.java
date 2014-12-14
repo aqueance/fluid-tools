@@ -77,7 +77,7 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
                                         final Type reference,
                                         final DependencyGraph.Node node) {
         if (node == null) {
-            return node;
+            return null;
         }
 
         final ComponentInterceptor[] interceptors = annotations.filter(context, interceptors(container, traversal));

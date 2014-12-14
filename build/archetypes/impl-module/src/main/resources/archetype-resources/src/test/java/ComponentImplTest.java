@@ -24,7 +24,7 @@ import org.testng.annotations.Test;
 
 public final class ComponentImplTest extends Simulator {
 
-    private final ComponentApi.MessageSink dependency = mock(ComponentApi.MessageSink.class);
+    private final ComponentApi.MessageSink dependency = dependencies().normal(ComponentApi.MessageSink.class);
 
     private final ComponentApi subject = new ComponentImpl(dependency);
 
@@ -36,11 +36,13 @@ public final class ComponentImplTest extends Simulator {
         EasyMock.expect(dependency.receiveText(accepted)).andReturn(true);
         EasyMock.expect(dependency.receiveText(rejected)).andReturn(false);
 
-        replay();
+        verify(new Task() {
 
-        Assert.assertTrue(subject.sendText(accepted));
-        Assert.assertFalse(subject.sendText(rejected));
-
-        verify();
+            @Override
+            public void run() throws Exception {
+                Assert.assertTrue(subject.sendText(accepted));
+                Assert.assertFalse(subject.sendText(rejected));
+            }
+        });
     }
 }

@@ -68,7 +68,7 @@ interface SimpleContainer extends DependencyGraph {
     /**
      * Resolves a component using the given traversal in the given context.
      *
-     * @param domain    the domain container to resolve missing dependencies in.
+     * @param domain    the domain container, or <code>null</code>.
      * @param ascend    tells whether to consult the parent on a missing resolver (<code>true</code>) or not (<code>false</code>).
      * @param api       the component interface.
      * @param context   the component context at the point of resolution.

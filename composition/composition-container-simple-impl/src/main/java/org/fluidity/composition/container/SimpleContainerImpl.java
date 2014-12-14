@@ -60,12 +60,12 @@ final class SimpleContainerImpl implements ParentContainer {
     private final DependencyInjector injector;
 
     SimpleContainerImpl(final ContainerServices services, final boolean quiet) {
-        this(null, null, services, quiet);
+        this(false, null, services, quiet);
     }
 
-    private SimpleContainerImpl(final ParentContainer parent, final ParentContainer domain, final ContainerServices services, final boolean quiet) {
+    private SimpleContainerImpl(final boolean domain, final ParentContainer parent, final ContainerServices services, final boolean quiet) {
         this.parent = parent;
-        this.domain = domain == null ? this : domain;
+        this.domain = domain ? this : null;
         this.services = services;
         this.quiet = quiet;
 
@@ -95,7 +95,7 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public ParentContainer newChildContainer(final boolean domain) {
-        return new SimpleContainerImpl(this, domain ? null : this, services, quiet);
+        return new SimpleContainerImpl(domain, this, services, quiet);
     }
 
     public ComponentResolver bindResolver(final Class<?> api, final ComponentResolver resolver) {
@@ -167,19 +167,16 @@ final class SimpleContainerImpl implements ParentContainer {
                                final Components.Specification[] interfaces,
                                final boolean stateful,
                                final ContentResolvers resolvers) {
+        final ComponentCache cache = services.newCache(!stateful);
+
         if (resolvers.isCustomFactory()) {
             bindResolver(implementation, resolvers.component(implementation, services.newCache(true), true));
-
-            final ComponentCache cache = services.newCache(true);
-
             bindResolvers(interfaces, new Resolver() {
                 public ComponentResolver resolver(final Class<?> type) {
                     return resolvers.factory(type, cache);
                 }
             });
         } else {
-            final ComponentCache cache = services.newCache(!stateful);
-
             bindResolvers(interfaces, new Resolver() {
                 public ComponentResolver resolver(final Class<?> type) {
                     return resolvers.component(type, cache, false);
@@ -274,7 +271,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
     public ComponentResolver resolver(final Class<?> api, final boolean ascend) {
         final ComponentResolver resolver = components.get(api);
-        return resolver == null && parent != null && ascend ? parent.resolver(api, ascend) : resolver;
+        return resolver == null && parent != null && ascend ? parent.resolver(api, true) : resolver;
     }
 
     public void replaceResolver(final Class<?> key, final ComponentResolver previous, final ComponentResolver replacement) {
@@ -311,13 +308,14 @@ final class SimpleContainerImpl implements ParentContainer {
                                explicit);
     }
 
-    public Object cached(final Class<?> api, final ComponentContext context) {
+    public Object cached(final ParentContainer domain, final Class<?> api, final ComponentContext context) {
         final ComponentResolver resolver = components.get(api);
+        final ParentContainer container = domain == null ? this.domain : domain;
 
         if (resolver == null) {
-            return parent != null ? parent.cached(api, context) : null;
+            return parent != null ? parent.cached(container, api, context) : null;
         } else {
-            return resolver.cached(domain, toString(), context);
+            return resolver.cached(container == null ? this : container, toString(), context);
         }
     }
 
@@ -334,9 +332,9 @@ final class SimpleContainerImpl implements ParentContainer {
                    ? null
                    : parent == null
                      ? domain == null || domain == this ? null : domain.resolveComponent(null, false, api, context, traversal, reference)
-                     : parent.resolveComponent(domain, true, api, context, traversal, reference);
+                     : parent.resolveComponent(domain == null ? this.domain : domain, true, api, context, traversal, reference);
         } else {
-            final Node node = resolver.resolve(domain, SimpleContainerImpl.this, traversal, context, reference);
+            final Node node = resolver.resolve(domain, this, traversal, context, reference);
 
             return new Node() {
                 public Class<?> type() {
@@ -446,7 +444,7 @@ final class SimpleContainerImpl implements ParentContainer {
                     output.addAll(node.instance(traversal));
                 }
 
-                return Lists.asArray(api, output);
+                return Lists.asArray((Class) api, output);
             }
 
             public ComponentContext context() {
@@ -458,7 +456,7 @@ final class SimpleContainerImpl implements ParentContainer {
     public ContextNode contexts(final ParentContainer domain, final Class<?> type, final ContextDefinition context) {
         final ComponentResolver resolver = resolver(type, true);
         return resolver == null
-               ? parent != null ? parent.contexts(domain, type, context) : domain != null && domain != this ? domain.contexts(null, type, context) : resolver
+               ? parent != null ? parent.contexts(domain, type, context) : domain != null && domain != this ? domain.contexts(null, type, context) : null
                : resolver;
     }
 
@@ -530,30 +528,32 @@ final class SimpleContainerImpl implements ParentContainer {
     private class DelegatingDependencyResolver implements DependencyResolver {
 
         private final ParentContainer domain;
+        private final ParentContainer container;
 
         DelegatingDependencyResolver(final ParentContainer domain) {
             this.domain = domain;
+            this.container = domain == null ? SimpleContainerImpl.this : domain;
         }
 
         public ComponentContainer container(final ContextDefinition context) {
-            return domain.container(context);
+            return container.container(context);
         }
 
         public Object cached(final Class<?> api, final ComponentContext context) {
-            return SimpleContainerImpl.this.cached(api, context);
+            return container.cached(domain, api, context);
         }
 
         public Node resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal traversal, final Type reference) {
-            return SimpleContainerImpl.this.resolveComponent(domain, true, api, context, traversal, reference);
+            return container.resolveComponent(domain, true, api, context, traversal, reference);
         }
 
         public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal, final Type reference) {
-            return SimpleContainerImpl.this.resolveGroup(domain, api, context, traversal, reference);
+            return container.resolveGroup(domain, api, context, traversal, reference);
         }
 
         @Override
         public String toString() {
-            return SimpleContainerImpl.this.toString();
+            return container.toString();
         }
     }
 }

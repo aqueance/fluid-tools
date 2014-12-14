@@ -197,7 +197,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
                         final ComponentDescriptor descriptor = new ComponentDescriptor(type, interfaces);
                         components.put(type, descriptor);
 
-                        registry.bindComponent((Class) type, descriptor.interfaces());
+                        registry.bindComponent((Class) type, (Class[]) descriptor.interfaces());
                     }
                 }
             });
@@ -512,7 +512,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
                         for (final ComponentDescriptor descriptor : resolved) {
                             final Class<? extends BundleComponents.Managed> type = (Class<? extends BundleComponents.Managed>) descriptor.type;
 
-                            for (final Class<?> api : descriptor.interfaces()) {
+                            for (final Class api : descriptor.interfaces()) {
                                 registry.bindComponent((Class) type, api);
                             }
                         }

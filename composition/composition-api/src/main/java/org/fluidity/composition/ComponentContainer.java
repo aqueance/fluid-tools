@@ -222,12 +222,12 @@ public interface ComponentContainer {
     OpenContainer makeChildContainer(Bindings... bindings);
 
     /**
-     * Creates a domain container with this one as its parent. Dependencies of components resolved, through the returned child, in this container or its
-     * ancestry will be resolved in the <em>returned child container or its ancestry</em>.
+     * Creates a domain container with this one as its parent. Dependencies of components found, through the returned child, in this container or its ancestry
+     * will be resolved <em>in the returned child container</em>.
      * <p/>
-     * Use this with care as a domain container may cause its parent containers to return multiple instances of the same, supposedly singleton, component. This
-     * is only safe if your application guarantees that the parent container is never used outside a domain container and that domain containers and the
-     * components they instantiate never talk to other domain containers or components they instantiated. Hence the term "domain".
+     * Use this with care as a domain container will cause singleton components to be singletons within the represented domain. This is only safe if your
+     * application guarantees that the this container is never used directly but only as a parent of the returned domain container, and that domain containers
+     * and the components they instantiate never talk to other domain containers or components they instantiated.
      *
      * @param bindings list of component bindings to add to the child container.
      *

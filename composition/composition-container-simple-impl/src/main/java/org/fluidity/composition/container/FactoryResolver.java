@@ -81,16 +81,17 @@ abstract class FactoryResolver extends AbstractResolver {
                                               final DependencyGraph.Traversal traversal,
                                               final ContextDefinition context,
                                               final Type reference) {
-        final SimpleContainer child = container.newChildContainer(false);
+        final ParentContainer resolver = domain == null ? container : domain;
+        final SimpleContainer child = resolver.newChildContainer(false);
         final List<ContextDefinition> contexts = new ArrayList<ContextDefinition>();
 
-        final ComponentFactory factory = factory(container, traversal, context, reference);
+        final ComponentFactory factory = factory(resolver, traversal, context, reference);
         final Class<?> consumer = contextConsumer();
 
         final DependencyInjector injector = child.services().dependencyInjector();
 
         final AccessGuard<ComponentContainer> containers = injector.containerGuard();
-        final AccessGuard<DependencyGraph.Node> instantiation = new AccessGuard<DependencyGraph.Node>("Dependency can only be instantiated in ComponentFactory.Instance.bind(...).");
+        final AccessGuard<DependencyGraph.Node> instantiation = new AccessGuard<DependencyGraph.Node>("Dependency must not be instantiated outside ComponentFactory.Instance.bind(...).");
 
         final ComponentFactory.Instance instance = resolve(injector, traversal, context, child, reference, contexts, factory, consumer, instantiation, containers);
 

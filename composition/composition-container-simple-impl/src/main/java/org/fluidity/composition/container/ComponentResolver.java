@@ -33,7 +33,7 @@ interface ComponentResolver extends ContextNode {
     /**
      * Resolves the represented component.
      *
-     * @param domain    the domain container.
+     * @param domain    the domain container; may be <code>null</code>.
      * @param container the container calling the resolver.
      * @param traversal the graph traversal to use.
      * @param context   the context in which the resolution takes place.

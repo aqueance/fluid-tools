@@ -247,7 +247,6 @@ public final class Exceptions extends Utility {
                     throw wrapped(label, wrapper, e);
                 }
             } catch (final Throwable e) {
-                assert !(e instanceof Error);
                 final T wrapped = wrapped(label, wrapper, e);
 
                 if (wrapper == e.getClass()) {

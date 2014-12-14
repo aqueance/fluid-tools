@@ -18,6 +18,7 @@ package org.fluidity.composition.maven;
 
 import java.io.File;
 
+import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecutionException;
 
 /**
@@ -31,7 +32,8 @@ import org.apache.maven.plugin.MojoExecutionException;
 public class TestAnnotationProcessorMojo extends AbstractAnnotationProcessorMojo {
 
     public void execute() throws MojoExecutionException {
-        processDirectory(new File(build().getTestOutputDirectory()));
+        final Build build = build();
+        processDirectory(new File(build.getTestOutputDirectory()), new File(build.getOutputDirectory()));
     }
 
     @Override

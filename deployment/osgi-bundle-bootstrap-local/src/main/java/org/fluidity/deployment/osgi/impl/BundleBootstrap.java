@@ -142,10 +142,12 @@ public final class BundleBootstrap extends BoundaryComponent implements BundleAc
             this.jobs = jobs;
         }
 
+        @SuppressWarnings("unchecked")
         public void add(final Command.Job<Exception> job) {
             jobs.add(job);
         }
 
+        @SuppressWarnings("unchecked")
         public void remove(final Command.Job<Exception> job) {
             jobs.remove(job);
         }

@@ -136,7 +136,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     }
 
     @SuppressWarnings({ "RedundantCast", "ResultOfMethodCallIgnored" })
-    protected final void processDirectory(final File classesDirectory) throws MojoExecutionException {
+    protected final void processDirectory(final File classesDirectory, final File... directories) throws MojoExecutionException {
         projectName = getProjectNameId();
 
         if (!classesDirectory.exists()) {
@@ -151,6 +151,12 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
         try {
             urls.add(classesDirectory.toURI().toURL());
+
+            for (File directory : directories) {
+                if (directory.exists()) {
+                    urls.add(directory.toURI().toURL());
+                }
+            }
 
             for (final Artifact artifact : (Set<Artifact>) project.getArtifacts()) {
                 if (DependenciesSupport.JAR_TYPE.equals(artifact.getType())) {

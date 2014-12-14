@@ -460,12 +460,12 @@ public interface ComponentFactory {
          *
          * @param api         the component interface to resolve; may not be <code>null</code>.
          * @param constructor constructor to derive context annotations from.
-         * @param parameter   index of the constructor parameter to derive generic type and context annotations from.
+         * @param reference   index of the constructor parameter to derive generic type and context annotations from.
          * @param <T>         the type of the dependency to resolve.
          *
          * @return an object that can return an instance of the resolved dependency.
          */
-        <T> Dependency<T> resolve(Class<T> api, Constructor<?> constructor, int parameter);
+        <T> Dependency<T> resolve(Class<T> api, Constructor<?> constructor, int reference);
 
         /**
          * Resolves a component by its component interface without instantiating the component. The resolved component will see, if it accepts the {@link
@@ -476,12 +476,12 @@ public interface ComponentFactory {
          * @param type      the component class to resolve the dependency of; used to derive context annotations from; may be <code>null</code>, in which case
          *                  the method's declaring class will be used.
          * @param method    method to derive context annotations from.
-         * @param parameter index of the constructor parameter to derive generic type and context annotations from.
+         * @param reference index of the constructor parameter to derive generic type and context annotations from.
          * @param <T>       the type of the dependency to resolve.
          *
          * @return an object that can return an instance of the resolved dependency.
          */
-        <T> Dependency<T> resolve(Class<T> api, Class<?> type, Method method, int parameter);
+        <T> Dependency<T> resolve(Class<T> api, Class<?> type, Method method, int reference);
 
         /**
          * Resolves a component by its component interface without instantiating the component. The resolved component will see, if it accepts the {@link

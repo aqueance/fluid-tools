@@ -17,6 +17,8 @@
 package org.fluidity.composition.container.tests;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.spi.ComponentFactory;
 
 import org.testng.annotations.Test;
 
@@ -62,6 +64,18 @@ public final class StatefulComponentTests extends AbstractContainerTests {
         assert stateless1.dependency != stateless2.dependency;
     }
 
+    @Test
+    public void testStatefulFactory() throws Exception {
+        registry.bindComponent(StatefulComponentFactory.class);
+
+        final StatelessComponent instance1 = container.getComponent(StatelessComponent.class);
+        final StatelessComponent instance2 = container.getComponent(StatelessComponent.class);
+
+        assert instance1 != null;
+        assert instance2 != null;
+        assert instance1 != instance2;
+    }
+
     @Component(stateful = true, automatic = false)
     private static class StatefulComponent { }
 
@@ -84,6 +98,22 @@ public final class StatefulComponentTests extends AbstractContainerTests {
         @SuppressWarnings("UnusedDeclaration")
         private StatelessComponent2(final StatefulComponent dependency) {
             this.dependency = dependency;
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class StatelessComponent { }
+
+    @Component(api = StatelessComponent.class, stateful = true)
+    private static class StatefulComponentFactory implements ComponentFactory {
+
+        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+
+            return new Instance() {
+                public void bind(final Registry registry) throws Exception {
+                    registry.bindComponent(StatelessComponent.class);
+                }
+            };
         }
     }
 }

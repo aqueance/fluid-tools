@@ -416,7 +416,7 @@ public class Simulator {
                 final T delegate = local.get();
 
                 if (delegate == null) {
-                    throw new IllegalStateException(String.format("No concurrent mock created for %1$s; use MockObjects.Concurrent.*mock(Class<%1$s>, Composite<%1$s>) or Composite<%1$s>.use(%1$s)",
+                    throw new IllegalStateException(String.format("No concurrent mock created for %1$s; call Composite<%1$s>.use(%1$s) on the mock object returned from Simulator.composite()",
                                                                   Strings.formatClass(false, false, type)));
                 } else {
                     return method.invoke(delegate, arguments);

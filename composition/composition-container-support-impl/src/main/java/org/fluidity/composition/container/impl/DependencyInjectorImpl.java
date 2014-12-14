@@ -535,7 +535,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                                   declaringType);
                 }
 
-                final Class<?> groupType = componentGroup != null && componentGroup.api() != null && componentGroup.api().length > 0
+                final Class<?> groupType = componentGroup.api() != null && componentGroup.api().length > 0
                                            ? componentGroup.api()[0]
                                            : null;
 

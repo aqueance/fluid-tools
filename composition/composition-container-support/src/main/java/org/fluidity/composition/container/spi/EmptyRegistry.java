@@ -57,7 +57,7 @@ final class EmptyRegistry implements ComponentContainer.Registry {
     @SuppressWarnings("unchecked")
     public void bindFactory(final ComponentFactory factory, final Class<?>... interfaces) throws ComponentContainer.BindingException {
         assert factory != null;
-        delegate.bindInstance(factory, Components.inspect((Class) factory.getClass(), interfaces));
+        delegate.bindInstance(factory, Components.inspect(factory.getClass(), (Class[]) interfaces));
     }
 
     public final <T> ComponentContainer.Registry isolateComponent(final Class<T> type, final Class<? super T>... interfaces)

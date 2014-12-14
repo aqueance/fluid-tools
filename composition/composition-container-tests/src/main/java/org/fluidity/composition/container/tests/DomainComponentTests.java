@@ -92,15 +92,74 @@ public final class DomainComponentTests extends AbstractContainerTests {
     public void testDependencyChain() throws Exception {
         registry.bindComponent(Root.class);
         registry.bindComponent(Component.class);
+        registry.bindComponent(Dependency.class);
 
         final OpenContainer domain = container.makeDomainContainer(new ComponentContainer.Bindings() {
             public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(Head.class);
                 registry.bindComponent(Dependency.class);
             }
         });
 
-        assert domain.getComponent(Root.class) != null;
+        final Root component = domain.getComponent(Root.class);
+        assert component != null;
+
+        final Root root = container.getComponent(Root.class);
+        assert component != root;
+        assert root.dependency != component.dependency;
+        assert root.dependency.dependency != component.dependency.dependency;
+
+        assert root.dependency.dependency == container.getComponent(Dependency.class);
+        assert component.dependency.dependency == domain.getComponent(Dependency.class);
+    }
+
+    @Test
+    public void testDependencyCrossChain() throws Exception {
+        registry.bindComponent(Root.class);
+        registry.bindComponent(Component.class);
+        registry.bindComponent(Dependency.class);
+
+        final OpenContainer domain = container.makeDomainContainer(new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindComponent(Component.class);
+            }
+        });
+
+        final Root component = domain.getComponent(Root.class);
+        assert component != null;
+
+        final Root root = container.getComponent(Root.class);
+        assert component != root;
+        assert root.dependency != component.dependency;
+        assert root.dependency.dependency != component.dependency.dependency;
+
+        assert root.dependency == container.getComponent(Component.class);
+        assert component.dependency == domain.getComponent(Component.class);
+    }
+
+    @Test
+    public void testDependencyPriority() throws Exception {
+        registry.bindComponent(Root.class);
+        registry.bindComponent(Component.class);
+        registry.bindComponent(Dependency.class);
+
+        final Component fallback = container.getComponent(Component.class);     // acquire this and its dependency before the domain container can say a word
+
+        final OpenContainer domain = container.makeDomainContainer(new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindComponent(Component.class);
+            }
+        });
+
+        final Root component = domain.getComponent(Root.class);
+        assert component != null;
+
+        final Root root = container.getComponent(Root.class);
+        assert component != root;
+        assert root.dependency != component.dependency;
+        assert root.dependency.dependency != component.dependency.dependency;
+
+        assert root.dependency == fallback;
+        assert component.dependency == domain.getComponent(Component.class);
     }
 
     @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*Dependency.*")
@@ -152,26 +211,24 @@ public final class DomainComponentTests extends AbstractContainerTests {
         assert Arrays.equals(members2, domain2.getComponentGroup(GroupApi.class));
     }
 
-    @SuppressWarnings("UnusedDeclaration")
     private static class Root {
 
+        public final Component dependency;
+
+        @SuppressWarnings("UnusedDeclaration")
         private Root(final Component dependency) {
+            this.dependency = dependency;
             assert dependency != null;
         }
     }
 
-    @SuppressWarnings("UnusedDeclaration")
-    private static class Head {
-
-        private Head(final Component dependency) {
-            assert dependency != null;
-        }
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
     private static class Component {
 
+        public final Dependency dependency;
+
+        @SuppressWarnings("UnusedDeclaration")
         private Component(final Dependency dependency) {
+            this.dependency = dependency;
             assert dependency != null;
         }
     }
