@@ -63,7 +63,7 @@ public final class Strings extends Utility {
      */
     public static String formatObject(final boolean identify, final boolean qualified, final Object object) {
         if (object == null) {
-            return String.valueOf(object);
+            return String.valueOf(null);
         } else {
             final Class<?> type = object.getClass();
 
@@ -151,7 +151,7 @@ public final class Strings extends Utility {
      */
     public static String formatId(final Object object) {
         if (object == null) {
-            return String.valueOf(object);
+            return String.valueOf(null);
         } else {
             final Class<?> type = object.getClass();
 
@@ -256,7 +256,7 @@ public final class Strings extends Utility {
             last = enclosing;
         }
 
-        if (qualified) {
+        if (qualified && !type.isPrimitive()) {
             final String lastName = last.getName();
             final int dot = lastName.lastIndexOf('.');
 
@@ -264,7 +264,7 @@ public final class Strings extends Utility {
             name.prepend(dot > 0 ? lastName.substring(0, dot) : lastName);
         }
 
-        return kind ? String.format("%s %s", type.isInterface() ? Annotation.class.isAssignableFrom(type) ? "@interface" : "interface" : "class", name) : name.toString();
+        return kind ? String.format("%s %s", type.isInterface() ? Annotation.class.isAssignableFrom(type) ? "@interface" : "interface" : type.isPrimitive() ? "type": "class", name) : name.toString();
     }
 
     private static void appendValue(final boolean identity, final StringBuilder output, final Object value) {

@@ -38,6 +38,12 @@ public class StringsTest extends Simulator {
     }
 
     @Test
+    public void primitiveType() throws Exception {
+        final String string = Strings.formatClass(true, true, Integer.TYPE);
+        assert String.format("type %s", Integer.TYPE).equals(string) : string;
+    }
+
+    @Test
     public void ordinaryType() throws Exception {
         final String string = Strings.formatClass(true, true, Object.class);
         assert Object.class.toString().equals(string) : string;
