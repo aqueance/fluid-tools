@@ -44,10 +44,10 @@ final class EmptyRegistry implements ComponentContainer.Registry {
         delegate.bindInstance(instance, Components.inspect((Class<T>) instance.getClass(), interfaces));
     }
 
-    public <T> void bindComponentGroup(final Class<T> group, final Class<T>[] types) {
+    public <T> void bindComponentGroup(final Class<T> group, final Class<? extends T>[] types) {
         final Collection<Class<?>> groups = Collections.<Class<?>>singletonList(group);
 
-        for (final Class<T> type : types) {
+        for (final Class<? extends T> type : types) {
             delegate.bindComponent(new Components.Interfaces(type, new Components.Specification[] {
                     new Components.Specification(type, groups)
             }));

@@ -73,7 +73,19 @@ public final class StatefulComponentTests extends AbstractContainerTests {
 
         assert instance1 != null;
         assert instance2 != null;
-        assert instance1 != instance2;
+        assert instance1 != instance2 : "Binding factory class ignores component state";
+    }
+
+    @Test
+    public void testStatefulFactoryInstance() throws Exception {
+        registry.bindInstance(new StatefulComponentFactory());
+
+        final StatelessComponent instance1 = container.getComponent(StatelessComponent.class);
+        final StatelessComponent instance2 = container.getComponent(StatelessComponent.class);
+
+        assert instance1 != null;
+        assert instance2 != null;
+        assert instance1 != instance2 : "Binding factory instance ignores component state";
     }
 
     @Component(stateful = true, automatic = false)

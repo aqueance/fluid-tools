@@ -165,24 +165,24 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
             this.bundleName = context.getBundle().getSymbolicName();
 
             // find all managed component classes
-            final Class<BundleComponents.Managed>[] items = discovery.findComponentClasses(BundleComponents.Managed.class, loader, false);
+            final Class<? extends BundleComponents.Managed>[] items = discovery.findComponentClasses(BundleComponents.Managed.class, loader, false);
 
-            final Map<Class<BundleComponents.Managed>, ComponentDescriptor> components = new HashMap<Class<BundleComponents.Managed>, ComponentDescriptor>();
+            final Map<Class<? extends BundleComponents.Managed>, ComponentDescriptor> components = new HashMap<Class<? extends BundleComponents.Managed>, ComponentDescriptor>();
 
             log.debug("[%s] Discovering service dependencies", bundleName);
 
             final ComponentContainer pool = container.makeChildContainer(new ComponentContainer.Bindings() {
                 @SuppressWarnings("unchecked")
                 public void bindComponents(final ComponentContainer.Registry registry) {
-                    for (final Class<BundleComponents.Managed> type : items) {
+                    for (final Class<? extends BundleComponents.Managed> type : items) {
                         if (type.isAnnotationPresent(Component.Context.class)) {
                             log.warning("[%s] Managed component %s accepts context annotations; the received context will always be empty", bundleName, type);
                         }
 
-                        final List<Class<? super BundleComponents.Managed>> interfaces = new ArrayList<Class<? super BundleComponents.Managed>>();
+                        final List<Class<? extends BundleComponents.Managed>> interfaces = new ArrayList<Class<? extends BundleComponents.Managed>>();
 
                         for (final Components.Specification specification : inspect(type).api) {
-                            final Class<? super BundleComponents.Managed> api = (Class<? super BundleComponents.Managed>) specification.api;
+                            final Class<? extends BundleComponents.Managed> api = (Class<? extends BundleComponents.Managed>) specification.api;
 
                             // we can't bind to service provider interfaces (group interfaces are not present in the iterated list)
                             if (api == type || !isServiceProvider(api)) {
@@ -253,7 +253,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
             final Set<ServiceDescriptor> services = new HashSet<ServiceDescriptor>();
 
             // get the observer methods invoked
-            for (final Class<BundleComponents.Managed> type : items) {
+            for (final Class<? extends BundleComponents.Managed> type : items) {
                 final ComponentDescriptor descriptor = components.get(type);
                 final Set<ServiceDescriptor> collected = new HashSet<ServiceDescriptor>();
 
@@ -301,7 +301,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
         }
 
         @SuppressWarnings("unchecked")
-        private Components.Interfaces inspect(final Class<BundleComponents.Managed> type) {
+        private Components.Interfaces inspect(final Class<? extends BundleComponents.Managed> type) {
             final Component componentAnnotation = type.getAnnotation(Component.class);
             if (componentAnnotation != null && componentAnnotation.automatic()) {
                 throw new IllegalStateException(String.format("Managed component %s may not have @%s(automatic = true)", type, Component.class));

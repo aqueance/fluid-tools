@@ -54,7 +54,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
         /*
          * Find instances of classes implementing the PackageBindings interface.
          */
-        final Class<PackageBindings>[] classes = discovery.findComponentClasses(PackageBindings.class, loader, parent != null);
+        final Class<? extends PackageBindings>[] classes = discovery.findComponentClasses(PackageBindings.class, loader, parent != null);
 
         /*
          * Let the container provider instantiate them using an actual container to resolve inter-binding dependencies.
@@ -86,7 +86,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
     private List<PackageBindings> instantiateBindings(final ContainerProvider provider,
                                                       final ContainerServices services,
                                                       final Map properties,
-                                                      final Class<PackageBindings>[] bindings) {
+                                                      final Class<? extends PackageBindings>[] bindings) {
         final MutableContainer container = provider.newContainer(services, true);
         final ComponentContainer.Registry registry = container.getRegistry();
 

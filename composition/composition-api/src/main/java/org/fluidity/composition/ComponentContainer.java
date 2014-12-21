@@ -476,7 +476,7 @@ public interface ComponentContainer {
          * @param types the elements of the group.
          * @param <T>   the group interface type to bind.
          */
-        <T> void bindComponentGroup(Class<T> group, Class<T>[] types);
+        <T> void bindComponentGroup(Class<T> group, Class<? extends T>[] types);
 
         /**
          * Binds a component factory instance to a list of component interfaces in the container behind this registry. Use this method when the list component

@@ -233,16 +233,21 @@ final class SimpleContainerImpl implements ParentContainer {
         if (instance != null) {
             final Class<?> implementation = instance.getClass();
             final Component componentSpec = implementation.getAnnotation(Component.class);
+
+            final boolean isFactory = instance instanceof ComponentFactory;
+            assert !isFactory || componentSpec != null;
+
             final boolean isFallback = componentSpec != null && !componentSpec.primary();
+            final boolean isStateful = isFactory && componentSpec.stateful();
 
             final String value = instance instanceof String || instance instanceof Number ? String.format("'%s'", instance) : Strings.formatId(instance);
 
             log(log.get(), "%s: binding %s to %s (%s)", this, value, interfaces, isFallback ? "fallback" : "primary");
 
-            bindResolvers(implementation, interfaces.api, false, new ContentResolvers() {
+            bindResolvers(implementation, interfaces.api, isStateful, new ContentResolvers() {
 
                 public boolean isCustomFactory() {
-                    return instance instanceof ComponentFactory;
+                    return isFactory;
                 }
 
                 public ComponentResolver component(final Class<?> api, final ComponentCache cache, final boolean resolvesFactory) {

@@ -32,10 +32,10 @@ final class ComponentDescriptor extends Descriptor {
     private boolean failed = false;
 
     private final Set<ServiceDescriptor> dependencies = new HashSet<ServiceDescriptor>();
-    private final Class<? super BundleComponents.Managed>[] api;
+    private final Class<? extends BundleComponents.Managed>[] api;
 
     @SuppressWarnings("unchecked")
-    ComponentDescriptor(final Class<BundleComponents.Managed> type, final Collection<Class<? super BundleComponents.Managed>> api) {
+    ComponentDescriptor(final Class<? extends BundleComponents.Managed> type, final Collection<Class<? extends BundleComponents.Managed>> api) {
         super(type);
         this.api = Lists.asArray(Class.class, api);
     }

@@ -58,5 +58,5 @@ public interface ClassDiscovery {
      *
      * @return a list of <code>Class</code> objects for the discovered classes.
      */
-    <T> Class<T>[] findComponentClasses(Class<T> api, ClassLoader classLoader, boolean strict);
+    <T> Class<? extends T>[] findComponentClasses(Class<T> api, ClassLoader classLoader, boolean strict);
 }

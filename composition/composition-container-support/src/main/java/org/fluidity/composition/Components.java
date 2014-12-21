@@ -254,8 +254,9 @@ public final class Components extends Utility {
         if (Generics.rawType(api).isAssignableFrom(Generics.rawType(check))) {
             if (api instanceof Class) {
                 final TypeVariable[] parameters = ((Class) api).getTypeParameters();
+
                 if (parameters.length > 0) {
-                    throw new ComponentContainer.BindingException("Component type %s specifies parameter(s) %s from its parameterized component interface: %s",
+                    throw new ComponentContainer.BindingException("Component type %s leaves parameter(s) %s of its parameterized component interface unspecified: %s",
                                                                   type.getName(),
                                                                   Arrays.toString(parameters),
                                                                   api);
@@ -269,7 +270,7 @@ public final class Components extends Utility {
                 }
 
                 if (!specified.isEmpty()) {
-                    throw new ComponentContainer.BindingException("Component type %s specifies parameter(s) %s from its parameterized component interface: %s",
+                    throw new ComponentContainer.BindingException("Component type %s leaves parameter(s) %s of its parameterized component interface unspecified: %s",
                                                                   type.getName(),
                                                                   specified,
                                                                   Arrays.toString(Generics.rawType(api).getTypeParameters()));
