@@ -50,7 +50,7 @@ public final class ServiceProviderProcessor extends AnnotationVisitor {
     private String type;
 
     public ServiceProviderProcessor(final ClassRepository repository, final ClassReader classData, final ProcessorCallback<ServiceProviderProcessor> callback) {
-        super(Opcodes.ASM4);
+        super(Opcodes.ASM5);
         this.repository = repository;
         this.classData = classData;
         this.callback = callback;

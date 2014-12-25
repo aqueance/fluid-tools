@@ -63,6 +63,13 @@ import java.lang.reflect.Type;
 public @interface Component {
 
     /**
+     * The service provider type for private components.
+     *
+     * @see ComponentContainer#makePrivateContainer(Class, org.fluidity.composition.ComponentContainer.Bindings...)
+     */
+    String PRIVATE = "private";
+
+    /**
      * Specifies the interfaces or classes that should resolve to the annotated class at run time.
      * <p/>
      * In case of {@link org.fluidity.composition.spi.ComponentFactory}, the value applies to the component the factory creates, not the factory itself.

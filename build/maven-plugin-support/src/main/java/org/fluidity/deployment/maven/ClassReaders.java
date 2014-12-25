@@ -64,7 +64,7 @@ public final class ClassReaders extends Utility implements Opcodes {
         final AtomicBoolean constructorFound = new AtomicBoolean(false);
 
         // make class and its default constructor public
-        reader.accept(new ClassVisitor(ASM4, writer) {
+        reader.accept(new ClassVisitor(ASM5, writer) {
 
             @Override
             public void visit(final int version,

@@ -194,8 +194,8 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
-    public OpenContainer makePrivateContainer(final Class<?> marker, final Bindings... bindings) {
-        return loadedContainer().makePrivateContainer(marker, bindings);
+    public OpenContainer makePrivateContainer(final Class<?> root, final Bindings... bindings) {
+        return loadedContainer().makePrivateContainer(root, bindings);
     }
 
     /**

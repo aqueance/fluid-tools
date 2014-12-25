@@ -286,7 +286,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             method.visitCode();
 
             method.visitVarInsn(ALOAD, 0);
-            method.visitMethodInsn(INVOKESPECIAL, EMPTY_BINDINGS_CLASS_NAME, ClassReaders.CONSTRUCTOR_METHOD_NAME, constructorDesc);
+            method.visitMethodInsn(INVOKESPECIAL, EMPTY_BINDINGS_CLASS_NAME, ClassReaders.CONSTRUCTOR_METHOD_NAME, constructorDesc, false);
             method.visitInsn(RETURN);
 
             method.visitMaxs(0, 0);
@@ -305,7 +305,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                 method.visitLdcInsn(Type.getObjectType(ClassReaders.internalName(implementationName)));
                 method.visitInsn(ACONST_NULL);
                 method.visitTypeInsn(CHECKCAST, Type.getInternalName(Class[].class));
-                method.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(invokedMethod.getDeclaringClass()), invokedMethod.getName(), invokedDesc);
+                method.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(invokedMethod.getDeclaringClass()), invokedMethod.getName(), invokedDesc, true);
             }
 
             method.visitInsn(Type.getReturnType(implementedDesc).getOpcode(IRETURN));
@@ -381,7 +381,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
                 final AnnotationsFactory annotations = new AnnotationsFactory() {
                     public ClassVisitor visitor(final ClassReader reader) {
-                        return new ClassVisitor(ASM4) {
+                        return new ClassVisitor(ASM5) {
                             private final Type serviceProviderType = Type.getType(ServiceProvider.class);
                             private final Type componentType = Type.getType(Component.class);
                             private final Type componentGroupType = Type.getType(ComponentGroup.class);
@@ -434,8 +434,8 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                                     return new ComponentProcessor(new ProcessorCallback<ComponentProcessor>() {
                                         public void complete(final ComponentProcessor processor) {
                                             flags.ignored = original && !processor.isAutomatic();
+                                            flags.root = original ? processor.root() : null;
                                             flags.component = !ClassReaders.isAbstract(classData) && !ClassReaders.isInterface(classData);
-                                            flags.root = processor.root();
                                         }
                                     });
                                 } else if (componentGroupType.equals(type)) {
@@ -474,18 +474,16 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                 if (processClass(classData, processor)) {
                     final Map<String, Collection<String>> providerMap = providerMap(PackageBindings.SERVICE_TYPE, serviceProviderMap);
 
-                    if (flags.root == null) {
-                        if (!flags.ignored) {
-                            if (flags.component) {
-                                addBinding(bindingClassName, ClassReaders.externalName(classData), providerMap, componentMap);
-                            }
-
-                            if (flags.group) {
-                                addBinding(bindingClassName, ClassReaders.externalName(classData), providerMap, componentGroupMap);
-                            }
+                    if (flags.root != null) {
+                        addServiceProvider(providerMap(Component.PRIVATE, serviceProviderMap), flags.root.getClassName(), ClassReaders.externalName(classData));
+                    } else if (!flags.ignored) {
+                        if (flags.component) {
+                            addBinding(bindingClassName, ClassReaders.externalName(classData), providerMap, componentMap);
                         }
-                    } else {
-                        addServiceProvider(providerMap(ServiceProviders.PRIVATE, serviceProviderMap), flags.root.getClassName(), ClassReaders.externalName(classData));
+
+                        if (flags.group) {
+                            addBinding(bindingClassName, ClassReaders.externalName(classData), providerMap, componentGroupMap);
+                        }
                     }
 
                     if (!flags.dependent) {

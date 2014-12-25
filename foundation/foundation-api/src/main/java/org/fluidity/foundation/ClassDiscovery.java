@@ -49,7 +49,7 @@ public interface ClassDiscovery {
 
     /**
      * Finds all classes visible to the given class loader that implement or extend the given service provider interface. Use this method to find classes for
-     * standard JAR service providers or those with a corresponding {@link org.fluidity.foundation.ServiceProvider @ServiceProvider} annotation.
+     * standard JAR service providers or those with a corresponding {@link org.fluidity.composition.ServiceProvider @ServiceProvider} annotation.
      *
      * @param api         the interface or class all discovered classes should implement or extend.
      * @param classLoader the class loader to use to find the classes.
@@ -63,7 +63,7 @@ public interface ClassDiscovery {
 
     /**
      * Finds all classes visible to the given class loader that implement or extend the given service provider interface. This variant can be used when the
-     * service provider list has been generated without a corresponding {@link org.fluidity.foundation.ServiceProvider @ServiceProvider} annotation.
+     * service provider list has been generated without a corresponding {@link org.fluidity.composition.ServiceProvider @ServiceProvider} annotation.
      *
      * @param <T>         the type of the given service provider interface.
      *

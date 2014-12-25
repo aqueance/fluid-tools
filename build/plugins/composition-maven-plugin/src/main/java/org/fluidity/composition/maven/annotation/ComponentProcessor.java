@@ -36,7 +36,7 @@ public final class ComponentProcessor extends AnnotationVisitor {
     private Type root;
 
     public ComponentProcessor(final ProcessorCallback<ComponentProcessor> callback) {
-        super(Opcodes.ASM4);
+        super(Opcodes.ASM5);
         this.callback = callback;
     }
 

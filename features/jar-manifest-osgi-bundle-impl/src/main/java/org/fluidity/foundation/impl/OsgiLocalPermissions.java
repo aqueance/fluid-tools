@@ -558,7 +558,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
             private final List<String> types;
 
             public RegistrationTypes(final Type registration, final List<String> types) {
-                super(Opcodes.ASM4);
+                super(Opcodes.ASM5);
                 this.registration = registration;
                 this.types = types;
             }
@@ -568,7 +568,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
                 final Type type = Type.getType(desc);
 
                 if (registration.equals(type)) {
-                    return new AnnotationVisitor(Opcodes.ASM4) {
+                    return new AnnotationVisitor(Opcodes.ASM5) {
                         @Override
                         public AnnotationVisitor visitArray(final String name) {
                             assert REGISTRATION_TYPE_PARAM.equals(name) : name;

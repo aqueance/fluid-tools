@@ -49,13 +49,6 @@ public final class ServiceProviders extends Utility {
     public static final String TYPE = "services";
 
     /**
-     * The service provider type for private components.
-     *
-     * @see org.fluidity.composition.ComponentContainer#makePrivateContainer(java.lang.Class,org.fluidity.composition.ComponentContainer.Bindings...)
-     */
-    public static final String PRIVATE = "private";
-
-    /**
      * The directory in JAR files that contains service provider files.
      */
     public static final String LOCATION = String.format("%s/%s", Archives.META_INF, TYPE);

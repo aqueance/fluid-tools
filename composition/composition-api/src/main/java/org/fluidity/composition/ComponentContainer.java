@@ -223,10 +223,7 @@ public interface ComponentContainer {
 
     /**
      * Creates a {@link #makeChildContainer(ComponentContainer.Bindings...) child container} and populates it with, in addition to the given {@code bindings},
-     * concrete classes derived from the given marker interface or class. For this to work, {@code marker} must be annotated with
-     * {@link ServiceProvider @ServiceProvider}, and the classes implementing or extending it must be annotated with {@link Component @Component}, with
-     * automatic registration thereof turned off ({@link Component @Component}({@link Component#automatic() automatic} = false)), and possibly their API set to
-     * exclude the marker ({@link Component @Component}({@link Component#api() api} = &hellip;)).
+     * components annotated with {@link Component @Component}({@link Component#root() root} = &lt;the given root>).
      *
      * @param bindings list of extra component bindings to add to the child container.
      *
@@ -236,7 +233,7 @@ public interface ComponentContainer {
      * @see org.fluidity.composition.ServiceProvider
      * @see org.fluidity.composition.Component
      */
-    OpenContainer makePrivateContainer(Class<?> marker, Bindings... bindings);
+    OpenContainer makePrivateContainer(Class<?> root, Bindings... bindings);
 
     /**
      * Creates a domain container with this one as its parent. Dependencies of components found, through the returned child, in this container or its ancestry

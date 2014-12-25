@@ -19,12 +19,12 @@ package org.fluidity.composition.container;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import org.fluidity.composition.Component;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.MutableContainer;
 import org.fluidity.composition.ObservedContainer;
 import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.container.spi.EmptyComponentContainer;
-import org.fluidity.foundation.ServiceProviders;
 
 /**
  * This is a shell around a {@link SimpleContainer} object.
@@ -71,14 +71,14 @@ final class ComponentContainerShell extends EmptyComponentContainer<SimpleContai
         return new ComponentContainerShell(container, context, true, false, observer).addBindings(bindings);
     }
 
-    public OpenContainer makePrivateContainer(final Class<?> marker, final Bindings... bindings) {
+    public OpenContainer makePrivateContainer(final Class<?> root, final Bindings... bindings) {
         final ComponentContainerShell shell = new ComponentContainerShell(container, context, true, false, observer);
 
         shell.addBindings(new Bindings() {
 
             @SuppressWarnings("unchecked")
             public void bindComponents(final Registry registry) {
-                for (Class<?> dependency : services.classDiscovery().findComponentClasses(ServiceProviders.PRIVATE, marker, marker.getClassLoader(), false, false)) {
+                for (final Class<?> dependency : services.classDiscovery().findComponentClasses(Component.PRIVATE, root, root.getClassLoader(), false, false)) {
                     registry.bindComponent(dependency);
                 }
             }
