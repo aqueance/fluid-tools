@@ -70,6 +70,21 @@ final class ComponentContainerShell extends EmptyComponentContainer<SimpleContai
         return new ComponentContainerShell(container, context, true, false, observer).addBindings(bindings);
     }
 
+    public OpenContainer makePrivateContainer(final Class<?> marker, final Bindings... bindings) {
+        final ComponentContainerShell shell = new ComponentContainerShell(container, context, true, false, observer);
+
+        shell.addBindings(new Bindings() {
+            @SuppressWarnings("unchecked")
+            public void bindComponents(final Registry registry) {
+                for (Class<?> dependency : services.classDiscovery().findComponentClasses(marker, getClass().getClassLoader(), false)) {
+                    registry.bindComponent(dependency);
+                }
+            }
+        });
+
+        return shell.addBindings(bindings);
+    }
+
     public OpenContainer makeDomainContainer(final Bindings... bindings) {
         return new ComponentContainerShell(container, context, true, true, observer).addBindings(bindings);
     }

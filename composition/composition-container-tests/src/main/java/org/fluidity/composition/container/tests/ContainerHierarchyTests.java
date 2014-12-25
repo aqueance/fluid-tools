@@ -19,6 +19,7 @@ package org.fluidity.composition.container.tests;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.OpenContainer;
+import org.fluidity.composition.ServiceProvider;
 
 import org.testng.annotations.Test;
 
@@ -124,6 +125,38 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         assert container.initialize(check).key != null;
     }
 
+    @Test
+    public void testPrivateContainers() throws Exception {
+        registry.bindComponent(PublicComponent.class);
+
+        final RootComponent root1 = new RootComponent();
+        final RootComponent root2 = new RootComponent();
+
+        final OpenContainer domain1 = container.makePrivateContainer(RootComponent.Private.class, new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindInstance(root1);
+            }
+        });
+
+        final OpenContainer domain2 = container.makePrivateContainer(RootComponent.Private.class, new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindInstance(root2);
+            }
+        });
+
+        final PrivateComponent private1 = domain1.getComponent(PrivateComponent.class);
+        final PrivateComponent private2 = domain2.getComponent(PrivateComponent.class);
+
+        assert private1 != null;
+        assert private2 != null;
+        assert private1 != private2;
+
+        assert private1.root == root1;
+        assert private2.root == root2;
+
+        assert private1.dependency == private2.dependency;
+    }
+
     /**
      * This is intentionally private - makes sure the container is able to instantiate non-public classes
      */
@@ -149,4 +182,27 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
             // empty
         }
     }
+
+    @Component(automatic = false)
+    private static class RootComponent {
+
+        @ServiceProvider(type = "private")
+        private static interface Private {}
+    }
+
+    @Component(api = PrivateComponent.class, automatic = false)
+    private static class PrivateComponent implements RootComponent.Private {
+
+        public final RootComponent root;
+        public final PublicComponent dependency;
+
+        @SuppressWarnings("UnusedParameters")
+        public PrivateComponent(final RootComponent root, final PublicComponent dependency) {
+            this.root = root;
+            this.dependency = dependency;
+        }
+    }
+
+    @Component(automatic = false)
+    private static class PublicComponent { }
 }
