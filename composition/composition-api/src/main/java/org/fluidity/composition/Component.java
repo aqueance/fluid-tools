@@ -109,6 +109,16 @@ public @interface Component {
     boolean stateful() default false;
 
     /**
+     * Specifies that this component is to be bound in a private container rooted at the given component interface. The specified class must be used when
+     * making the private container.
+     *
+     * @return a component interface.
+     *
+     * @see ComponentContainer#makePrivateContainer(Class, ComponentContainer.Bindings...)
+     */
+    Class<?> root() default Object.class;
+
+    /**
      * Lists the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">context annotations</a> accepted by the annotated component
      * class. These annotations distinguish instances of the same component class from one another. Such a annotation could, for instance, specify a database
      * identifier for a database access component, etc. The component receives, as a {@link ComponentContext} argument of its constructor, the instances of

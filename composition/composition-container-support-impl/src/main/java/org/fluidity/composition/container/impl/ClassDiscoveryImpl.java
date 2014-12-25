@@ -54,6 +54,14 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
     public <T> Class<? extends T>[] findComponentClasses(final Class<T> api, final ClassLoader classLoader, final boolean strict) {
         final ServiceProvider annotation = api.getAnnotation(ServiceProvider.class);
         final String type = annotation == null ? ServiceProviders.TYPE : annotation.type();
-        return ServiceProviders.findClasses(type, api, classLoader, strict, false, wrapper);
+        return ServiceProviders.findClasses(type, api, classLoader, strict, false, true, wrapper);
+    }
+
+    public <T> Class<? extends T>[] findComponentClasses(final String type,
+                                                         final Class<T> api,
+                                                         final ClassLoader classLoader,
+                                                         final boolean inherit,
+                                                         final boolean strict) {
+        return ServiceProviders.findClasses(type, api, classLoader, strict, false, inherit, wrapper);
     }
 }

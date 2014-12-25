@@ -24,6 +24,7 @@ import org.fluidity.composition.MutableContainer;
 import org.fluidity.composition.ObservedContainer;
 import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.container.spi.EmptyComponentContainer;
+import org.fluidity.foundation.ServiceProviders;
 
 /**
  * This is a shell around a {@link SimpleContainer} object.
@@ -74,9 +75,10 @@ final class ComponentContainerShell extends EmptyComponentContainer<SimpleContai
         final ComponentContainerShell shell = new ComponentContainerShell(container, context, true, false, observer);
 
         shell.addBindings(new Bindings() {
+
             @SuppressWarnings("unchecked")
             public void bindComponents(final Registry registry) {
-                for (Class<?> dependency : services.classDiscovery().findComponentClasses(marker, getClass().getClassLoader(), false)) {
+                for (Class<?> dependency : services.classDiscovery().findComponentClasses(ServiceProviders.PRIVATE, marker, marker.getClassLoader(), false, false)) {
                     registry.bindComponent(dependency);
                 }
             }

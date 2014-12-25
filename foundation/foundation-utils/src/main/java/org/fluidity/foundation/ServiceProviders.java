@@ -49,6 +49,13 @@ public final class ServiceProviders extends Utility {
     public static final String TYPE = "services";
 
     /**
+     * The service provider type for private components.
+     *
+     * @see org.fluidity.composition.ComponentContainer#makePrivateContainer(java.lang.Class,org.fluidity.composition.ComponentContainer.Bindings...)
+     */
+    public static final String PRIVATE = "private";
+
+    /**
      * The directory in JAR files that contains service provider files.
      */
     public static final String LOCATION = String.format("%s/%s", Archives.META_INF, TYPE);
@@ -107,7 +114,7 @@ public final class ServiceProviders extends Utility {
          * The standard service provider discovery utilities seem to use <code>Class.forName(...)</code>, and that is a no-no.
          */
 
-        final Class<T>[] types = findClasses(TYPE, interfaceClass, classLoader, false, true, new Log() {
+        final Class<T>[] types = findClasses(TYPE, interfaceClass, classLoader, false, true, true, new Log() {
             public void debug(final String format, final Object... arguments) {
                 // ignore
             }
@@ -165,6 +172,8 @@ public final class ServiceProviders extends Utility {
      *                 class loaders (<code>false</code>).
      * @param standard specifies whether only standard service providers are accepted (<code>true</code>) or dependency injected ones also
      *                 (<code>false</code>).
+     * @param inherit  specifies whether the discovered classes must be assignable to <code>api</code> (<code>true</code>) or not (<code>false</code>); ignored
+     *                 when <code>standard</code> is <code>true</code>.
      * @param log      the logger to emit messages through.
      * @param <T>      the type of the given service provider interface.
      *
@@ -175,6 +184,7 @@ public final class ServiceProviders extends Utility {
                                              final ClassLoader loader,
                                              final boolean strict,
                                              final boolean standard,
+                                             final boolean inherit,
                                              final Log log) {
         return Exceptions.wrap(new Command.Process<Class<T>[], Exception>() {
             public Class<T>[] run() throws Exception {
@@ -223,7 +233,9 @@ public final class ServiceProviders extends Utility {
                                 }));
 
                                 if (loadable && visible) {
-                                    if (api.isAssignableFrom(rawClass)) {
+                                    final boolean compatible = api.isAssignableFrom(rawClass);
+
+                                    if (compatible || (!standard && !inherit)) {
                                         @SuppressWarnings("unchecked")
                                         final Class<T> componentClass = (Class<T>) rawClass;
 

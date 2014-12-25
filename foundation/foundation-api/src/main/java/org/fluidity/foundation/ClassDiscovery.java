@@ -48,7 +48,8 @@ package org.fluidity.foundation;
 public interface ClassDiscovery {
 
     /**
-     * Finds all classes visible to the given class loader that implement or extend the given service provider interface.
+     * Finds all classes visible to the given class loader that implement or extend the given service provider interface. Use this method to find classes for
+     * standard JAR service providers or those with a corresponding {@link org.fluidity.foundation.ServiceProvider @ServiceProvider} annotation.
      *
      * @param api         the interface or class all discovered classes should implement or extend.
      * @param classLoader the class loader to use to find the classes.
@@ -59,4 +60,21 @@ public interface ClassDiscovery {
      * @return a list of <code>Class</code> objects for the discovered classes.
      */
     <T> Class<? extends T>[] findComponentClasses(Class<T> api, ClassLoader classLoader, boolean strict);
+
+    /**
+     * Finds all classes visible to the given class loader that implement or extend the given service provider interface. This variant can be used when the
+     * service provider list has been generated without a corresponding {@link org.fluidity.foundation.ServiceProvider @ServiceProvider} annotation.
+     *
+     * @param <T>         the type of the given service provider interface.
+     *
+     * @param type        the type of the service provider.
+     * @param api         the interface or class all discovered classes should implement or extend.
+     * @param classLoader the class loader to use to find the classes.
+     * @param inherit     specifies whether the discovered classes must be assignable to <code>api</code> (<code>true</code>) or not (<code>false</code>);
+     *                    checked only when <code>type</code> is not {@link org.fluidity.foundation.ServiceProviders#TYPE}.
+     * @param strict      specifies whether to find classes directly visible to the given class loader (<code>true</code>) or indirectly via any of its parent
+     *                    class loaders (<code>false</code>).
+     * @return a list of <code>Class</code> objects for the discovered classes.
+     */
+    <T> Class<? extends T>[] findComponentClasses(String type, Class<T> api, ClassLoader classLoader, boolean inherit, boolean strict);
 }

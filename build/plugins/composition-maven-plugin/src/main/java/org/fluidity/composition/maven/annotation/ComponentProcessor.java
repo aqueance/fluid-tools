@@ -18,6 +18,7 @@ package org.fluidity.composition.maven.annotation;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 /**
  * Processes a {@link org.fluidity.composition.Component @Component} annotation.
@@ -27,10 +28,12 @@ import org.objectweb.asm.Opcodes;
 public final class ComponentProcessor extends AnnotationVisitor {
 
     private static final String ATR_AUTOMATIC = "automatic";
+    private static final String ATR_ROOT = "root";
 
     private final ProcessorCallback<ComponentProcessor> callback;
 
     private boolean automatic = true;
+    private Type root;
 
     public ComponentProcessor(final ProcessorCallback<ComponentProcessor> callback) {
         super(Opcodes.ASM4);
@@ -41,11 +44,17 @@ public final class ComponentProcessor extends AnnotationVisitor {
     public void visit(final String name, final Object value) {
         if (ATR_AUTOMATIC.equals(name) && !((Boolean) value)) {
             automatic = false;
+        } else if (ATR_ROOT.equals(name)) {
+            root = (Type) value;
         }
     }
 
     public boolean isAutomatic() {
         return automatic;
+    }
+
+    public Type root() {
+        return root;
     }
 
     @Override

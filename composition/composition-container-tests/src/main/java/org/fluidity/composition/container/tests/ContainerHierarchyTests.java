@@ -19,7 +19,6 @@ package org.fluidity.composition.container.tests;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.OpenContainer;
-import org.fluidity.composition.ServiceProvider;
 
 import org.testng.annotations.Test;
 
@@ -132,13 +131,13 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         final RootComponent root1 = new RootComponent();
         final RootComponent root2 = new RootComponent();
 
-        final OpenContainer domain1 = container.makePrivateContainer(RootComponent.Private.class, new ComponentContainer.Bindings() {
+        final OpenContainer domain1 = container.makePrivateContainer(RootComponent.class, new ComponentContainer.Bindings() {
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindInstance(root1);
             }
         });
 
-        final OpenContainer domain2 = container.makePrivateContainer(RootComponent.Private.class, new ComponentContainer.Bindings() {
+        final OpenContainer domain2 = container.makePrivateContainer(RootComponent.class, new ComponentContainer.Bindings() {
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindInstance(root2);
             }
@@ -184,14 +183,10 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    private static class RootComponent {
+    private static class RootComponent { }
 
-        @ServiceProvider(type = "private")
-        private static interface Private {}
-    }
-
-    @Component(api = PrivateComponent.class, automatic = false)
-    private static class PrivateComponent implements RootComponent.Private {
+    @Component(root = RootComponent.class)
+    private static class PrivateComponent {
 
         public final RootComponent root;
         public final PublicComponent dependency;
