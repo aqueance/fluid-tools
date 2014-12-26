@@ -361,7 +361,6 @@ public final class CustomFactoryTests extends AbstractContainerTests {
             }
         }
 
-
         registry.bindInstance(this, CustomFactoryTests.class);
         registry.bindInstance(variant);
         registry.bindComponent(Secondary.class);

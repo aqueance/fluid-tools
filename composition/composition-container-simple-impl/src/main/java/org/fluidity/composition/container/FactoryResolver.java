@@ -26,6 +26,7 @@ import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
@@ -33,6 +34,7 @@ import org.fluidity.composition.Components;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Security;
@@ -81,24 +83,25 @@ abstract class FactoryResolver extends AbstractResolver {
                                               final DependencyGraph.Traversal traversal,
                                               final ContextDefinition context,
                                               final Type reference) {
-        final ParentContainer resolver = domain == null ? container : domain;
-        final SimpleContainer child = resolver.newChildContainer(false);
+        final ParentContainer resolver = resolver(domain, container);
+
+        final SimpleContainer nested = resolver.newChildContainer(false);
         final List<ContextDefinition> contexts = new ArrayList<ContextDefinition>();
 
         final ComponentFactory factory = factory(resolver, traversal, context, reference);
         final Class<?> consumer = contextConsumer();
 
-        final DependencyInjector injector = child.services().dependencyInjector();
+        final DependencyInjector injector = nested.services().dependencyInjector();
 
         final AccessGuard<ComponentContainer> containers = injector.containerGuard();
-        final AccessGuard<DependencyGraph.Node> instantiation = new AccessGuard<DependencyGraph.Node>("Dependency must not be instantiated outside ComponentFactory.Instance.bind(...).");
+        final AccessGuard<DependencyGraph.Node> instantiation = new AccessGuard<DependencyGraph.Node>("Dependencies must be instantiated in ComponentFactory.Instance.bind(...).");
 
-        final ComponentFactory.Instance instance = resolve(injector, traversal, context, child, reference, contexts, factory, consumer, instantiation, containers);
+        final ComponentFactory.Instance instance = resolve(injector, traversal, context, nested, reference, contexts, factory, consumer, instantiation, containers);
 
         final ContextDefinition saved = context.accept(consumer).collect(contexts).copy();
-        final ComponentFactory.Registry registry = new RegistryWrapper(child, saved, traversal);
+        final ComponentFactory.Registry registry = new RegistryWrapper(nested, saved, traversal);
 
-        return cachingNode(domain, container, new DependencyGraph.Node() {
+        return cachingNode(resolver, new DependencyGraph.Node() {
             private final ComponentContext actual = saved.create();
 
             public Class<?> type() {
@@ -120,7 +123,7 @@ abstract class FactoryResolver extends AbstractResolver {
                             throw new ComponentContainer.BindingException(e, "Component factory error (%s)", factoryClass);
                         }
 
-                        return child.resolveComponent(api, saved, traversal, reference).instance(traversal);
+                        return nested.resolveComponent(api, saved, traversal, reference).instance(traversal);
                     }
                 } finally {
                     containers.enable();
@@ -159,7 +162,7 @@ abstract class FactoryResolver extends AbstractResolver {
     private ComponentFactory.Instance resolve(final DependencyInjector injector,
                                               final DependencyGraph.Traversal traversal,
                                               final ContextDefinition context,
-                                              final SimpleContainer child,
+                                              final SimpleContainer nested,
                                               final Type reference,
                                               final List<ContextDefinition> contexts,
                                               final ComponentFactory factory,
@@ -185,7 +188,7 @@ abstract class FactoryResolver extends AbstractResolver {
                 traversal.descend(api, type, null, null);
 
                 try {
-                    return new ComponentContainerShell(child, reduced.accept(null), false);
+                    return new ComponentContainerShell(nested, reduced.accept(null), false);
                 } finally {
                     traversal.ascend(api, type);
                 }
@@ -200,8 +203,8 @@ abstract class FactoryResolver extends AbstractResolver {
                     contexts.add(copy);
 
                     return isGroup(type, params)
-                           ? child.resolveGroup(type.getComponentType(), copy, traversal, type)
-                           : child.resolveComponent(type, copy, traversal, type);
+                           ? nested.resolveGroup(type.getComponentType(), copy, traversal, type)
+                           : nested.resolveComponent(type, copy, traversal, type);
                 } finally {
                     traversal.ascend(api, type);
                 }
@@ -319,7 +322,7 @@ abstract class FactoryResolver extends AbstractResolver {
             public ComponentFactory.Container local(final Class<?> type, final Bindings bindings) {
                 final ContextDefinition reduced = context.copy().accept(type);
                 final ComponentContext passed = reduced.create();
-                final SimpleContainer container = child.newChildContainer(false);
+                final SimpleContainer container = nested.newChildContainer(false);
 
                 bindings.bindComponents(new Registry() {
                     public <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces)
@@ -370,7 +373,22 @@ abstract class FactoryResolver extends AbstractResolver {
         };
 
         try {
-            return factory.resolve(passed, resolver);
+            final ComponentFactory.Instance instance = factory.resolve(passed, resolver);
+
+            return instance == null ? null : new ComponentFactory.Instance() {
+
+                @SuppressWarnings("unchecked")
+                public void bind(final ComponentFactory.Registry registry) throws Exception {
+                    final Class<?> root = Generics.rawType(reference);
+                    final ClassDiscovery discovery = nested.services().classDiscovery();
+
+                    for (final Class<?> dependency : discovery.findComponentClasses(Component.PRIVATE, root, root.getClassLoader(), false, false)) {
+                        registry.bindComponent(dependency);
+                    }
+
+                    instance.bind(registry);
+                }
+            };
         } catch (final ComponentContainer.InjectionException e) {
             throw e;
         } catch (final Exception e) {

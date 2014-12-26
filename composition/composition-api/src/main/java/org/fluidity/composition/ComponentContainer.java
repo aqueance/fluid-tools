@@ -229,9 +229,8 @@ public interface ComponentContainer {
      *
      * @return a container that defaults to this container for satisfying component dependencies.
      *
-     * @see #makeChildContainer(org.fluidity.composition.ComponentContainer.Bindings...)
-     * @see org.fluidity.composition.ServiceProvider
-     * @see org.fluidity.composition.Component
+     * @see #makeChildContainer(ComponentContainer.Bindings...)
+     * @see Component#root()
      */
     OpenContainer makePrivateContainer(Class<?> root, Bindings... bindings);
 

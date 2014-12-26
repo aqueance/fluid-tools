@@ -27,13 +27,15 @@ import org.objectweb.asm.Type;
  */
 public final class ComponentProcessor extends AnnotationVisitor {
 
+    private static final Type OBJECT_TYPE = Type.getType(Object.class);
+
     private static final String ATR_AUTOMATIC = "automatic";
     private static final String ATR_ROOT = "root";
 
     private final ProcessorCallback<ComponentProcessor> callback;
 
+    private Type root = OBJECT_TYPE;
     private boolean automatic = true;
-    private Type root;
 
     public ComponentProcessor(final ProcessorCallback<ComponentProcessor> callback) {
         super(Opcodes.ASM5);
@@ -54,7 +56,7 @@ public final class ComponentProcessor extends AnnotationVisitor {
     }
 
     public Type root() {
-        return root;
+        return root.equals(OBJECT_TYPE) ? null : root;
     }
 
     @Override

@@ -82,21 +82,24 @@ abstract class AbstractResolver implements ComponentResolver {
         return cache == null ? null : cache.lookup(domain, source, context, api, null);
     }
 
-    protected final CachingNode cachingNode(final ComponentCache.Domain domain, final ComponentCache.Domain container, final DependencyGraph.Node node) {
-        return new CachingNode(domain, container, node);
+    protected final CachingNode cachingNode(final ComponentCache.Domain container, final DependencyGraph.Node node) {
+        return new CachingNode(container, node);
+    }
+
+    protected final ParentContainer resolver(final ParentContainer domain, final ParentContainer container) {
+        return domain == null ? container : domain;
     }
 
     private class CachingNode implements DependencyGraph.Node {
 
-        private final ComponentCache.Domain domain;
         private final ComponentCache.Domain container;
         private final DependencyGraph.Node node;
 
-        CachingNode(final ComponentCache.Domain domain, final ComponentCache.Domain container, final DependencyGraph.Node node) {
+        CachingNode(final ComponentCache.Domain container, final DependencyGraph.Node node) {
             assert cache != null : api;
             assert node != null : api;
             assert container != null : api;
-            this.domain = domain;
+
             this.container = container;
             this.node = node;
         }
@@ -106,7 +109,7 @@ abstract class AbstractResolver implements ComponentResolver {
         }
 
         public Object instance(final DependencyGraph.Traversal traversal) {
-            return cache.lookup(domain == null ? container : domain, container.toString(), node.context(), api, new ComponentCache.Entry() {
+            return cache.lookup(container, container.toString(), node.context(), api, new ComponentCache.Entry() {
                 public Object create() {
                     return node.instance(traversal);
                 }

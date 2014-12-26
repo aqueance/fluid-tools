@@ -18,7 +18,9 @@ package org.fluidity.composition.container.tests;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.OpenContainer;
+import org.fluidity.composition.spi.ComponentFactory;
 
 import org.testng.annotations.Test;
 
@@ -125,7 +127,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     }
 
     @Test
-    public void testPrivateContainers() throws Exception {
+    public void testManualPrivateContainers() throws Exception {
         registry.bindComponent(PublicComponent.class);
 
         final RootComponent root1 = new RootComponent();
@@ -154,6 +156,22 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         assert private2.root == root2;
 
         assert private1.dependency == private2.dependency;
+    }
+
+    @Test
+    public void testAutomaticPrivateContainers() throws Exception {
+        registry.bindComponent(PublicComponent.class);
+        registry.bindComponent(RootInstanceFactory.class);
+
+        final RootInstance root1 = container.getComponent(RootInstance.class);
+        final RootInstance root2 = container.getComponent(RootInstance.class);
+
+        assert root1 != null;
+        assert root2 != null;
+        assert root1 != root2;
+
+        assert root1.dependency != root2.dependency;
+        assert root1.dependency.dependency == root2.dependency.dependency;
     }
 
     /**
@@ -200,4 +218,40 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
 
     @Component(automatic = false)
     private static class PublicComponent { }
+
+    @Component(api = RootInstance.class, stateful = true, automatic = false)
+    private static class RootInstanceFactory implements ComponentFactory {
+
+        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+            dependencies.discover(RootInstance.class);
+
+            return new Instance() {
+                public void bind(final Registry registry) throws Exception {
+                    registry.bindComponent(RootInstance.class);
+                }
+            };
+        }
+    }
+
+    @Component(automatic = false)
+    private static class RootInstance {
+
+        public final PrivateInstance dependency;
+
+        @SuppressWarnings("UnusedDeclaration")
+        private RootInstance(final PrivateInstance dependency) {
+            this.dependency = dependency;
+        }
+    }
+
+    @Component(root = RootInstance.class)
+    private static class PrivateInstance {
+
+        public final PublicComponent dependency;
+
+        @SuppressWarnings("UnusedParameters")
+        public PrivateInstance(final PublicComponent dependency) {
+            this.dependency = dependency;
+        }
+    }
 }

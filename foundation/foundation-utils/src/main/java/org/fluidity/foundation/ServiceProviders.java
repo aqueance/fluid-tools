@@ -263,6 +263,7 @@ public final class ServiceProviders extends Utility {
                     componentList.addAll(localList);
                 }
 
+                if (componentList.isEmpty()) log.debug("None found");
                 return Lists.asArray(Class.class, componentList);
             }
         });

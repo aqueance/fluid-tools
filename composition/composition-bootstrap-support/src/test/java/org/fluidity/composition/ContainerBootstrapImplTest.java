@@ -70,7 +70,7 @@ public final class ContainerBootstrapImplTest extends Simulator {
     }
 
     @SuppressWarnings("unchecked")
-    private Object populateContainer(final Class[] classes, final PackageBindings[] instances) throws Exception {
+    private Object populateContainer(final Class[] classes, final PackageBindings[] instances, final PackageBindings... bindings) throws Exception {
         EasyMock.expect(provider.newContainer(services, false)).andReturn(container);
         EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, false)).andReturn(classes);
 
@@ -81,7 +81,7 @@ public final class ContainerBootstrapImplTest extends Simulator {
 
         EasyMock.expect(container.getRegistry()).andReturn(registry);
 
-        for (final PackageBindings instance : instances) {
+        for (final PackageBindings instance : bindings) {
             instance.bindComponents(registry);
         }
 
@@ -129,7 +129,7 @@ public final class ContainerBootstrapImplTest extends Simulator {
                 final Class[] classes = { ResponsiblePackageBindingsImpl.class, PackageBindingsImpl.class, DependentPackageBindingsImpl.class };
                 final PackageBindings[] instances = { bindings1, bindings2, bindings3 };
 
-                final Object object = populateContainer(classes, instances);
+                final Object object = populateContainer(classes, instances, bindings2, bindings3);
 
                 EasyMock.expect(container.getComponent(ContainerTermination.class)).andReturn(termination);
                 EasyMock.expect(container.getComponent(EasyMock.<Class<?>>anyObject())).andReturn(object);

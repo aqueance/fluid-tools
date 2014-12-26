@@ -21,6 +21,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 
 import org.fluidity.composition.container.spi.DependencyGraph;
+import org.fluidity.composition.container.spi.DependencyResolver;
 import org.fluidity.foundation.Generics;
 
 /**
@@ -64,13 +65,12 @@ final class ConstructingResolver extends AbstractResolver {
                                         final ContextDefinition context,
                                         final Type reference) {
         final Class<?> group = Generics.rawType(Generics.arrayComponentType(reference));
+        final ParentContainer resolver = resolver(domain, container);
+        final DependencyResolver dependencies = resolver.dependencyResolver(null);
 
         return traversal.follow(ConstructingResolver.this, group != null && group.isAssignableFrom(api) ? group : api, api, context, new DependencyGraph.Node.Reference() {
             public DependencyGraph.Node resolve() {
-                return cachingNode(domain,
-                                   container,
-                                   injector.constructor(api, traversal, container.dependencyResolver(domain), ConstructingResolver.this, context, constructor));
-            }
+                return cachingNode(resolver, injector.constructor(api, traversal, dependencies, ConstructingResolver.this, context, constructor)); }
         });
     }
 

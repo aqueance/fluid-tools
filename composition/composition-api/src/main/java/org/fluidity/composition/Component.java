@@ -65,7 +65,7 @@ public @interface Component {
     /**
      * The service provider type for private components.
      *
-     * @see ComponentContainer#makePrivateContainer(Class, org.fluidity.composition.ComponentContainer.Bindings...)
+     * @see ComponentContainer#makePrivateContainer(Class, ComponentContainer.Bindings...)
      */
     String PRIVATE = "private";
 

@@ -303,14 +303,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
     public Object invoke(final Object component, final Method method, final ContextDefinition context, final Object[] arguments, final boolean explicit)
             throws InvocationTargetException {
-        return injector.invoke(component,
-                               method,
-                               arguments,
-                               services.graphTraversal(),
-                               dependencyResolver(domain),
-                               new InstanceDescriptor(component),
-                               context,
-                               explicit);
+        return injector.invoke(component, method, arguments, services.graphTraversal(), dependencyResolver(domain), new InstanceDescriptor(component), context, explicit);
     }
 
     public Object cached(final ParentContainer domain, final Class<?> api, final ComponentContext context) {
