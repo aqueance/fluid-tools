@@ -127,44 +127,27 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     }
 
     @Test
-    public void testManualPrivateContainers() throws Exception {
+    public void testComponentPrivateContainers() throws Exception {
         registry.bindComponent(PublicComponent.class);
 
-        final RootComponent root1 = new RootComponent();
-        final RootComponent root2 = new RootComponent();
+        final RootComponent root1 = container.instantiate(RootComponent.class);
+        final RootComponent root2 = container.instantiate(RootComponent.class);
 
-        final OpenContainer domain1 = container.makePrivateContainer(RootComponent.class, new ComponentContainer.Bindings() {
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindInstance(root1);
-            }
-        });
+        assert root1 != null;
+        assert root2 != null;
+        assert root1 != root2;
 
-        final OpenContainer domain2 = container.makePrivateContainer(RootComponent.class, new ComponentContainer.Bindings() {
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindInstance(root2);
-            }
-        });
-
-        final PrivateComponent private1 = domain1.getComponent(PrivateComponent.class);
-        final PrivateComponent private2 = domain2.getComponent(PrivateComponent.class);
-
-        assert private1 != null;
-        assert private2 != null;
-        assert private1 != private2;
-
-        assert private1.root == root1;
-        assert private2.root == root2;
-
-        assert private1.dependency == private2.dependency;
+        assert root1.dependency != root2.dependency;
+        assert root1.dependency.dependency == root2.dependency.dependency;
     }
 
     @Test
-    public void testAutomaticPrivateContainers() throws Exception {
+    public void testFactoryPrivateContainers() throws Exception {
         registry.bindComponent(PublicComponent.class);
-        registry.bindComponent(RootInstanceFactory.class);
+        registry.bindComponent(RootComponentFactory.class);
 
-        final RootInstance root1 = container.getComponent(RootInstance.class);
-        final RootInstance root2 = container.getComponent(RootInstance.class);
+        final RootComponent root1 = container.getComponent(RootComponent.class);
+        final RootComponent root2 = container.getComponent(RootComponent.class);
 
         assert root1 != null;
         assert root2 != null;
@@ -201,56 +184,40 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    private static class RootComponent { }
-
-    @Component(root = RootComponent.class)
-    private static class PrivateComponent {
-
-        public final RootComponent root;
-        public final PublicComponent dependency;
-
-        @SuppressWarnings("UnusedParameters")
-        public PrivateComponent(final RootComponent root, final PublicComponent dependency) {
-            this.root = root;
-            this.dependency = dependency;
-        }
-    }
-
-    @Component(automatic = false)
     private static class PublicComponent { }
 
-    @Component(api = RootInstance.class, stateful = true, automatic = false)
-    private static class RootInstanceFactory implements ComponentFactory {
+    @Component(api = RootComponent.class, stateful = true, automatic = false)
+    private static class RootComponentFactory implements ComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            dependencies.discover(RootInstance.class);
+            dependencies.discover(RootComponent.class);
 
             return new Instance() {
                 public void bind(final Registry registry) throws Exception {
-                    registry.bindComponent(RootInstance.class);
+                    registry.bindComponent(RootComponent.class);
                 }
             };
         }
     }
 
-    @Component(automatic = false)
-    private static class RootInstance {
+    @Component(root = RootComponent.class)
+    private static class RootComponent {
 
-        public final PrivateInstance dependency;
+        public final PrivateComponent dependency;
 
         @SuppressWarnings("UnusedDeclaration")
-        private RootInstance(final PrivateInstance dependency) {
+        private RootComponent(final PrivateComponent dependency) {
             this.dependency = dependency;
         }
     }
 
-    @Component(root = RootInstance.class)
-    private static class PrivateInstance {
+    @Component(root = RootComponent.class)
+    private static class PrivateComponent {
 
         public final PublicComponent dependency;
 
         @SuppressWarnings("UnusedParameters")
-        public PrivateInstance(final PublicComponent dependency) {
+        public PrivateComponent(final PublicComponent dependency) {
             this.dependency = dependency;
         }
     }

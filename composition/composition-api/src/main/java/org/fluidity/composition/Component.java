@@ -63,16 +63,15 @@ import java.lang.reflect.Type;
 public @interface Component {
 
     /**
-     * The service provider type for private components.
-     *
-     * @see ComponentContainer#makePrivateContainer(Class, ComponentContainer.Bindings...)
+     * The service provider type for private components. Used internally.
      */
     String PRIVATE = "private";
 
     /**
      * Specifies the interfaces or classes that should resolve to the annotated class at run time.
      * <p/>
-     * In case of {@link org.fluidity.composition.spi.ComponentFactory}, the value applies to the component the factory creates, not the factory itself.
+     * In case of {@link org.fluidity.composition.spi.ComponentFactory ComponentFactory}, the value applies to the component the factory creates, not the
+     * factory itself.
      * <p/>
      * When omitted, the property defaults to the list of interfaces determined by the algorithm documented at {@link org.fluidity.composition.Components}.
      *
@@ -86,11 +85,16 @@ public @interface Component {
      * <code>true</code>, which means the class can be processed by the plugin.
      * <p/>
      * Setting this property to <code>false</code> allows the class to be manually processed or to merely to define a list of interfaces for another class to
-     * pick up, such as a {@link org.fluidity.composition.spi.ComponentFactory} implementation.
+     * pick up, such as a {@link org.fluidity.composition.spi.ComponentFactory ComponentFactory} implementation.
      * <p/>
-     * If manually processed, for the annotation to have any effect the developer either has to provide a suitable {@link
-     * org.fluidity.composition.spi.PackageBindings} object or explicitly add the class to some child container at run time, or have another component's
-     * <code>@Component</code> annotation refer to the annotated class.
+     * If set to <code>false</code>, for the {@link Component @Component} annotation to have any effect the developer either has to<ul>
+     *     <li>explicitly {@link ComponentContainer.Registry#bindComponent(Class, Class[]) bind} the class to some
+     *     {@link ComponentContainer#makeChildContainer(ComponentContainer.Bindings...) child container},</li>
+     *     <li>explicitly {@link ComponentContainer#instantiate(Class, ComponentContainer.Bindings...) instantiate} the component,</li>
+     *     <li>have the annotation's {@link #root() root} parameter set to a component interface to which the foregoing applies,</li>
+     *     <li>have another component's {@link #api() api} parameter refer to the annotated class, or</li>
+     *     <li>provide a suitable {@link org.fluidity.composition.spi.PackageBindings PackageBindings} object.</li>
+     * </ul>
      *
      * @return <code>true</code> if this component should be automatically processed.
      *
@@ -116,12 +120,18 @@ public @interface Component {
     boolean stateful() default false;
 
     /**
-     * Specifies that this component is to be bound in a private container rooted at the given component interface. The specified class must be used when
-     * making the private container.
+     * Specifies that this component is private to a component with the given component interface, as opposed to being globally accessible. Setting
+     * this parameter implies <code>{@link #automatic automatic} = false</code>.
+     * <p/>
+     * Unless it itself implements the root component interface, the annotated component is <em>not</em> supposed to be bound in any way by the developer; it
+     * is automatically bound when the given <em>root interface</em> is either {@link ComponentContainer.Registry#bindComponent(Class, Class[]) bound} in a
+     * {@link ComponentContainer#makeChildContainer(ComponentContainer.Bindings...) child container} or directly
+     * {@link ComponentContainer#instantiate(Class, ComponentContainer.Bindings...) instantiated}.
+     * <p/>
+     * When any of the foregoing occurs, Fluid Tools automatically binds every component that has this parameter set to the given root component interface.
+     * This makes it possible to have an isolated sub-graph of dependency injected components for every binding / instance of the root component interface.
      *
-     * @return a component interface.
-     *
-     * @see ComponentContainer#makePrivateContainer(Class, ComponentContainer.Bindings...)
+     * @return a component interface class.
      */
     Class<?> root() default Object.class;
 

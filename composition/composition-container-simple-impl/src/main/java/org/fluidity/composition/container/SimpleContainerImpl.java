@@ -163,29 +163,65 @@ final class SimpleContainerImpl implements ParentContainer {
         }
     }
 
-    private void bindResolvers(final Class<?> implementation,
+    @SuppressWarnings("unchecked")
+    private void bindResolvers(final Class<?> root,
+                               final Class<?> component,
                                final Components.Specification[] interfaces,
                                final boolean stateful,
                                final ContentResolvers resolvers) {
-        final ComponentCache cache = services.newCache(!stateful);
+        Class discover = null;  // root class to discover private components for
 
-        if (resolvers.isCustomFactory()) {
-            bindResolver(implementation, resolvers.component(implementation, services.newCache(true), true));
-            bindResolvers(interfaces, new Resolver() {
-                public ComponentResolver resolver(final Class<?> type) {
-                    return resolvers.factory(type, cache);
-                }
-            });
+        final boolean dummy = component.isInterface();
+
+        if (dummy) {
+            discover = component;
         } else {
-            bindResolvers(interfaces, new Resolver() {
-                public ComponentResolver resolver(final Class<?> type) {
-                    return resolvers.component(type, cache, false);
+            final Component componentSpec = component.getAnnotation(Component.class);
+            final Class rootSpec = componentSpec == null ? Object.class : componentSpec.root();
+
+            if (rootSpec != Object.class) {
+                for (final Components.Specification specification : interfaces) {
+                    if (specification.api == rootSpec) {
+                        discover = rootSpec;
+                        break;
+                    }
                 }
-            });
+            }
+        }
+
+        if (discover != null && discover != root) {
+            for (final Class<?> dependency : services.classDiscovery().findComponentClasses(Component.PRIVATE, discover, discover.getClassLoader(), false, false)) {
+                if (dependency != component) {
+                    bindComponent(root == null ? discover : root, Components.inspect(dependency));
+                }
+            }
+        }
+
+        if (!dummy) {
+            final ComponentCache cache = services.newCache(!stateful);
+
+            if (resolvers.isCustomFactory()) {
+                bindResolver(component, resolvers.component(component, services.newCache(true), true));
+                bindResolvers(interfaces, new Resolver() {
+                    public ComponentResolver resolver(final Class<?> type) {
+                        return resolvers.factory(type, cache);
+                    }
+                });
+            } else {
+                bindResolvers(interfaces, new Resolver() {
+                    public ComponentResolver resolver(final Class<?> type) {
+                        return resolvers.component(type, cache, false);
+                    }
+                });
+            }
         }
     }
 
     public void bindComponent(final Components.Interfaces interfaces) {
+        bindComponent(null, interfaces);
+    }
+
+    private void bindComponent(Class<?> root, final Components.Interfaces interfaces) {
         final Class<?> implementation = interfaces.implementation;
 
         /*
@@ -212,7 +248,7 @@ final class SimpleContainerImpl implements ParentContainer {
             isStateful ? "stateful" : "stateless",
             isFallback ? "fallback" : "primary");
 
-        bindResolvers(implementation, interfaces.api, isStateful, new ContentResolvers() {
+        bindResolvers(root, implementation, interfaces.api, isStateful, new ContentResolvers() {
 
             public boolean isCustomFactory() {
                 return ComponentFactory.class.isAssignableFrom(implementation);
@@ -230,6 +266,10 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public void bindInstance(final Object instance, final Components.Interfaces interfaces) {
+        bindInstance(null, instance, interfaces);
+    }
+
+    public void bindInstance(final Class<?> root, final Object instance, final Components.Interfaces interfaces) {
         if (instance != null) {
             final Class<?> implementation = instance.getClass();
             final Component componentSpec = implementation.getAnnotation(Component.class);
@@ -244,7 +284,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
             log(log.get(), "%s: binding %s to %s (%s)", this, value, interfaces, isFallback ? "fallback" : "primary");
 
-            bindResolvers(implementation, interfaces.api, isStateful, new ContentResolvers() {
+            bindResolvers(root, implementation, interfaces.api, isStateful, new ContentResolvers() {
 
                 public boolean isCustomFactory() {
                     return isFactory;

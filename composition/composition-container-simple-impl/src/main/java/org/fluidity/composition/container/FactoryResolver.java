@@ -373,22 +373,7 @@ abstract class FactoryResolver extends AbstractResolver {
         };
 
         try {
-            final ComponentFactory.Instance instance = factory.resolve(passed, resolver);
-
-            return instance == null ? null : new ComponentFactory.Instance() {
-
-                @SuppressWarnings("unchecked")
-                public void bind(final ComponentFactory.Registry registry) throws Exception {
-                    final Class<?> root = Generics.rawType(reference);
-                    final ClassDiscovery discovery = nested.services().classDiscovery();
-
-                    for (final Class<?> dependency : discovery.findComponentClasses(Component.PRIVATE, root, root.getClassLoader(), false, false)) {
-                        registry.bindComponent(dependency);
-                    }
-
-                    instance.bind(registry);
-                }
-            };
+            return factory.resolve(passed, resolver);
         } catch (final ComponentContainer.InjectionException e) {
             throw e;
         } catch (final Exception e) {

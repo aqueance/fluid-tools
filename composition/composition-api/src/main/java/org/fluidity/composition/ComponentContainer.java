@@ -222,19 +222,6 @@ public interface ComponentContainer {
     OpenContainer makeChildContainer(Bindings... bindings);
 
     /**
-     * Creates a {@link #makeChildContainer(ComponentContainer.Bindings...) child container} and populates it with, in addition to the given {@code bindings},
-     * components annotated with {@link Component @Component}({@link Component#root() root} = &lt;the given root>).
-     *
-     * @param bindings list of extra component bindings to add to the child container.
-     *
-     * @return a container that defaults to this container for satisfying component dependencies.
-     *
-     * @see #makeChildContainer(ComponentContainer.Bindings...)
-     * @see Component#root()
-     */
-    OpenContainer makePrivateContainer(Class<?> root, Bindings... bindings);
-
-    /**
      * Creates a domain container with this one as its parent. Dependencies of components found, through the returned child, in this container or its ancestry
      * will be resolved <em>in the returned child container</em>.
      * <p/>
@@ -283,8 +270,17 @@ public interface ComponentContainer {
     <T> T initialize(T component) throws ResolutionException;
 
     /**
-     * Instantiates the given class as a component, injecting in the process its constructor and field dependencies from the given bindings and the receiving
-     * container. No caching takes place, a new instance is created at every invocation.
+     * This method creates a {@link #makeChildContainer(ComponentContainer.Bindings...) child container},
+     * {@link ComponentContainer.Registry#bindComponent(Class, Class[]) binds} the given class and the given <code>bindings</code>, and then
+     * {@link OpenContainer#getComponent(Class) asks} for an instance of the given class from the child container. No caching takes place with this last step,
+     * a new component instance is created at every invocation of this method.
+     * <p/>
+     * If the given class object represents a concrete class, this method instantiates that class as a component, injecting in the process its constructor and
+     * field dependencies from the given <code>bindings</code> and the receiving container.
+     * <p/>
+     * If the given class is an interface, this method binds, in addition to the given <code>bindings</code>, every component class whose
+     * {@link Component#root() root} component is set to the given class <em>including</em> the implementation of the given interface itself, and then
+     * performs the foregoing.
      *
      * @param componentClass the component class to instantiate.
      * @param bindings       the local component bindings.
@@ -444,13 +440,19 @@ public interface ComponentContainer {
     interface Registry {
 
         /**
-         * Binds a component class to a list of component interfaces in the container behind this registry. The component class will be instantiated on demand
-         * by the container when it resolves any of the provided component interfaces.
+         * If the given class is an interface, or if it represents a concrete class and its {@link Component#root() root} is set to any of its component
+         * interfaces, this method binds, in the container behind this registry, every component class whose {@link Component#root() root} component is set to
+         * the given class, to their respective component interfaces.
+         * <p/>
+         * If the given class object represents a concrete class <em>without</em> its {@link Component#root() root} set to its component interface, this method
+         * binds, in the container behind this registry, that component class to its component interfaces.
+         * <p/>
+         * The component class will be instantiated on demand by the container when it resolves any of the provided component interfaces.
          * <p/>
          * The supplied component class may implement {@link org.fluidity.composition.spi.ComponentFactory}, in which case the receiver must support
          * the factory functionality as described in the <code>ComponentFactory</code> documentation.
          * <p/>
-         * When the <code>interfaces</code> parameter is empty, the list of interfaces that resolve to the component will be determined by the algorithm
+         * When the <code>interfaces</code> parameter is empty, the component interfaces of the bound component will be determined by the algorithm
          * documented at {@link Components}.
          *
          * @param type       the component class.

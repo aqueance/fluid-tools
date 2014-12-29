@@ -317,7 +317,7 @@ public final class Components extends Utility {
                 final boolean anonymous = checked.isAnonymousClass();
                 final boolean factory = isFactory(checked);
                 final Component component = resolve ? checked.getAnnotation(Component.class) : null;
-                final boolean automatic = component != null && component.automatic();
+                final boolean automatic = component != null && component.automatic() && component.root() == Object.class;
 
                 if (component == null && !anonymous) {
                     if (factory) {

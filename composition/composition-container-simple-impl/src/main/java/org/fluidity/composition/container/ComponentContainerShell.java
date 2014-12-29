@@ -19,7 +19,6 @@ package org.fluidity.composition.container;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.fluidity.composition.Component;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.MutableContainer;
 import org.fluidity.composition.ObservedContainer;
@@ -69,22 +68,6 @@ final class ComponentContainerShell extends EmptyComponentContainer<SimpleContai
 
     public OpenContainer makeChildContainer(final Bindings... bindings) {
         return new ComponentContainerShell(container, context, true, false, observer).addBindings(bindings);
-    }
-
-    public OpenContainer makePrivateContainer(final Class<?> root, final Bindings... bindings) {
-        final ComponentContainerShell shell = new ComponentContainerShell(container, context, true, false, observer);
-
-        shell.addBindings(new Bindings() {
-
-            @SuppressWarnings("unchecked")
-            public void bindComponents(final Registry registry) {
-                for (final Class<?> dependency : services.classDiscovery().findComponentClasses(Component.PRIVATE, root, root.getClassLoader(), false, false)) {
-                    registry.bindComponent(dependency);
-                }
-            }
-        });
-
-        return shell.addBindings(bindings);
     }
 
     public OpenContainer makeDomainContainer(final Bindings... bindings) {
