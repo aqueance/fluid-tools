@@ -30,11 +30,11 @@ public final class ComponentProcessor extends AnnotationVisitor {
     private static final Type OBJECT_TYPE = Type.getType(Object.class);
 
     private static final String ATR_AUTOMATIC = "automatic";
-    private static final String ATR_ROOT = "root";
+    private static final String ATR_SCOPE = "scope";
 
     private final ProcessorCallback<ComponentProcessor> callback;
 
-    private Type root = OBJECT_TYPE;
+    private Type scope = OBJECT_TYPE;
     private boolean automatic = true;
 
     public ComponentProcessor(final ProcessorCallback<ComponentProcessor> callback) {
@@ -46,8 +46,8 @@ public final class ComponentProcessor extends AnnotationVisitor {
     public void visit(final String name, final Object value) {
         if (ATR_AUTOMATIC.equals(name) && !((Boolean) value)) {
             automatic = false;
-        } else if (ATR_ROOT.equals(name)) {
-            root = (Type) value;
+        } else if (ATR_SCOPE.equals(name)) {
+            scope = (Type) value;
         }
     }
 
@@ -55,8 +55,8 @@ public final class ComponentProcessor extends AnnotationVisitor {
         return automatic;
     }
 
-    public Type root() {
-        return root.equals(OBJECT_TYPE) ? null : root;
+    public Type scope() {
+        return scope.equals(OBJECT_TYPE) ? null : scope;
     }
 
     @Override

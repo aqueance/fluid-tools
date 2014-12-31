@@ -1,0 +1,4 @@
+# Helps ContainerHierarchyTests.testNestedScopedComponents() find its private components.
+# Manually maintained since no automatic component discovery is, or should be, configured for this project.
+org.fluidity.composition.container.tests.ContainerHierarchyTests$MyScopedRootComponentFactory
+org.fluidity.composition.container.tests.ContainerHierarchyTests$MyRootComponentImpl

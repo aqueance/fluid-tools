@@ -28,11 +28,12 @@ import org.fluidity.foundation.Strings;
 /**
  * The external API of a fully populated dependency injection container.
  * <p/>
- * Containers in an application may form a hierarchy that matches the class loaders in the application. Containers in a hierarchy co-operate in such a way that
- * if a component is not found in a child container, a look-up is performed in its parent. The act of looking up a dependency by its referenced type is called
- * <em>dependency resolution</em>. Telling the container what class to resolve a component interface to is called <em>component binding</em> where a component
- * class is bound to the component interface. The act of a container using its parent to resolve missing dependencies is called <em>defaulting to</em> the
- * parent container.
+ * The static, automatically populated, containers in an application form a hierarchy that matches part of the class loader hierarchy in the application, while
+ * dynamically created, and manually populated, containers attach to a static container in that hierarchy. Containers in a hierarchy co-operate in such a way
+ * that if a component is not found in a child container, a look-up is performed in its parent. The act of looking up a dependency by its referenced type is
+ * called <em>dependency resolution</em>. Telling the container what class to resolve a component interface to is called <em>component binding</em> where a
+ * component class is bound to the component interface. The act of a container using its parent to resolve missing dependencies is called <em>defaulting</em>
+ * to the parent container.
  * <p/>
  * In case of a child container bound to a class loader or one returned by the {@link #makeChildContainer(Bindings...) makeChildContainer()} method,
  * dependencies of a component resolved in a parent container will be resolved in that parent container or its ancestors, never in the original child
@@ -40,8 +41,8 @@ import org.fluidity.foundation.Strings;
  * will also be resolved from the original child container and its ancestry. The latter case allows segregating the application into dependency resolution
  * domains as long as those domains do not overlap, meaning application code reaching out of one domain and into another.
  * <p/>
- * Dependency resolution is performed based on the referenced type of the dependency. If there was no explicit binding for the given interface then no
- * component will be injected for that reference.
+ * Dependency resolution is performed based on the referenced type of the dependency. If there is no binding for the given interface then no component will be
+ * injected for that reference.
  * <p/>
  * Components are instantiated by the container on demand and their dependencies, defined by constructor parameters and {@link Inject @Inject} annotated
  * fields, are resolved in this container or its parent. No setter injection or other means of dependency injection are supported.
@@ -209,7 +210,7 @@ import org.fluidity.foundation.Strings;
 public interface ComponentContainer {
 
     /**
-     * Creates another container with this one as its parent. Dependencies of components resolved, through the returned child, in this container or its
+     * Creates a child container with this one as its parent. Dependencies of components resolved, through the returned container, in this container or its
      * ancestry will be resolved in the <em>same container or its ancestry</em>, never in the child.
      * <p/>
      * This method can be used to bind components to a dependency injection container without polluting any shared one with new bindings after it has been set
@@ -222,7 +223,7 @@ public interface ComponentContainer {
     OpenContainer makeChildContainer(Bindings... bindings);
 
     /**
-     * Creates a domain container with this one as its parent. Dependencies of components found, through the returned child, in this container or its ancestry
+     * Creates a domain container with this one as its parent. Dependencies of components found, through the returned c, in this container or its ancestry
      * will be resolved <em>in the returned child container</em>.
      * <p/>
      * Use this with care as a domain container will cause singleton components to be singletons within the represented domain. This is only safe if your
@@ -240,7 +241,7 @@ public interface ComponentContainer {
      * Returns a child container with this one as its parent and with the given component interceptors active, in addition to those found in the class loader
      * ancestry of this container.
      *
-     * @param interceptors the component interceptors to activate in the child.
+     * @param interceptors the component interceptors to activate in the container.
      *
      * @return a new child container.
      */
@@ -279,8 +280,8 @@ public interface ComponentContainer {
      * field dependencies from the given <code>bindings</code> and the receiving container.
      * <p/>
      * If the given class is an interface, this method binds, in addition to the given <code>bindings</code>, every component class whose
-     * {@link Component#root() root} component is set to the given class <em>including</em> the implementation of the given interface itself, and then
-     * performs the foregoing.
+     * {@link Component#scope() scope} is set to the given class <em>including</em> the implementation of the given interface itself, and then performs the
+     * foregoing.
      *
      * @param componentClass the component class to instantiate.
      * @param bindings       the local component bindings.
@@ -440,11 +441,11 @@ public interface ComponentContainer {
     interface Registry {
 
         /**
-         * If the given class is an interface, or if it represents a concrete class and its {@link Component#root() root} is set to any of its component
-         * interfaces, this method binds, in the container behind this registry, every component class whose {@link Component#root() root} component is set to
-         * the given class, to their respective component interfaces.
+         * If the given class is an interface, or if it represents a concrete class and its {@link Component#scope() scope} is set to any of its component
+         * interfaces, this method binds, in the container behind this registry, every component class whose {@link Component#scope() scope} is set to the
+         * given class, to their respective component interfaces.
          * <p/>
-         * If the given class object represents a concrete class <em>without</em> its {@link Component#root() root} set to its component interface, this method
+         * If the given class object represents a concrete class <em>without</em> its {@link Component#scope() scope} set to its component interface, this method
          * binds, in the container behind this registry, that component class to its component interfaces.
          * <p/>
          * The component class will be instantiated on demand by the container when it resolves any of the provided component interfaces.

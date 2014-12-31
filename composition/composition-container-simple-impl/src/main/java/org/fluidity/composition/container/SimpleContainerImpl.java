@@ -164,35 +164,35 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     @SuppressWarnings("unchecked")
-    private void bindResolvers(final Class<?> root,
+    private void bindResolvers(final Class<?> scope,
                                final Class<?> component,
                                final Components.Specification[] interfaces,
                                final boolean stateful,
                                final ContentResolvers resolvers) {
-        Class discover = null;  // root class to discover private components for
+        Class root = null;  // root class to discover scoped components for
 
         final boolean dummy = component.isInterface();
 
         if (dummy) {
-            discover = component;
+            root = component;
         } else {
             final Component componentSpec = component.getAnnotation(Component.class);
-            final Class rootSpec = componentSpec == null ? Object.class : componentSpec.root();
+            final Class scoped = componentSpec == null ? Object.class : componentSpec.scope();
 
-            if (rootSpec != Object.class) {
+            if (scoped != Object.class) {
                 for (final Components.Specification specification : interfaces) {
-                    if (specification.api == rootSpec) {
-                        discover = rootSpec;
+                    if (specification.api == scoped) {
+                        root = scoped;
                         break;
                     }
                 }
             }
         }
 
-        if (discover != null && discover != root) {
-            for (final Class<?> dependency : services.classDiscovery().findComponentClasses(Component.PRIVATE, discover, discover.getClassLoader(), false, false)) {
+        if (root != null && root != scope) {
+            for (final Class<?> dependency : services.classDiscovery().findComponentClasses(Component.SCOPE, root, root.getClassLoader(), false, false)) {
                 if (dependency != component) {
-                    bindComponent(root == null ? discover : root, Components.inspect(dependency));
+                    bindComponent(scope == null ? root : scope, Components.inspect(dependency));
                 }
             }
         }
@@ -221,7 +221,7 @@ final class SimpleContainerImpl implements ParentContainer {
         bindComponent(null, interfaces);
     }
 
-    private void bindComponent(Class<?> root, final Components.Interfaces interfaces) {
+    private void bindComponent(final Class<?> scope, final Components.Interfaces interfaces) {
         final Class<?> implementation = interfaces.implementation;
 
         /*
@@ -248,7 +248,7 @@ final class SimpleContainerImpl implements ParentContainer {
             isStateful ? "stateful" : "stateless",
             isFallback ? "fallback" : "primary");
 
-        bindResolvers(root, implementation, interfaces.api, isStateful, new ContentResolvers() {
+        bindResolvers(scope, implementation, interfaces.api, isStateful, new ContentResolvers() {
 
             public boolean isCustomFactory() {
                 return ComponentFactory.class.isAssignableFrom(implementation);
@@ -269,7 +269,7 @@ final class SimpleContainerImpl implements ParentContainer {
         bindInstance(null, instance, interfaces);
     }
 
-    public void bindInstance(final Class<?> root, final Object instance, final Components.Interfaces interfaces) {
+    public void bindInstance(final Class<?> scope, final Object instance, final Components.Interfaces interfaces) {
         if (instance != null) {
             final Class<?> implementation = instance.getClass();
             final Component componentSpec = implementation.getAnnotation(Component.class);
@@ -284,7 +284,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
             log(log.get(), "%s: binding %s to %s (%s)", this, value, interfaces, isFallback ? "fallback" : "primary");
 
-            bindResolvers(root, implementation, interfaces.api, isStateful, new ContentResolvers() {
+            bindResolvers(scope, implementation, interfaces.api, isStateful, new ContentResolvers() {
 
                 public boolean isCustomFactory() {
                     return isFactory;

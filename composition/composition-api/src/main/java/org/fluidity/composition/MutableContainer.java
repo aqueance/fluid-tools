@@ -29,11 +29,9 @@ package org.fluidity.composition;
 public interface MutableContainer extends OpenContainer {
 
     /**
-     * Creates another container with this one as its parent.
-     *
-     * @return a container that defaults to this container for satisfying component dependencies.
+     * {@inheritDoc}
      */
-    MutableContainer makeChildContainer();
+    MutableContainer makeChildContainer(Bindings... bindings);
 
     /**
      * Returns the object through which component bindings can be added to this container.

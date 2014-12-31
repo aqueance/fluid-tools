@@ -63,9 +63,9 @@ import java.lang.reflect.Type;
 public @interface Component {
 
     /**
-     * The service provider type for private components. Used internally.
+     * The service provider type for scoped components. Used internally.
      */
-    String PRIVATE = "private";
+    String SCOPE = "scope";
 
     /**
      * Specifies the interfaces or classes that should resolve to the annotated class at run time.
@@ -81,19 +81,19 @@ public @interface Component {
     Class<?>[] api() default { };
 
     /**
-     * Tells whether the annotated class can be processed by the <code>org.fluidity.maven:composition-maven-plugin</code> Maven plugin. The default value is
-     * <code>true</code>, which means the class can be processed by the plugin.
+     * When not specified or set to <code>true</code>, this parameter specifies that the annotated class can be automatically added to a global container.
      * <p/>
-     * Setting this property to <code>false</code> allows the class to be manually processed or to merely to define a list of interfaces for another class to
-     * pick up, such as a {@link org.fluidity.composition.spi.ComponentFactory ComponentFactory} implementation.
+     * Setting this property to <code>false</code> allows the class to be added to a container programmatically, or to merely to define a list of interfaces
+     * for another class to pick up, such as a {@link org.fluidity.composition.spi.ComponentFactory ComponentFactory} implementation.
      * <p/>
-     * If set to <code>false</code>, for the {@link Component @Component} annotation to have any effect the developer either has to<ul>
-     *     <li>explicitly {@link ComponentContainer.Registry#bindComponent(Class, Class[]) bind} the class to some
-     *     {@link ComponentContainer#makeChildContainer(ComponentContainer.Bindings...) child container},</li>
-     *     <li>explicitly {@link ComponentContainer#instantiate(Class, ComponentContainer.Bindings...) instantiate} the component,</li>
-     *     <li>have the annotation's {@link #root() root} parameter set to a component interface to which the foregoing applies,</li>
-     *     <li>have another component's {@link #api() api} parameter refer to the annotated class, or</li>
-     *     <li>provide a suitable {@link org.fluidity.composition.spi.PackageBindings PackageBindings} object.</li>
+     * Programmatic handling of the component entails either:<ul>
+     *     <li>explicitly {@link ComponentContainer.Registry#bindComponent(Class, Class[]) binding} the class to some
+     *     {@link ComponentContainer#makeChildContainer(ComponentContainer.Bindings...) local container},</li>
+     *     <li>explicitly {@link ComponentContainer#instantiate(Class, ComponentContainer.Bindings...) instantiating} the component,</li>
+     *     <li>having the annotation's {@link #scope() scope} parameter set to a component interface to which the foregoing applies,</li>
+     *     <li>having another component's {@link #api() api} parameter refer to the annotated class, or</li>
+     *     <li>provision of a suitable {@link org.fluidity.composition.spi.PackageBindings PackageBindings} object that adds the component to a global
+     *     container.</li>
      * </ul>
      *
      * @return <code>true</code> if this component should be automatically processed.
@@ -120,20 +120,21 @@ public @interface Component {
     boolean stateful() default false;
 
     /**
-     * Specifies that this component is private to a component with the given component interface, as opposed to being globally accessible. Setting
+     * Specifies that this component is scoped to a component with the given component interface, as opposed to being globally accessible. Setting
      * this parameter implies <code>{@link #automatic automatic} = false</code>.
      * <p/>
-     * Unless it itself implements the root component interface, the annotated component is <em>not</em> supposed to be bound in any way by the developer; it
-     * is automatically bound when the given <em>root interface</em> is either {@link ComponentContainer.Registry#bindComponent(Class, Class[]) bound} in a
-     * {@link ComponentContainer#makeChildContainer(ComponentContainer.Bindings...) child container} or directly
+     * Unless it itself implements the component interface it is scoped to, the annotated component is <em>not</em> supposed to be bound in any way by the
+     * developer; it is automatically bound when the given component interface is either
+     * {@link ComponentContainer.Registry#bindComponent(Class, Class[]) bound} in a
+     * {@link ComponentContainer#makeChildContainer(ComponentContainer.Bindings...) local container} or directly
      * {@link ComponentContainer#instantiate(Class, ComponentContainer.Bindings...) instantiated}.
      * <p/>
-     * When any of the foregoing occurs, Fluid Tools automatically binds every component that has this parameter set to the given root component interface.
-     * This makes it possible to have an isolated sub-graph of dependency injected components for every binding / instance of the root component interface.
+     * When any of the foregoing occurs, Fluid Tools automatically binds every component that has this parameter set to the given component interface.
+     * This makes it possible to have an isolated sub-graph of dependency injected components for every binding / instance of the given component interface.
      *
      * @return a component interface class.
      */
-    Class<?> root() default Object.class;
+    Class<?> scope() default Object.class;
 
     /**
      * Lists the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">context annotations</a> accepted by the annotated component

@@ -374,7 +374,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                     public boolean component;
                     public boolean group;
                     public boolean dependent;
-                    public Type root;
+                    public Type scope;
                 }
 
                 final ClassFlags flags = new ClassFlags();
@@ -434,7 +434,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                                     return new ComponentProcessor(new ProcessorCallback<ComponentProcessor>() {
                                         public void complete(final ComponentProcessor processor) {
                                             flags.ignored = original && !processor.isAutomatic();
-                                            flags.root = original ? processor.root() : null;
+                                            flags.scope = original ? processor.scope() : null;
                                             flags.component = !ClassReaders.isAbstract(classData) && !ClassReaders.isInterface(classData);
                                         }
                                     });
@@ -474,8 +474,8 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                 if (processClass(classData, processor)) {
                     final Map<String, Collection<String>> providerMap = providerMap(PackageBindings.SERVICE_TYPE, serviceProviderMap);
 
-                    if (flags.root != null) {
-                        addServiceProvider(providerMap(Component.PRIVATE, serviceProviderMap), flags.root.getClassName(), ClassReaders.externalName(classData));
+                    if (flags.scope != null) {
+                        addServiceProvider(providerMap(Component.SCOPE, serviceProviderMap), flags.scope.getClassName(), ClassReaders.externalName(classData));
                     } else if (!flags.ignored) {
                         if (flags.component) {
                             addBinding(bindingClassName, ClassReaders.externalName(classData), providerMap, componentMap);

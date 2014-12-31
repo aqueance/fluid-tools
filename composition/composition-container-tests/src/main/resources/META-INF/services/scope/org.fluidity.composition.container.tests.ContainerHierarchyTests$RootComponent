@@ -1,0 +1,4 @@
+# Helps ContainerHierarchyTests.testExplicitScopedComponents() and ContainerHierarchyTests.testExplicitScopedComponents() find their scoped components.
+# Manually maintained since no automatic component discovery is, or should be, configured for this project.
+org.fluidity.composition.container.tests.ContainerHierarchyTests$PrivateComponent
+org.fluidity.composition.container.tests.ContainerHierarchyTests$RootComponent

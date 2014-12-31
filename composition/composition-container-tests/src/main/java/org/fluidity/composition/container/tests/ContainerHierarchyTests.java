@@ -127,7 +127,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     }
 
     @Test
-    public void testComponentPrivateContainers() throws Exception {
+    public void testExplicitScopedComponents() throws Exception {
         registry.bindComponent(PublicComponent.class);
 
         final RootComponent root1 = container.instantiate(RootComponent.class);
@@ -142,7 +142,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     }
 
     @Test
-    public void testFactoryPrivateContainers() throws Exception {
+    public void testImplicitScopedComponents() throws Exception {
         registry.bindComponent(PublicComponent.class);
         registry.bindComponent(RootComponentFactory.class);
 
@@ -155,6 +155,13 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
 
         assert root1.dependency != root2.dependency;
         assert root1.dependency.dependency == root2.dependency.dependency;
+    }
+
+    @Test
+    public void testNestedScopedComponents() throws Exception {
+        registry.bindComponent(MyRootComponent.class);
+
+        assert container.getComponent(MyRootComponent.class) != null;
     }
 
     /**
@@ -200,7 +207,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         }
     }
 
-    @Component(root = RootComponent.class)
+    @Component(scope = RootComponent.class)
     private static class RootComponent {
 
         public final PrivateComponent dependency;
@@ -211,7 +218,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         }
     }
 
-    @Component(root = RootComponent.class)
+    @Component(scope = RootComponent.class)
     private static class PrivateComponent {
 
         public final PublicComponent dependency;
@@ -221,4 +228,41 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
             this.dependency = dependency;
         }
     }
+
+    private static interface MyRootComponent { }
+
+    private static interface MyScopedRootComponent { }
+
+    private static interface MyNestedScopedComponent { }
+
+    @Component(scope = MyRootComponent.class)
+    private static final class MyRootComponentImpl implements MyRootComponent {
+
+        @SuppressWarnings("UnusedParameters")
+        MyRootComponentImpl(final MyScopedRootComponent dependency) { }
+    }
+
+    @Component(api = MyScopedRootComponent.class, scope = MyRootComponent.class)
+    private static final class MyScopedRootComponentFactory implements ComponentFactory {
+
+        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+            dependencies.discover(MyScopedRootComponentImpl.class);
+
+            return new Instance() {
+                public void bind(final Registry registry) throws Exception {
+                    registry.bindComponent(MyScopedRootComponentImpl.class);
+                }
+            };
+        }
+    }
+
+    @Component(scope = MyScopedRootComponent.class)
+    private static final class MyScopedRootComponentImpl implements MyScopedRootComponent {
+
+        @SuppressWarnings("UnusedParameters")
+        MyScopedRootComponentImpl(final MyNestedScopedComponent dependency) { }
+    }
+
+    @Component(scope = MyScopedRootComponent.class)
+    private static final class MyNestedScopedComponentImpl implements MyNestedScopedComponent {}
 }

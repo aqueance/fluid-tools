@@ -62,15 +62,11 @@ final class ComponentContainerShell extends EmptyComponentContainer<SimpleContai
         return container.invoke(component, method, context.copy(), arguments, explicit);
     }
 
-    public MutableContainer makeChildContainer() {
-        return new ComponentContainerShell(container, context, true, false, observer);
-    }
-
-    public OpenContainer makeChildContainer(final Bindings... bindings) {
+    public MutableContainer makeChildContainer(final Bindings... bindings) {
         return new ComponentContainerShell(container, context, true, false, observer).addBindings(bindings);
     }
 
-    public OpenContainer makeDomainContainer(final Bindings... bindings) {
+    public MutableContainer makeDomainContainer(final Bindings... bindings) {
         return new ComponentContainerShell(container, context, true, true, observer).addBindings(bindings);
     }
 
