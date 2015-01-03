@@ -75,8 +75,6 @@ public class GenericsTest {
         assert B.class == Generics.rawType(Generics.propagate(reference, paramA0));
         assert B.class == Generics.rawType(Generics.propagate(reference, paramA1));
         assert B[].class == Generics.rawType(Generics.propagate(reference, paramA2));
-        assert C.class == Generics.rawType(Generics.propagate(reference, paramB0));
-        assert C.class == Generics.rawType(Generics.propagate(reference, paramB1));
 
         assert I1.class == Generics.resolve(reference, (TypeVariable) paramA0.getActualTypeArguments()[0]);
         assert I2.class == Generics.resolve(reference, (TypeVariable) paramA0.getActualTypeArguments()[1]);
@@ -128,8 +126,6 @@ public class GenericsTest {
         assert B.class == Generics.rawType(Generics.propagate(reference, paramA0));
         assert B.class == Generics.rawType(Generics.propagate(reference, paramA1));
         assert B[].class == Generics.rawType(Generics.propagate(reference, paramA2));
-        assert C.class == Generics.rawType(Generics.propagate(reference, paramB0));
-        assert C.class == Generics.rawType(Generics.propagate(reference, paramB1));
 
         assert I1.class == paramA0.getActualTypeArguments()[0];
         assert I2.class == paramA0.getActualTypeArguments()[1];
@@ -181,8 +177,6 @@ public class GenericsTest {
         assert B.class == Generics.rawType(Generics.propagate(reference, paramA0));
         assert B.class == Generics.rawType(Generics.propagate(reference, paramA1));
         assert B[].class == Generics.rawType(Generics.propagate(reference, paramA2));
-        assert C.class == Generics.rawType(Generics.propagate(reference, paramB0));
-        assert C.class == Generics.rawType(Generics.propagate(reference, paramB1));
 
         assert I1.class == Generics.resolve(reference, (TypeVariable) paramA0.getActualTypeArguments()[0]);
         assert I2.class == paramA0.getActualTypeArguments()[1];
@@ -234,8 +228,6 @@ public class GenericsTest {
         assert B.class == Generics.rawType(Generics.propagate(reference, paramA0));
         assert B.class == Generics.rawType(Generics.propagate(reference, paramA1));
         assert B[].class == Generics.rawType(Generics.propagate(reference, paramA2));
-        assert C.class == Generics.rawType(Generics.propagate(reference, paramB0));
-        assert C.class == Generics.rawType(Generics.propagate(reference, paramB1));
 
         assert Q.class == Generics.resolve(reference, (TypeVariable) paramA0.getActualTypeArguments()[0]);
         assert Q.class == Generics.resolve(reference, (TypeVariable) paramA0.getActualTypeArguments()[1]);
@@ -287,8 +279,6 @@ public class GenericsTest {
         assert B.class == Generics.rawType(Generics.propagate(reference, paramA0));
         assert B.class == Generics.rawType(Generics.propagate(reference, paramA1));
         assert B[].class == Generics.rawType(Generics.propagate(reference, paramA2));
-        assert C.class == Generics.rawType(Generics.propagate(reference, paramB0));
-        assert C.class == Generics.rawType(Generics.propagate(reference, paramB1));
 
         assert Q.class == Generics.resolve(reference, (TypeVariable) paramA0.getActualTypeArguments()[0]);
         assert Q.class == Generics.resolve(reference, (TypeVariable) paramA0.getActualTypeArguments()[1]);
@@ -519,6 +509,16 @@ public class GenericsTest {
                   String.format("%s<%s>[][]", Strings.formatClass(false, false, F1.class), Strings.formatClass(false, false, I4.class)));
     }
 
+    @Test
+    public void testTypePropagation() throws Exception {
+        final Type specialized = Generics.specializedType(SubType4.class, I.class);
+        final Type resolved = Generics.propagate(SubType4.class, specialized);
+
+        assert I3.class == Generics.typeParameter(resolved, 0) : String.format("%s, %s", resolved, I3.class);
+        assert I2.class == Generics.typeParameter(resolved, 1) : String.format("%s, %s", resolved, I2.class);
+        assert I1.class == Generics.typeParameter(resolved, 2) : String.format("%s, %s", resolved, I1.class);
+    }
+
     private void checkText(final String actual, final String expected) {
         assert expected.equals(actual) : String.format("Expected %s, got %s", expected, actual);
     }
@@ -606,10 +606,9 @@ public class GenericsTest {
         public B(final C<A> p1, final C<B> p2) { }
     }
 
-    @SuppressWarnings({ "UnusedDeclaration" })
+    @SuppressWarnings("UnusedParameters")
     private static class C<N> { }
 
-    @SuppressWarnings({ "UnusedDeclaration" })
     private static class D extends A<I1, I2, I3> {
 
         public D(final B<I1, I2> p1, final B<I2, I3> p2, final B<I1, I3>[] p3) {
@@ -617,16 +616,16 @@ public class GenericsTest {
         }
     }
 
-    @SuppressWarnings({ "UnusedDeclaration" })
+    @SuppressWarnings("UnusedParameters")
     private interface I<R, S, T> { }
 
-    @SuppressWarnings({ "UnusedDeclaration" })
     private static class E<T> implements I<T, I2, I3> {
 
+        @SuppressWarnings("UnusedParameters")
         public E(final B<T, I2> p1, final B<I2, I3> p2, final B<T, I3>[] p3) { }
     }
 
-    @SuppressWarnings({ "UnusedDeclaration" })
+    @SuppressWarnings("UnusedParameters")
     private interface F1<T extends I1 & I2> { }
 
     private static class G1 implements F1, I { }
@@ -696,4 +695,14 @@ public class GenericsTest {
     }
 
     private enum E1 { A, B, C }
+
+    private static class SuperType<R, S, T> implements I<R, S, T> { }
+
+    private static class SubType1<R, S> extends SuperType<R, S, I1> { }
+
+    private static class SubType2<R> extends SubType1<R, I2> { }
+
+    private static class SubType3 extends SubType2<I3> { }
+
+    private static class SubType4 extends SubType3 { }
 }

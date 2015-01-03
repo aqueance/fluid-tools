@@ -237,17 +237,13 @@ public final class Components extends Utility {
     }
 
     private static void checkTypeParameters(final Class<?> type, final Type api) {
-        for (final Type check : type.getGenericInterfaces()) {
-            checkTypeParameters(type, api, check);
-            checkTypeParameters(Generics.rawType(check), api);
-        }
-
-        final Type check = type.getGenericSuperclass();
-
-        if (check != null && check != Object.class) {
-            checkTypeParameters(type, api, check);
-            checkTypeParameters(Generics.rawType(check), api);
-        }
+        Generics.abstractions(type, new Generics.Inspector() {
+            public Type inspect(final Type check) {
+                checkTypeParameters(type, api, check);
+                checkTypeParameters(Generics.rawType(check), api);
+                return null;
+            }
+        });
     }
 
     private static void checkTypeParameters(final Class<?> type, final Type api, final Type check) {
@@ -271,29 +267,23 @@ public final class Components extends Utility {
 
                 if (!specified.isEmpty()) {
                     throw new ComponentContainer.BindingException("Component type %s leaves parameter(s) %s of its parameterized component interface unspecified: %s",
-                                                                  type.getName(),
-                                                                  specified,
-                                                                  Arrays.toString(Generics.rawType(api).getTypeParameters()));
+                                                                  type.getName(), specified, Arrays.toString(Generics.rawType(api).getTypeParameters()));
                 }
             }
         }
     }
 
     private static Type findDeclaredInterface(final Class<?> type, final Class<?> api) {
-        if (api == type) {
-            return api;
-        }
+        if (api != type) {
+            final Type found = Generics.abstractions(type, new Generics.Inspector() {
+                public Type inspect(final Type checked) {
+                    return api == Generics.rawType(checked) ? checked : null;
+                }
+            });
 
-        for (final Type checked : type.getGenericInterfaces()) {
-            if (api == Generics.rawType(checked)) {
-                return checked;
+            if (found != null) {
+                return found;
             }
-        }
-
-        final Type checked = type.getGenericSuperclass();
-
-        if (api == Generics.rawType(checked)) {
-            return checked;
         }
 
         return api;

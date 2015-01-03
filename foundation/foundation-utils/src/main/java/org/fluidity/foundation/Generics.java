@@ -119,8 +119,7 @@ public final class Generics extends Utility {
     }
 
     /**
-     * Resolves a type variable using the given base type. The base type must either be a parameterized type or a generic array with a parameterized component
-     * type, and must have all its type parameters resolved.
+     * Resolves a type variable using the given base type. The given type is expected to have all type parameters resolved.
      *
      * @param reference the base type to resolve the type variable against.
      * @param variable  the type variable to resolve.
@@ -137,6 +136,12 @@ public final class Generics extends Utility {
                     return typeParameter(reference, i);
                 }
             }
+
+            return abstractions(reference, new Inspector() {
+                public Type inspect(final Type type) {
+                    return resolve(propagate(reference, type), variable);
+                }
+            });
         } else if (reference instanceof Class) {
             final String name = variable.getName();
 
@@ -145,6 +150,12 @@ public final class Generics extends Utility {
                     return rawType(parameter);
                 }
             }
+
+            return abstractions(reference, new Inspector() {
+                public Type inspect(final Type type) {
+                    return resolve(propagate(reference, type), variable);
+                }
+            });
         } else if (reference instanceof GenericArrayType) {
             return resolve(((GenericArrayType) reference).getGenericComponentType(), variable);
         }
@@ -186,6 +197,55 @@ public final class Generics extends Utility {
     }
 
     /**
+     * Visitor interface for {@link #abstractions(Type, org.fluidity.foundation.Generics.Inspector)}.
+     *
+     * @author Tibor Varga
+     */
+    public static interface Inspector {
+
+        /**
+         * Invoked at points of a type hierarchy.
+         *
+         * @param type the curent point in a type hierarchy.
+         *
+         * @return whatever the selector wishes to return from {@link #abstractions(Type, org.fluidity.foundation.Generics.Inspector)}. The type hierarchy is traversed until this method
+         * returns not <code>null</code>, or there are no more types to inspect.
+         */
+        Type inspect(Type type);
+    }
+
+    /**
+     * Inspects the superclass and interfaces of <code>reference</code> and invokes <code>inspector</code> with each until it returns a type.
+     * <code>Object.class</code> is never passed to <code>inspector</code>. The <code>inspector</code> can invoke this method again to traverse the type's
+     * clas hierarchy.
+     *
+     * @param reference the type to inspect the super and interfaces of.
+     * @param inspector the inspector to invoke at every abstraction found.
+     *
+     * @return whatever the <code>inspector</code> returns; may be <code>null</code>.
+     */
+    public static Type abstractions(final Type reference, final Inspector inspector) {
+        Type selected = null;
+
+        final Class<?> referenceClass = rawType(reference);
+        final Type superType = referenceClass.getGenericSuperclass();
+
+        if (superType != null && superType != Object.class) {
+            selected = inspector.inspect(superType);
+        }
+
+        if (selected == null) {
+            for (final Type interfaceType : referenceClass.getGenericInterfaces()) {
+                selected = inspector.inspect(interfaceType);
+
+                if (selected != null) break;
+            }
+        }
+
+        return selected;
+    }
+
+    /**
      * Resolves all type variables of the <code>outbound</code> parameter using the <code>inbound</code> type as base type. The <code>inbound</code>
      * type must have all its parameters resolved.
      *
@@ -202,7 +262,21 @@ public final class Generics extends Utility {
 
             final Type[] arguments = original.getActualTypeArguments();
             for (int i = 0, limit = arguments.length; i < limit; i++) {
-                arguments[i] = propagate(inbound, arguments[i]);
+                final Type argument = arguments[i];
+
+                Type resolved = propagate(inbound, argument);
+
+                if (resolved == null) {
+                    resolved = abstractions(inbound, new Inspector() {
+                        public Type inspect(final Type type) {
+                            return propagate(propagate(inbound, type), argument);
+                        }
+                    });
+                }
+
+                if (resolved != null) {
+                    arguments[i] = resolved;
+                }
             }
 
             return new ParameterizedTypeImpl(original, arguments);
@@ -317,16 +391,17 @@ public final class Generics extends Utility {
         return delimited.toString();
     }
 
-        /**
-        * Returns the type that the given <code>specific</code> class provides as a specialization of the <code>generic</code> type. The {@linkplain
-        * #rawType(Type) raw} type of the returned type will be <code>generic</code>.
-        *
-        * @param specific the class that is assumed to specialize the given <code>generic</code> type.
-        * @param generic  the generic type that is expected to be specialized by the given <code>specific</code>.
-        *
-        * @return the type of the <code>specific</code> class that specializes the <code>generic</code> type; or <code>null</code> if the <code>specific</code>
-        *         class is not a specialization of the <code>generic</code> type.
-        */
+    /**
+     * Returns the type that the given <code>specific</code> class represents as the specialization of the <code>generic</code> type. If <code>generic</code>
+     * is a parameterized type, the returned type will have the corresponding type parameters present. The {@linkplain #rawType(Type) class} of the returned
+     * type will be <code>generic</code>.
+     *
+     * @param specific the class that is assumed to specialize the given <code>generic</code> type.
+     * @param generic  the generic type that is expected to be specialized by the given <code>specific</code>.
+     *
+     * @return the type of the <code>specific</code> class that specializes the <code>generic</code> type; or <code>null</code> if the <code>specific</code>
+     *         class is not a specialization of the <code>generic</code> type.
+     */
     public static Type specializedType(final Class specific, final Class generic) {
         return specializedType(specific, generic, specific, generic);
     }
@@ -335,31 +410,29 @@ public final class Generics extends Utility {
     private static Type specializedType(final Type specific, final Type generic, final Class<?> rawSpecific, final Class rawGeneric) {
         if (rawGeneric == rawSpecific) {
             return specific;
-        } else {
-            if (rawGeneric.isAssignableFrom(rawSpecific)) {
-                final boolean specificInterface = rawSpecific.isInterface();
-                final Class<?> superclass = rawSpecific.getSuperclass();
+        } else if (rawGeneric.isAssignableFrom(rawSpecific)) {
+            final boolean specificInterface = rawSpecific.isInterface();
+            final Class<?> superclass = rawSpecific.getSuperclass();
 
-                if (!specificInterface && rawGeneric.isAssignableFrom(superclass)) {
-                    if (rawGeneric == superclass) {
-                        return rawSpecific.getGenericSuperclass();
-                    } else {
-                        return specializedType(rawSpecific.getGenericSuperclass(), generic, superclass, rawGeneric);
-                    }
-                } else if (specificInterface && rawGeneric.isAssignableFrom(Object.class)) {
-                    return generic;
+            if (!specificInterface && rawGeneric.isAssignableFrom(superclass)) {
+                if (rawGeneric == superclass) {
+                    return rawSpecific.getGenericSuperclass();
                 } else {
-                    final Class<?>[] interfaces = rawSpecific.getInterfaces();
-                    final Type[] types = rawSpecific.getGenericInterfaces();
+                    return specializedType(rawSpecific.getGenericSuperclass(), generic, superclass, rawGeneric);
+                }
+            } else if (specificInterface && rawGeneric.isAssignableFrom(Object.class)) {
+                return generic;
+            } else {
+                final Class<?>[] interfaces = rawSpecific.getInterfaces();
+                final Type[] types = rawSpecific.getGenericInterfaces();
 
-                    for (int i = 0, limit = types.length; i < limit; i++) {
-                        final Class<?> api = interfaces[i];
+                for (int i = 0, limit = types.length; i < limit; i++) {
+                    final Class<?> api = interfaces[i];
 
-                        if (rawGeneric == api) {
-                            return types[i];
-                        } else if (rawGeneric.isAssignableFrom(api)) {
-                            return specializedType(types[i], generic, rawType(types[i]), rawGeneric);
-                        }
+                    if (rawGeneric == api) {
+                        return types[i];
+                    } else if (rawGeneric.isAssignableFrom(api)) {
+                        return specializedType(types[i], generic, rawType(types[i]), rawGeneric);
                     }
                 }
             }
