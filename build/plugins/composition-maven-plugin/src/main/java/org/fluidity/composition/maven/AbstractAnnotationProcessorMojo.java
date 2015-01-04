@@ -433,8 +433,11 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                                 } else if (componentType.equals(type)) {
                                     return new ComponentProcessor(new ProcessorCallback<ComponentProcessor>() {
                                         public void complete(final ComponentProcessor processor) {
-                                            flags.ignored = original && !processor.isAutomatic();
-                                            flags.scope = original ? processor.scope() : null;
+                                            if (original) {
+                                                flags.ignored = !processor.isAutomatic();
+                                                flags.scope = processor.scope();
+                                            }
+
                                             flags.component = !ClassReaders.isAbstract(classData) && !ClassReaders.isInterface(classData);
                                         }
                                     });
@@ -473,16 +476,17 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
                 if (processClass(classData, processor)) {
                     final Map<String, Collection<String>> providerMap = providerMap(PackageBindings.SERVICE_TYPE, serviceProviderMap);
+                    final String externalName = ClassReaders.externalName(classData);
 
                     if (flags.scope != null) {
-                        addServiceProvider(providerMap(Component.SCOPE, serviceProviderMap), flags.scope.getClassName(), ClassReaders.externalName(classData));
+                        addServiceProvider(providerMap(Component.SCOPE, serviceProviderMap), flags.scope.getClassName(), externalName);
                     } else if (!flags.ignored) {
                         if (flags.component) {
-                            addBinding(bindingClassName, ClassReaders.externalName(classData), providerMap, componentMap);
+                            addBinding(bindingClassName, externalName, providerMap, componentMap);
                         }
 
                         if (flags.group) {
-                            addBinding(bindingClassName, ClassReaders.externalName(classData), providerMap, componentGroupMap);
+                            addBinding(bindingClassName, externalName, providerMap, componentGroupMap);
                         }
                     }
 

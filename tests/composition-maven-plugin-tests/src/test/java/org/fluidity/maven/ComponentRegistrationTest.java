@@ -88,6 +88,29 @@ public class ComponentRegistrationTest {
         assert inner.getLocal() != null : String.format("Local class not instantiated");
     }
 
+    @Test
+    public void testComponentHierarchy() throws Exception {
+        class References {
+            @Inject public @Optional SimpleComponent simpleComponent;
+            @Inject public @Optional SuperComponent superComponent;
+            @Inject public @Optional ComponentInterface1 componentInterface1;
+            @Inject public @Optional ComponentInterface2 componentInterface2;
+            @Inject public @Optional DefaultComponent defaultComponent;
+            @Inject public @Optional FallbackComponent fallbackComponent;
+            @Inject public @Optional ManualComponent manualComponent;
+        }
+
+        final References references = container.initialize(new References());
+
+        component(references.simpleComponent, SimpleComponent.class, SimpleComponentImpl.class);
+        component(references.superComponent, SuperComponent.class, InheritedComponentImpl.class);
+        component(references.componentInterface1, ComponentInterface1.class, MultipleInterfacesComponent.class);
+        component(references.componentInterface2, ComponentInterface2.class, SingleInterfaceComponent.class);
+        component(references.defaultComponent, DefaultComponent.class, PrimaryComponentImpl.class);
+        component(references.fallbackComponent, FallbackComponent.class, FallbackComponentImpl.class);
+        component(references.manualComponent, ManualComponent.class, null);
+    }
+
     private void jdkProvider(final Class<?> providerInterface, final int count) {
         final List<?> instances = ServiceProviders.findInstances(providerInterface, getClass().getClassLoader());
         assert instances.size() == count : instances.size();

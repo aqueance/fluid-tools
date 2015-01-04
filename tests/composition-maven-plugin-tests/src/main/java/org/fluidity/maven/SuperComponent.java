@@ -25,3 +25,6 @@ class AbstractComponentImpl implements SuperComponent { }
 
 @Component
 class InheritedComponentImpl extends AbstractComponentImpl { }
+
+@Component(automatic = false)
+class ManualInheritedComponentImpl extends AbstractComponentImpl { }
