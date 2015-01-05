@@ -31,10 +31,10 @@ import org.fluidity.composition.container.spi.DependencyGraph;
  */
 abstract class AbstractResolver implements ComponentResolver {
 
-    private final int priority;
     protected final Class<?> api;
     protected final ComponentCache cache;
 
+    private final int priority;
     private final Collection<Class<?>> groups = new HashSet<Class<?>>();
 
     protected AbstractResolver(final int priority, final Class<?> api, final ComponentCache cache) {

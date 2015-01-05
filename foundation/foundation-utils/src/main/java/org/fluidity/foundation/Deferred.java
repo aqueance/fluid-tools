@@ -210,14 +210,14 @@ public final class Deferred extends Utility {
         }
 
         /**
-         * Double-check locking implementation, as published in Joshua Bloch's Effective Java, Second Edition.
+         * Double-check locking implementation based on the acquire/release semantics of volatile read/write.
          *
          * @author Tibor Varga
          */
         private static class DCL<T> {
 
-            private Factory<T> factory;
-            private volatile T delegate;
+            private volatile Factory<T> factory;
+            private T object;
 
             DCL(final Factory<T> factory) {
                 assert factory != null;
@@ -225,24 +225,22 @@ public final class Deferred extends Utility {
             }
 
             public final T get() {
-                T cache = delegate;
-
-                if (factory != null && cache == null) {
+                if (factory != null) {
                     synchronized (this) {
-                        cache = delegate;
+                        final Factory<T> cache = factory;   // avoid excessive volatile access
 
-                        if (cache == null) {
-                            delegate = cache = factory.create();
+                        if (cache != null) {
+                            object = cache.create();
                             factory = null;
                         }
                     }
                 }
 
-                return cache;
+                return object;
             }
 
             public boolean resolved() {
-                return delegate != null;
+                return factory == null;
             }
         }
     }

@@ -24,9 +24,10 @@ import java.lang.reflect.Type;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
@@ -34,10 +35,10 @@ import org.fluidity.composition.Components;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.spi.ComponentFactory;
-import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Security;
+import org.fluidity.foundation.Strings;
 
 /**
  * Component resolver for a {@link ComponentFactory} component.
@@ -99,7 +100,7 @@ abstract class FactoryResolver extends AbstractResolver {
         final ComponentFactory.Instance instance = resolve(injector, traversal, context, nested, reference, contexts, factory, consumer, instantiation, containers);
 
         final ContextDefinition saved = context.accept(consumer).collect(contexts).copy();
-        final ComponentFactory.Registry registry = new RegistryWrapper(nested, saved, traversal);
+        final RegistryWrapper registry = new RegistryWrapper(nested, saved, traversal);
 
         return cachingNode(resolver, new DependencyGraph.Node() {
             private final ComponentContext actual = saved.create();
@@ -117,6 +118,12 @@ abstract class FactoryResolver extends AbstractResolver {
                     } else {
                         try {
                             instance.bind(registry);
+
+                            if (!registry.contains(api)) {
+                                throw new ComponentContainer.BindingException("Factory %s did not bind component for requested interface %s",
+                                                                              Strings.formatClass(false, true, factoryClass),
+                                                                              Strings.formatClass(false, true, api));
+                            }
                         } catch (final ComponentContainer.InjectionException e) {
                             throw e;
                         } catch (final Exception e) {
@@ -387,11 +394,13 @@ abstract class FactoryResolver extends AbstractResolver {
     }
 
     @SuppressWarnings("unchecked")
-    private static class RegistryWrapper implements ComponentFactory.Registry {
+    private static final class RegistryWrapper implements ComponentFactory.Registry {
 
         private final SimpleContainer container;
         private final ContextDefinition context;
         private final DependencyGraph.Traversal traversal;
+
+        private final Set<Class> components = new HashSet<Class>();
 
         RegistryWrapper(final SimpleContainer container, final ContextDefinition context, final DependencyGraph.Traversal traversal) {
             this.container = container;
@@ -400,15 +409,28 @@ abstract class FactoryResolver extends AbstractResolver {
         }
 
         public <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
-            container.bindComponent(Components.inspect(implementation, interfaces));
+            container.bindComponent(bound(implementation, interfaces));
         }
 
         public <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
-            container.bindInstance(instance, instance == null ? null : Components.inspect((Class<T>) instance.getClass(), interfaces));
-
             if (instance != null) {
+                container.bindInstance(instance, bound((Class<T>) instance.getClass(), interfaces));
                 container.initialize(instance, context, traversal);
             }
+        }
+
+        private <T> Components.Interfaces bound(final Class<T> implementation, final Class<? super T>[] interfaces) {
+            final Components.Interfaces specifications = Components.inspect(implementation, interfaces);
+
+            for (final Components.Specification specification : specifications.api) {
+                components.add(specification.api);
+            }
+
+            return specifications;
+        }
+
+        public boolean contains(final Class<?> api) {
+            return components.contains(api);
         }
     }
 

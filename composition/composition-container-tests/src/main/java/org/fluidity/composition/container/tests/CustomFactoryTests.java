@@ -203,6 +203,12 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         assert component != null;
     }
 
+    @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*BadFactory.*DependentKey.*")
+    public void testBadFactory() throws Exception {
+        registry.bindComponent(BadFactory.class);
+        container.getComponent(DependentKey.class);
+    }
+
     @DataProvider(name = "delegating-factories")
     public Object[][] delegatingFactories() {
         return new Object[][] {
@@ -899,6 +905,18 @@ public final class CustomFactoryTests extends AbstractContainerTests {
             assert dependency3 != null;
             assert (CustomDependency) dependency1 != dependency2 : "Type parameter did not contribute to component context";
             assert (CustomDependency) dependency1 == dependency3 : "Type parameter did not contribute to component context";
+        }
+    }
+
+    @Component(api = DependentKey.class, automatic = false)
+    private static class BadFactory implements ComponentFactory {
+
+        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+            return new Instance() {
+                public void bind(final Registry registry) throws Exception {
+                    // empty
+                }
+            };
         }
     }
 }
