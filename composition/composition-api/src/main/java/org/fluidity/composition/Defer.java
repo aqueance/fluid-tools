@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
  * {@linkplain org.fluidity.composition.Component @Component}
  * public final class MyComponent {
  *
- *   MyComponent(final <span class="hl1">&#64;Defer</span> <span class="hl2">SomeDependency</span> dependency) {
+ *   MyComponent(final <span class="hl1">&#64;Defer({@linkplain #global() global} = false)</span> <span class="hl2">SomeDependency</span> dependency) {
  *     &hellip;
  *   }
  *
@@ -32,4 +32,12 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.PARAMETER, ElementType.FIELD})
 @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
-public @interface Defer { }
+public @interface Defer {
+
+    /**
+     * Specifies whether the deferred reference should be thread safe or not.
+     *
+     * @return <code>true</code> if the deferred reference should be thread safe; <code>false</code> otherwise.
+     */
+    boolean global() default true;
+}

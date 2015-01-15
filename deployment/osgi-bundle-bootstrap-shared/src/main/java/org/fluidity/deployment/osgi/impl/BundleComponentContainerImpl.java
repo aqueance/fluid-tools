@@ -205,7 +205,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
             final AtomicReference<Set<ServiceDescriptor>> dependencies = new AtomicReference<Set<ServiceDescriptor>>();
 
             // collects the OSGi service dependencies encountered during dependency resolution
-            final ObservedContainer observed = pool.observed(new ComponentContainer.Observer() {
+            final ObservedContainer observed = pool.observed(new ComponentContainer.ObserverSupport() {
                 public void descending(final Class<?> declaringType,
                                        final Class<?> dependencyType,
                                        final Annotation[] typeAnnotations,
@@ -231,22 +231,6 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
                             break;     // it was an OSGi service dependency: we're done
                         }
                     }
-                }
-
-                public void ascending(final Class<?> declaringType, final Class<?> dependencyType) {
-                    // empty
-                }
-
-                public void circular(final DependencyPath path) {
-                    // empty
-                }
-
-                public void resolved(final DependencyPath path, final Class<?> type) {
-                    // empty
-                }
-
-                public void instantiated(final DependencyPath path, final AtomicReference<?> reference) {
-                    // empty
                 }
             });
 

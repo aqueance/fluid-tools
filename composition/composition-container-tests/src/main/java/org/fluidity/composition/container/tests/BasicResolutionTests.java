@@ -269,22 +269,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         final Map<Class<?>, Class<?>> resolved = new HashMap<Class<?>, Class<?>>();
         final List<Class<?>> instantiated = new ArrayList<Class<?>>();
 
-        final ObservedContainer observed = container.observed(new ComponentContainer.Observer() {
-            public void descending(final Class<?> declaringType,
-                                   final Class<?> dependencyType,
-                                   final Annotation[] typeAnnotations,
-                                   final Annotation[] referenceAnnotations) {
-                // empty
-            }
-
-            public void ascending(final Class<?> declaringType, final Class<?> dependencyType) {
-                // empty
-            }
-
-            public void circular(final DependencyPath path) {
-                // empty
-            }
-
+        final ObservedContainer observed = container.observed(new ComponentContainer.ObserverSupport() {
             public void resolved(final DependencyPath path, final Class<?> type) {
                 assert path != null;
                 resolved.put(path.tail().api(), type);

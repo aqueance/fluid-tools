@@ -1193,7 +1193,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
         EasyMock.expect(bundle.getSymbolicName()).andReturn("test-bundle");
         EasyMock.expect(discovery.findComponentClasses(BundleComponents.Managed.class, BundleComponentContainerImpl.class.getClassLoader(), false)).andReturn(types);
 
-        return Deferred.reference(new Deferred.Factory<BundleComponentContainerImpl.Logic>() {
+        return Deferred.local(new Deferred.Factory<BundleComponentContainerImpl.Logic>() {
             public BundleComponentContainerImpl.Logic create() {
                 return new BundleComponentContainerImpl.Logic(context, discovery, container, loader, log);
             }
@@ -1209,7 +1209,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
             EasyMock.expect(context.createFilter(filter)).andReturn(null);
         }
 
-        return Deferred.reference(new Deferred.Factory<BundleComponentContainerImpl.Logic>() {
+        return Deferred.local(new Deferred.Factory<BundleComponentContainerImpl.Logic>() {
             public BundleComponentContainerImpl.Logic create() {
                 return new BundleComponentContainerImpl.Logic(context, discovery, container, loader, log);
             }

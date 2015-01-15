@@ -38,11 +38,13 @@ import org.fluidity.foundation.Security;
 final class DeferredReferenceInterceptor implements ComponentInterceptor {
 
     public Dependency intercept(final Type reference, final ComponentContext context, final Dependency dependency) {
-        final Deferred.Reference<?> deferred = Deferred.reference(new Deferred.Factory<Object>() {
+        final Deferred.Factory<Object> factory = new Deferred.Factory<Object>() {
             public Object create() {
                 return dependency.create();
             }
-        });
+        };
+
+        final Deferred.Reference<?> deferred = context.annotation(Defer.class, null).global() ? Deferred.global(factory) : Deferred.local(factory);
 
         return new Dependency() {
             public Object create() {

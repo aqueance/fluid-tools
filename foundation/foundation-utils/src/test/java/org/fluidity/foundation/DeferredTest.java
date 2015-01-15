@@ -19,6 +19,7 @@ package org.fluidity.foundation;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
@@ -26,22 +27,32 @@ import org.testng.annotations.Test;
  */
 public class DeferredTest {
 
-    private Deferred.Reference<String> reference(final String original) {
-        return Deferred.reference(new Deferred.Factory<String>() {
+    private Deferred.Reference<String> reference(final String original, final boolean safe) {
+        final Deferred.Factory<String> factory = new Deferred.Factory<String>() {
             private final AtomicBoolean invoked = new AtomicBoolean(false);
 
             public String create() {
                 assert invoked.compareAndSet(false, true) : "Invoked multiple times";
                 return original;
             }
-        });
+        };
+
+        return safe ? Deferred.global(factory) : Deferred.local(factory);
     }
 
-    @Test
-    public void testLazyLoading() throws Exception {
+    @DataProvider(name = "safety")
+    public Object[][] safety() {
+        return new Object[][] {
+                new Object[] { true },
+                new Object[] { false },
+        };
+    }
+
+    @Test(dataProvider = "safety")
+    public void testLazyLoading(final boolean safe) throws Exception {
         final String original = "This is the original text";
 
-        final Deferred.Reference<String> reference = reference(original);
+        final Deferred.Reference<String> reference = reference(original, safe);
 
         final String first = reference.get();
         assert original.equals(first) : first;
@@ -50,9 +61,9 @@ public class DeferredTest {
         assert original.equals(second) : second;
     }
 
-    @Test
-    public void testNullValue() throws Exception {
-        final Deferred.Reference<String> reference = reference(null);
+    @Test(dataProvider = "safety")
+    public void testNullValue(final boolean safe) throws Exception {
+        final Deferred.Reference<String> reference = reference(null, safe);
 
         final String first = reference.get();
         assert first == null : first;
@@ -82,6 +93,6 @@ public class DeferredTest {
         assert text.equals(label2.toString()) : label2;
         assert counter.get() == 1 : counter.get();
         assert text.equals(label2.toString()) : label2;
-        assert counter.get() == 2 : counter.get();
+        assert counter.get() == 1 : counter.get();
     }
 }

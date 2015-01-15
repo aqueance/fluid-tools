@@ -34,13 +34,13 @@ final class ComponentContextImpl implements ComponentContext {
 
     private final Map<Class<? extends Annotation>, Annotation[]> annotations = new HashMap<Class<? extends Annotation>, Annotation[]>();
 
-    private final Deferred.Reference<Integer> hashCode = Deferred.reference(new Deferred.Factory<Integer>() {
+    private final Deferred.Reference<Integer> hashCode = Deferred.global(new Deferred.Factory<Integer>() {
         public Integer create() {
             return AnnotationMaps.hashCode(annotations);
         }
     });
 
-    private final Deferred.Reference<String> identity = Deferred.reference(new Deferred.Factory<String>() {
+    private final Deferred.Reference<String> identity = Deferred.global(new Deferred.Factory<String>() {
         public String create() {
             return AnnotationMaps.identity(annotations);
         }

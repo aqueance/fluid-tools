@@ -579,15 +579,46 @@ public interface ComponentContainer {
         void resolved(DependencyPath path, Class<?> type);
 
         /**
-         * Notifies the receiver that a dependency has been instantiated. The path and type are final. Elements of the path are actual classes that will be.
+         * Notifies the receiver that a dependency has been instantiated. The path is final; elements of the path are actual classes that will be.
          * <p/>
-         * The {@link DependencyPath#tail()} returns details about the just instantiated object.
+         * The {@link DependencyPath#tail()} returns details about the just instantiated component.
          *
          * @param path      the dependency path at which the given type has been instantiated.
          * @param reference a reference to the component that has just been instantiated. The reference will be set <em>after</em> this method returns to
          *                  prevent the receiver from wreaking havoc by accessing the just instantiated component.
          */
         void instantiated(DependencyPath path, AtomicReference<?> reference);
+    }
+
+    /**
+     * Implements the {@link ComponentContainer.Observer} interface with empty methods.
+     *
+     * @author Tibor Varga
+     */
+    abstract class ObserverSupport implements Observer {
+
+        public void descending(final Class<?> declaringType,
+                               final Class<?> dependencyType,
+                               final Annotation[] typeAnnotations,
+                               final Annotation[] referenceAnnotations) {
+            // empty
+        }
+
+        public void ascending(final Class<?> declaringType, final Class<?> dependencyType) {
+            // empty
+        }
+
+        public void circular(final DependencyPath path) {
+            // empty
+        }
+
+        public void resolved(final DependencyPath path, final Class<?> type) {
+            // empty
+        }
+
+        public void instantiated(final DependencyPath path, final AtomicReference<?> reference) {
+            // empty
+        }
     }
 
     /**

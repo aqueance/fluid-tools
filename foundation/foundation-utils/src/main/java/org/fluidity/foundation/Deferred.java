@@ -17,7 +17,7 @@
 package org.fluidity.foundation;
 
 /**
- * Double-checked locking with <code>volatile</code> acquire/release semantics.
+ * Lazy instantiation with or without thread safety.
  * <h3>Usage</h3>
  * <pre>
  * final class LightObject {
@@ -28,7 +28,7 @@ package org.fluidity.foundation;
  *     }
  *   }
  *
- *   private final <span class="hl1">Deferred.Reference</span><span class="hl2">&lt;HeavyObject></span> reference = <span class="hl1">Deferred.reference</span>(factory);
+ *   private final <span class="hl1">Deferred.Reference</span><span class="hl2">&lt;HeavyObject></span> reference = <span class="hl1">Deferred.local</span>(factory);
  *
  *   &hellip;
  *
@@ -55,22 +55,39 @@ public final class Deferred extends Utility {
     /**
      * Returns a lazy loading reference to some object. The object is instantiated by the given factory's {@link Factory#create() create()} method, which will
      * be invoked the first time the returned object's {@link Reference#get() get()} method is invoked, and then its return value will be cached for use in
-     * subsequent invocations.
+     * subsequent invocations. If the factory returns <code>null</code> instead of an object then the <code>null</code> value will be cached and returned in
+     * subsequent queries by the returned reference.
      * <p/>
-     * This reference implements the double-check locking logic with volatile acquire/release semantics to lazily create the referenced object. If the factory
-     * returns <code>null</code> instead of an object then the <code>null</code> value will be cached and returned in subsequent queries by the returned
-     * reference.
+     * This reference implements the double-check locking logic with volatile acquire/release semantics to lazily create the referenced object.
      * <p/>
-     * Note: the returned object will maintain a strong reference to the provided factory until the first time its {@link Reference#get() get()} method is
-     * invoked.
+     * Note: the returned object will maintain a strong reference to the provided factory.
      *
      * @param factory the factory to create the referred to object.
      * @param <T>     the type of the lazily instantiated object.
      *
      * @return a deferred reference to the object created by the given factory.
      */
-    public static <T> Reference<T> reference(final Factory<T> factory) {
-        return new ReferenceImpl<T>(factory);
+    public static <T> Reference<T> global(final Factory<T> factory) {
+        return new SafeReference<T>(factory);
+    }
+
+    /**
+     * Returns a lazy loading reference to some object. The object is instantiated by the given factory's {@link Factory#create() create()} method, which will
+     * be invoked the first time the returned object's {@link Reference#get() get()} method is invoked, and then its return value will be cached for use in
+     * subsequent invocations. If the factory returns <code>null</code> instead of an object then the <code>null</code> value will be cached and returned in
+     * subsequent queries by the returned reference.
+     * <p/>
+     * This reference implements uses no locking when invoking the given <code>factory</code>.
+     * <p/>
+     * Note: the returned object will maintain a strong reference to the provided factory.
+     *
+     * @param factory the factory to create the referred to object.
+     * @param <T>     the type of the lazily instantiated object.
+     *
+     * @return a deferred reference to the object created by the given factory.
+     */
+    public static <T> Reference<T> local(final Factory<T> factory) {
+        return new BareReference<T>(factory);
     }
 
     /**
@@ -91,24 +108,26 @@ public final class Deferred extends Utility {
     }
 
     /**
-     * Creates a lazy-initialized label that is produced by the given <code>factory</code>. The factory is invoked every time {@link Deferred.Label#toString()}
-     * is invoked.
+     * Creates a lazy-initialized label that is produced by the given <code>factory</code>. The factory is invoked at most once when
+     * {@link Deferred.Label#toString()} is invoked.
      *
      * @param factory the factory to produce the label.
      *
-     * @return a lazy initialized {@link Label} object; never <code>null</code>.
+     * @return a lazily initialized {@link Label} object; never <code>null</code>.
      */
     public static Label label(final Factory<String> factory) {
         return new Label() {
+            private final Deferred.Reference<String> label = Deferred.local(factory);
+
             public String toString() {
-                return factory.create();
+                return label.get();
             }
         };
     }
 
     /**
-     * A factory of some object to be {@link Deferred lazily} instantiated. This is used by the {@link Deferred#reference(Factory) Deferred.reference(&hellip;)}
-     * and the <code>Deferred.label(&hellip;)</code> methods.
+     * A factory of some object to be {@link Deferred lazily} instantiated. This is used by the {@link Deferred#global(Deferred.Factory) Deferred.global(&hellip;)},
+     * the {@link Deferred#local(Deferred.Factory) Deferred.local(&hellip;)}, and the <code>Deferred.label(&hellip;)</code> methods.
      * <h3>Usage</h3>
      * See {@link Deferred}.
      *
@@ -127,7 +146,8 @@ public final class Deferred extends Utility {
     }
 
     /**
-     * A reference to some object that is {@link Deferred lazily} instantiated. Instances are created by {@link Deferred#reference(Factory)}.
+     * A reference to some object that is {@link Deferred lazily} instantiated. Instances are created by {@link Deferred#global(Deferred.Factory)} and
+     * {@link Deferred#local(Deferred.Factory)}.
      * <h3>Usage</h3>
      * See {@link Deferred}.
      *
@@ -178,14 +198,16 @@ public final class Deferred extends Utility {
     }
 
     /**
+     * A thread safe implementation of {@link Deferred.Reference}.
+     *
      * @author Tibor Varga
      */
-    private static class ReferenceImpl<T> implements Reference<T> {
+    private static class SafeReference<T> implements Reference<T> {
 
         private final Factory<T> factory;
         private volatile DCL<T> state;
 
-        ReferenceImpl(final Factory<T> factory) {
+        SafeReference(final Factory<T> factory) {
             this.factory = factory;
             this.state = new DCL<T>(factory);
         }
@@ -234,6 +256,68 @@ public final class Deferred extends Utility {
                             factory = null;
                         }
                     }
+                }
+
+                return object;
+            }
+
+            public boolean resolved() {
+                return factory == null;
+            }
+        }
+    }
+
+    /**
+     * A thread unsafe implementation of {@link Deferred.Reference}.
+     *
+     * @author Tibor Varga
+     */
+    private static class BareReference<T> implements Reference<T> {
+
+        private final Factory<T> factory;
+        private State<T> state;
+
+        BareReference(final Factory<T> factory) {
+            this.factory = factory;
+            this.state = new State<T>(factory);
+        }
+
+        public T get() {
+            return state.get();
+        }
+
+        public boolean resolved() {
+            return state.resolved();
+        }
+
+        public T invalidate() {
+            final State<T> reference = state;
+
+            if (reference.resolved()) {
+                state = new State<T>(factory);
+                return reference.get();
+            } else {
+                return null;
+            }
+        }
+
+        /**
+         * @author Tibor Varga
+         */
+        private static class State<T> {
+
+            private Factory<T> factory;
+            private T object;
+
+            State(final Factory<T> factory) {
+                assert factory != null;
+                this.factory = factory;
+            }
+
+            public final T get() {
+                if (factory != null) {
+                    object = factory.create();
+                    factory = null;
                 }
 
                 return object;

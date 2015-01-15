@@ -99,7 +99,7 @@ public final class Handler extends URLStreamHandler {
         PROTOCOL = canonicalName.substring(dot + 1, canonicalName.lastIndexOf('.'));
     }
 
-    private static final Deferred.Reference<Void> registration = Deferred.reference(new Deferred.Factory<Void>() {
+    private static final Deferred.Reference<Void> registration = Deferred.global(new Deferred.Factory<Void>() {
         public Void create() {
             try {
                 AccessController.doPrivileged(new PrivilegedAction<Void>() {

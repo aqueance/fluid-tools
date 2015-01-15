@@ -178,7 +178,7 @@ public class DeferredDependencyTest {
     @Component(automatic = false)
     private static class AnnotatedDependent1 {
 
-        public AnnotatedDependent1(final @Data("1") @Defer AnnotatedDependency deferred1,
+        public AnnotatedDependent1(final @Data("1") @Defer(global = false) AnnotatedDependency deferred1,
                                    final @Data("2") @Defer AnnotatedDependency deferred2,
                                    final @Data("1") AnnotatedDependency instance1,
                                    final @Data("2") AnnotatedDependency instance2) {
@@ -213,7 +213,7 @@ public class DeferredDependencyTest {
     private static class AnnotatedDependent2 {
 
         public AnnotatedDependent2(final @Data("3") @Defer AnnotatedDependency deferred1,
-                                   final @Data("4") @Defer AnnotatedDependency deferred2) {
+                                   final @Data("4") @Defer(global = false) AnnotatedDependency deferred2) {
             assert deferred1 != null;
             assert deferred2 != null;
 

@@ -34,7 +34,7 @@ import org.fluidity.foundation.Strings;
  */
 public final class AccessPermission extends Permission {
 
-    private final Deferred.Reference<Permission> delegate = Deferred.reference(new Deferred.Factory<Permission>() {
+    private final Deferred.Reference<Permission> delegate = Deferred.global(new Deferred.Factory<Permission>() {
         public Permission create() {
             final String spec = getName();
 

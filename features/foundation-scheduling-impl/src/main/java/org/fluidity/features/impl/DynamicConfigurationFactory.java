@@ -71,7 +71,7 @@ final class DynamicConfigurationFactory implements ComponentFactory {
         private final Deferred.Reference<Updates.Snapshot<T>> snapshot;
 
         DynamicConfigurationImpl(final Class<T> type, final Configuration<T> delegate, final Configuration<Settings> configuration, final Updates updates) {
-            this.snapshot = Deferred.reference(new Deferred.Factory<Updates.Snapshot<T>>() {
+            this.snapshot = Deferred.global(new Deferred.Factory<Updates.Snapshot<T>>() {
                 public Updates.Snapshot<T> create() {
                     return updates.snapshot(configuration.settings().period(), new Updates.Snapshot<T>() {
                         private Configuration.Query<T, T> all = new Configuration.Query<T, T>() {

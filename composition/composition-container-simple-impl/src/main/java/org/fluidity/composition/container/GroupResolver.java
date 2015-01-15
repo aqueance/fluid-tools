@@ -46,26 +46,7 @@ final class GroupResolver {
     private volatile int index;     // volatility only guarantees visibility; synchronization is used to guarantee atomicity of mutation
     private final Map<Class<?>, Integer> instantiated = new ConcurrentHashMap<Class<?>, Integer>(64);
 
-    private final ComponentContainer.Observer observer = new ComponentContainer.Observer() {
-        public void descending(final Class<?> declaringType,
-                               final Class<?> dependencyType,
-                               final Annotation[] typeAnnotations,
-                               final Annotation[] referenceAnnotations) {
-            // ignore
-        }
-
-        public void ascending(final Class<?> declaringType, final Class<?> dependencyType) {
-            // ignore
-        }
-
-        public void circular(final DependencyPath path) {
-            // ignore
-        }
-
-        public void resolved(final DependencyPath path, final Class<?> type) {
-            // ignore
-        }
-
+    private final ComponentContainer.Observer observer = new ComponentContainer.ObserverSupport() {
         public void instantiated(final DependencyPath path, final AtomicReference<?> ignored) {
             final Class<?> type = path.tail().type();
 

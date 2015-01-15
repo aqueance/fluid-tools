@@ -321,7 +321,7 @@ final class JettyBootstrap implements ServerBootstrap {
     @SuppressWarnings("unchecked")
     private static class NestedWebAppContext extends WebAppContext {
 
-        private Deferred.Reference<NestedMetaData> metaData = Deferred.reference(new Deferred.Factory<NestedMetaData>() {
+        private Deferred.Reference<NestedMetaData> metaData = Deferred.global(new Deferred.Factory<NestedMetaData>() {
             public NestedMetaData create() {
                 return new NestedMetaData(NestedWebAppContext.super.getMetaData());
             }

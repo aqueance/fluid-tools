@@ -21,8 +21,10 @@ import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Generics;
 
 /**
- * This factory makes it possible to depend on a lazy instantiated component when the deferred reference itself needs to be exposed. Use the {@link
- * Defer @Defer} annotation when the deferred reference itself is irrelevant.
+ * This factory makes it possible to depend on a lazily instantiated component when the {@link Deferred.Reference deferred reference} itself needs to be
+ * exposed. The injected deferred reference will <em>not</em> be thread safe.
+ * <p/>
+ * Use the {@link Defer @Defer} annotation with the type parameter alone when the deferred reference itself is irrelevant.
  *
  * @author Tibor Varga
  */
@@ -34,7 +36,7 @@ final class DeferredReferenceFactory implements ComponentFactory {
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
         final Dependency<?> dependency = dependencies.resolve(null, Generics.typeParameter(context.annotation(Component.Reference.class, null).type(), 0), null);
 
-        final Deferred.Reference<Object> reference = Deferred.reference(new Deferred.Factory<Object>() {
+        final Deferred.Reference<Object> reference = Deferred.local(new Deferred.Factory<Object>() {
             public Object create() {
                 return dependency.instance();
             }
