@@ -275,57 +275,35 @@ public final class Deferred extends Utility {
     private static class BareReference<T> implements Reference<T> {
 
         private final Factory<T> factory;
-        private State<T> state;
+        private T object;
+
+        private boolean pristine = true;
 
         BareReference(final Factory<T> factory) {
             this.factory = factory;
-            this.state = new State<T>(factory);
         }
 
         public T get() {
-            return state.get();
+            if (pristine) {
+                object = factory.create();
+                pristine = false;
+            }
+
+            return object;
         }
 
         public boolean resolved() {
-            return state.resolved();
+            return !pristine;
         }
 
         public T invalidate() {
-            final State<T> reference = state;
+            if (pristine) return null;
+            pristine = true;
 
-            if (reference.resolved()) {
-                state = new State<T>(factory);
-                return reference.get();
-            } else {
-                return null;
-            }
-        }
+            final T previous = object;
+            object = null;
 
-        /**
-         * @author Tibor Varga
-         */
-        private static class State<T> {
-
-            private Factory<T> factory;
-            private T object;
-
-            State(final Factory<T> factory) {
-                assert factory != null;
-                this.factory = factory;
-            }
-
-            public final T get() {
-                if (factory != null) {
-                    object = factory.create();
-                    factory = null;
-                }
-
-                return object;
-            }
-
-            public boolean resolved() {
-                return factory == null;
-            }
+            return previous;
         }
     }
 }
