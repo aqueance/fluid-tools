@@ -40,8 +40,9 @@ final class EmptyRegistry implements ComponentContainer.Registry {
 
     @SuppressWarnings("unchecked")
     public final <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
-        assert instance != null;
-        delegate.bindInstance(instance, Components.inspect((Class<T>) instance.getClass(), interfaces));
+        if (instance != null) {
+            delegate.bindInstance(instance, Components.inspect((Class<T>) instance.getClass(), interfaces));
+        }
     }
 
     public <T> void bindComponentGroup(final Class<T> group, final Class<? extends T>[] types) {
@@ -56,12 +57,12 @@ final class EmptyRegistry implements ComponentContainer.Registry {
 
     @SuppressWarnings("unchecked")
     public void bindFactory(final ComponentFactory factory, final Class<?>... interfaces) throws ComponentContainer.BindingException {
-        assert factory != null;
-        delegate.bindInstance(factory, Components.inspect(factory.getClass(), (Class[]) interfaces));
+        if (factory != null) {
+            delegate.bindInstance(factory, Components.inspect(factory.getClass(), (Class[]) interfaces));
+        }
     }
 
-    public final <T> ComponentContainer.Registry isolateComponent(final Class<T> type, final Class<? super T>... interfaces)
-            throws ComponentContainer.BindingException {
+    public final <T> ComponentContainer.Registry isolateComponent(final Class<T> type, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
         return delegate.makeChildContainer(Components.inspect(type, interfaces)).getRegistry();
     }
 }

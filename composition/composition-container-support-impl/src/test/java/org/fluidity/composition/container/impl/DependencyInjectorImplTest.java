@@ -317,7 +317,7 @@ public class DependencyInjectorImplTest extends Simulator {
                 });
 
                 assert component.context == created : component.context;
-                assert component.container != null : component.container;
+                assert component.container != null;
             }
         });
 
