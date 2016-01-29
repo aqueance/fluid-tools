@@ -41,7 +41,7 @@
         <skipTests>false</skipTests>
 
         <!-- Equinox versions earlier than 3.7 cannot be embedded, apparently -->
-        <equinox.version>3.9.1</equinox.version>
+        <equinox.version>3.10.100</equinox.version>
     </properties>
 
     <modules>
@@ -65,7 +65,7 @@
             <dependency>
                 <!--
                 Manual download from http://download.eclipse.org/equinox/
-                Rudimentary POM will suffice.
+                Rudimentary POM will suffice: https://maven.apache.org/guides/mini/guide-3rd-party-jars-local.html
                 -->
                 <groupId>org.eclipse</groupId>
                 <artifactId>equinox</artifactId>
