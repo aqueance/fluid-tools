@@ -56,4 +56,4 @@ $ mvn javadoc:aggregate
 Once that command completes, the documentation starting page will be `target/site/apidocs/index.html`.
 
 ### Documentation ###
-A short [Getting Started guide](GettingStarted.md) is provided to get you started with Fluid Tools, while the [User Guide](UserGuideIntroduction.md) covers the full spectrum of what you can do with Fluid Tools.
+A short [Getting Started guide](https://github.com/aqueance/fluid-tools/wiki/Getting-Started) is provided to get you started with Fluid Tools, while the [User Guide](https://github.com/aqueance/fluid-tools/wiki/User-Guide---Introduction) covers the full spectrum of what you can do with Fluid Tools.
