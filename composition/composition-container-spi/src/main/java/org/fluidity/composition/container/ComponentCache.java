@@ -20,8 +20,8 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.foundation.Log;
 
 /**
- * Caches components by <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">context</a> on behalf of a container. Instances of this
- * cache are provided for dependency injection container implementations to cache instantiated components.
+ * Caches components by <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#component-context">context</a> on behalf of a container.
+ * Instances of this cache are provided for dependency injection container implementations to cache instantiated components.
  * <p/>
  * This cache is thread safe.
  * <u3>Usage</u3>

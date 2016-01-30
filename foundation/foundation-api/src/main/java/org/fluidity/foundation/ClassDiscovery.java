@@ -17,9 +17,9 @@
 package org.fluidity.foundation;
 
 /**
- * Partially implements the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Service_Providers">service provider</a> discovery mechanism described
- * in the <a href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR File Specification</a>. The implementation is partial
- * because this component does not instantiate the service provider classes, it only finds them.
+ * Partially implements the <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#service-providers">service provider</a> discovery
+ * mechanism described in the <a href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR File Specification</a>. The
+ * implementation is partial because this component does not instantiate the service provider classes, it only finds them.
  * <p/>
  * The goal of this component is to find and return the list of <em>classes</em> that implement a given interface or extend a given class. To find <em>and
  * instantiate</em> those classes, use a dependency injected {@link org.fluidity.composition.ComponentGroup @ComponentGroup} annotated array parameter instead.

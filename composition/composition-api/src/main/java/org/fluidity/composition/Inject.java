@@ -24,8 +24,8 @@ import java.lang.annotation.Target;
 
 /**
  * This annotation is used to mark instance fields and/or constructors of a {@linkplain Component component} for
- * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency injection</a>. In case a constructor is marked, that
- * particular constructor will be used by the dependency injection container to instantiate the class. If there is only one (public) constructor then that
+ * <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#dependency-injection">dependency injection</a>. In case a constructor is marked,
+ * that particular constructor will be used by the dependency injection container to instantiate the class. If there is only one (public) constructor then that
  * needs <em>not</em> be marked with this annotation.
  * <p/>
  * The dependency injection container handles the annotated fields as well. If the component was instantiated by the container, no further action is necessary

@@ -24,8 +24,8 @@ package org.fluidity.foundation;
  * <p/>
  * The injected instance will be backed by an actual logging framework; which one is used depends on the {@link org.fluidity.foundation.spi.LogFactory} found
  * in the class path. Fluid Tools implements adapters for popular frameworks; see the <a
- * href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Logging_Alternatives">User Guide</a> for details. If no specific logging framework is configured,
- * the default one will be used that forwards all log messages to the standard output stream.
+ * href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Composition#logging-alternatives">User Guide</a> for details. If no specific logging
+ * framework is configured, the default one will be used that forwards all log messages to the standard output stream.
  * <h3>Log Levels</h3>
  * Log levels are queried from the underlying logging framework and cached. Invoke {@link org.fluidity.foundation.spi.LogLevels#updated()} to trigger reloading
  * the log level permissions.

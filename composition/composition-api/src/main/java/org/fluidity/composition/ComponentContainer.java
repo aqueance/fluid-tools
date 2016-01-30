@@ -54,7 +54,7 @@ import org.fluidity.foundation.Strings;
  * Components may be context dependent, meaning that distinct instances may be created for different contexts. Entire chains of dependencies, with components
  * themselves not necessarily context dependent, may be instantiated multiple times for different contexts. Although semantically correct, this may not be what
  * you expect so be aware of this effect when working with context dependent components. This is discussed in more detail in the <a
- * href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">User Guide</a>.
+ * href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Composition#working-with-component-contexts">User Guide</a>.
  * <p/>
  * Containers can also be used to peek into the static dependency graph of your application. This functionality is provided by the {@link
  * ObservedContainer} object returned by the {@link #observed(Observer) observed()} method.

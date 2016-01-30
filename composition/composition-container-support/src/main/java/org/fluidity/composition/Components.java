@@ -44,9 +44,9 @@ import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.Utility;
 
 /**
- * This utility is used to determine the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interfaces and group
- * interfaces</a> a class should be bound to when it is {@linkplain ComponentContainer.Registry#bindComponent(Class, Class[]) bound} to a dependency injection
- * container.
+ * This utility is used to determine the <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Introduction#definitions">component interfaces and
+ * group interfaces</a> a class should be bound to when it is {@linkplain ComponentContainer.Registry#bindComponent(Class, Class[]) bound} to a dependency
+ * injection container.
  * <p/>
  * Informally, the logic employed attempts to imitate the obvious choices one would make at a cursory glance. With regard to component interfaces, these are:
  * <ul>
@@ -457,9 +457,9 @@ public final class Components extends Utility {
     }
 
     /**
-     * List of <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interfaces</a> and corresponding
-     * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component group interfaces</a> for a component class. Instances are produced
-     * by {@link Components#inspect(Class, Class[]) Components.inspect()}.
+     * List of <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Introduction#component-interface">component interfaces</a> and corresponding
+     * <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Introduction#component-group-interface">component group interfaces</a> for a
+     * component class. Instances are produced by {@link Components#inspect(Class, Class[]) Components.inspect()}.
      * <h3>Usage</h3>
      * See {@link Components}
      */
@@ -525,9 +525,9 @@ public final class Components extends Utility {
     }
 
     /**
-     * A <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interface</a> and the associated
-     * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component group interfaces</a>. A list of these objects is returned as part of
-     * the {@link Interfaces} by {@link Components#inspect(Class, Class[]) Components.inspect()}.
+     * A <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Introduction#component-interface">component interface</a> and the associated
+     * <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Introduction#component-group-interface">component group interfaces</a>. A list of
+     * these objects is returned as part of the {@link Interfaces} by {@link Components#inspect(Class, Class[]) Components.inspect()}.
      * <h3>Usage</h3>
      * See {@link Components}
      */

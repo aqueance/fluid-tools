@@ -20,8 +20,8 @@ import java.lang.annotation.Annotation;
 
 /**
  * A node in a dependency graph where context annotations may be accepted and/or provided. An object implementing this interface is created for every component
- * class in a container and these objects help in the management of <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">component
- * context</a> when resolving dependencies.
+ * class in a container and these objects help in the management of
+ * <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#component-context">component context</a> when resolving dependencies.
  * <h3>Usage</h3>
  * You don't interact with an internal interface.
  *

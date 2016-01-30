@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Type;
 
 /**
- * Specifies the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interface(s)</a> that a class implements, which should
+ * Specifies the <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Introduction#component-interface">component interface(s)</a> that a class implements, which should
  * resolve to the annotated class at run time by a dependency injection container.
  * <p/>
  * This annotation is also a marker for the <code>org.fluidity.maven:composition-maven-plugin</code> Maven plugin to make configuration-free dependency
@@ -137,10 +137,10 @@ public @interface Component {
     Class<?> scope() default Object.class;
 
     /**
-     * Lists the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">context annotations</a> accepted by the annotated component
-     * class. These annotations distinguish instances of the same component class from one another. Such a annotation could, for instance, specify a database
-     * identifier for a database access component, etc. The component receives, as a {@link ComponentContext} argument of its constructor, the instances of
-     * its accepted annotations prevalent at the point of reference to the component.
+     * Lists the <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#component-context">context annotations</a> accepted by the
+     * annotated component class. These annotations distinguish instances of the same component class from one another. Such a annotation could, for instance,
+     * specify a database identifier for a database access component, etc. The component receives, as a {@link ComponentContext} argument of its constructor,
+     * the instances of its accepted annotations prevalent at the point of reference to the component.
      * <p/>
      * A special context is the parameterized type of the dependency reference to the context dependent component, {@link
      * Component.Reference @Component.Reference}.
@@ -249,9 +249,9 @@ public @interface Component {
     }
 
     /**
-     * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">Context annotation</a> that captures the parameterized type of a
-     * component reference. This is not an actual annotation from the Java syntax point of view &ndash; a Java annotation would not allow <code>Type</code> as
-     * the type of a parameter &ndash; but simply a run-time representation of an annotation to convey type information.
+     * <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Composition#working-with-component-contexts">Context annotation</a> that captures the
+     * parameterized type of a component reference. This is not an actual annotation from the Java syntax point of view &ndash; a Java annotation would not
+     * allow <code>Type</code> as the type of a parameter &ndash; but simply a run-time representation of an annotation to convey type information.
      * <h3>Usage</h3>
      * <pre>
      * {@linkplain Component @Component}

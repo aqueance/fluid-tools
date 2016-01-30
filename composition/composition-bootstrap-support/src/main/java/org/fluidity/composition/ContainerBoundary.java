@@ -43,10 +43,10 @@ import org.fluidity.foundation.spi.LogFactory;
 import static org.fluidity.foundation.Command.Process;
 
 /**
- * External access to a class loader specific <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency
- * injection</a> <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a>. This utility class ensures that
- * the container hierarchy of the host application matches the class loader hierarchy. The highest level class loader to have a container is the one that can
- * find the single dependency of this class: {@link ContainerProvider}.
+ * External access to a class loader specific <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#dependency-injection">dependency
+ * injection</a> <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#dependency-injection-containers">container</a>. This utility class
+ * ensures that the container hierarchy of the host application matches the class loader hierarchy. The highest level class loader to have a container is the
+ * one that can find the single dependency of this class: {@link ContainerProvider}.
  * <p/>
  * When instantiated, this class bootstraps all parent containers that have not yet been populated. Instances of this class all work against the same data
  * structure, thereby giving classes instantiated by third parties access to the container relevant to their level in the application's class loader hierarchy.
