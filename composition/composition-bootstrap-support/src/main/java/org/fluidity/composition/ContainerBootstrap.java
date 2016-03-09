@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,8 @@ interface ContainerBootstrap {
     MutableContainer populateContainer(ContainerServices services,
                                        ContainerProvider provider,
                                        Map properties,
-                                       MutableContainer parent, ClassLoader loader,
+                                       MutableContainer parent,
+                                       ClassLoader loader,
                                        Callback callback);
 
     /**

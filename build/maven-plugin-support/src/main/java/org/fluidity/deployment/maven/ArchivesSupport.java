@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public final class ArchivesSupport extends Utility {
             Archives.read(true, input.toURI().toURL(), new Archives.Entry() {
                 public boolean matches(final URL url, final JarEntry entry) throws IOException {
 
-                    // read all entries except the MANIFEST
+                    // match all entries except the MANIFEST
                     return feed.include(entry) && !entry.getName().equals(JarFile.MANIFEST_NAME);
                 }
 
@@ -77,7 +77,6 @@ public final class ArchivesSupport extends Utility {
                     if (!attributes.containsKey(entryName)) {
                         if (entryName.equals(Archives.INDEX_NAME)) {
                             log.warn(String.format("JAR index ignored in %s", url));
-                            return true;
                         } else if (entryName.startsWith(Archives.META_INF) && entryName.toUpperCase().endsWith(".SF")) {
                             throw new IOException(String.format("JAR signatures not supported in %s", url));
                         } else if (entryName.startsWith(ServiceProviders.LOCATION) && !entry.isDirectory()) {
@@ -91,11 +90,9 @@ public final class ArchivesSupport extends Utility {
                                 System.arraycopy(list, 0, combined, present.length, list.length);
                                 providers.put(entryName, combined);
                             }
-
-                            return true;
+                        } else {
+                            attributes.put(entryName, entry.getAttributes());
                         }
-
-                        attributes.put(entryName, entry.getAttributes());
                     } else if (!entry.isDirectory()) {
                         log.warn(String.format("Duplicate entry: %s", entryName));
                     }

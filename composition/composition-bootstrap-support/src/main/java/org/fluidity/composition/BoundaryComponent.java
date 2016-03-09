@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,9 @@ public abstract class BoundaryComponent {
      * Resolves the component dependency fields from components visible to the class loader that loaded the subclass.
      */
     protected BoundaryComponent() {
-        this.container = Containers.global(!Security.CONTROLLED ? getClass().getClassLoader() : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+
+        // 'this' can only be used after super() has been invoked (done automatically here)
+        this.container = Containers.global(!Security.CONTROLLED ? this.getClass().getClassLoader() : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
             public ClassLoader run() {
                 return BoundaryComponent.this.getClass().getClassLoader();
             }

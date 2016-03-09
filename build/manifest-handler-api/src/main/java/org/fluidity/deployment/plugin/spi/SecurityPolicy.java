@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,9 @@ import java.io.IOException;
  */
 public interface SecurityPolicy {
 
+    /**
+     * The system property that refers to the class path. Used to refer, in URLs within security policy files, to the containing archive.
+     */
     String JAVA_CLASS_PATH = "java.class.path";
 
     /**

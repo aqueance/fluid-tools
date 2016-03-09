@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,7 +109,7 @@ final class JavaSecurityPolicy implements SecurityPolicy {
             try {
                 final String content = Streams.load(Archives.open(cached, Archives.Nested.formatURL(url, entry)), "UTF-8", buffer, true);
 
-                if (content != null && !content.isEmpty()) {
+                if (!content.isEmpty()) {
                     final String file = archive.getName();
                     final String replacement = relativeReferences(location, file, absoluteReferences(location, file, content));
 
