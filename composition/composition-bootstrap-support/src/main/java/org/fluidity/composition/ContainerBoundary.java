@@ -299,7 +299,6 @@ public final class ContainerBoundary implements ComponentContainer {
     private List<MutableContainer> makeContainer() {
         initFinder();
 
-
         // list of class loaders from current one up the hierarchy
         final List<ClassLoader> classLoaders = new ArrayList<ClassLoader>();
 

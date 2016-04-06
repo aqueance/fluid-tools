@@ -31,6 +31,7 @@ import org.fluidity.deployment.cli.Application;
  *
  * @author Tibor Varga
  */
+@Component(automatic = false)
 public final class ShellApplicationBootstrap {
 
     /**
@@ -48,16 +49,16 @@ public final class ShellApplicationBootstrap {
     private final Application application;
 
     ShellApplicationBootstrap(final @Optional Application application) {
-        this.application = application;
-    }
-
-    private void run(final String[] arguments) throws Exception {
         if (application == null) {
             throw new IllegalStateException(String.format("Application not found; implement %s and annotate it with @%s",
                                                           Application.class.getName(),
                                                           Component.class.getSimpleName()));
-        } else {
-            application.run(arguments);
         }
+
+        this.application = application;
+    }
+
+    private void run(final String[] arguments) throws Exception {
+        application.run(arguments);
     }
 }
