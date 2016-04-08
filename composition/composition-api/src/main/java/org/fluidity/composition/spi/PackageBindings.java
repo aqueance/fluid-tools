@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.fluidity.composition.ServiceProvider;
  * by the component developer, in each package that contains component implementations. The goal of these classes is to add, to the supplied registry,
  * component bindings for component implementations in the respective package. The components thus bound may depend on other components in the container and
  * vice versa.
- * <p/>
+ * <p>
  * Placing the implementation of this interface in the same package as the components it binds allows those component classes to be package protected and thus
  * makes it possible to hide them from view to prevent careless use.
  * <h3>Usage</h3>
@@ -47,9 +47,11 @@ public interface PackageBindings extends ComponentContainer.Bindings {
      * ComponentContainer.Bindings.bindComponents()} method of all {@link PackageBindings} objects have been invoked and before any component is externally
      * accessed in the provided container.
      *
-     * @param container is the container that was populated by the {@link
+     * @param container the container that was populated by the {@link
      *                  org.fluidity.composition.ComponentContainer.Bindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)} method.
      * @param shutdown  allows registration of actions to be performed when the container shuts down.
+     *
+     * @throws Exception when an error occurs.
      */
     void initialize(OpenContainer container, ContainerTermination shutdown) throws Exception;
 }

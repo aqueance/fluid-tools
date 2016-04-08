@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -393,7 +393,7 @@ public final class Archives extends Utility {
     /**
      * Returns the URL for the JAR file that contains the given class. If the URL does not locate an archive, an attempt is made to find the root URL for the
      * class.
-     * <p/>
+     * <p>
      * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
      *
      * @param type the Java class to find.
@@ -507,7 +507,7 @@ public final class Archives extends Utility {
 
     /**
      * Returns the URL for the JAR file that loaded this class.
-     * <p/>
+     * <p>
      * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
      *
      * @return the URL for the JAR file that loaded this class.
@@ -690,7 +690,7 @@ public final class Archives extends Utility {
         /**
          * Returns the list of URLs pointing to the named list of embedded archives. The returned URLs can then be extended with further nested archives or
          * resources using the {@link Archives.Nested#formatURL(URL, String...) formatURL} method.
-         * <p/>
+         * <p>
          * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
          *
          * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
@@ -732,7 +732,7 @@ public final class Archives extends Utility {
         /**
          * Returns the list of custom nested dependency names in the given archive. The returned names can then be fed to {@link #dependencies(boolean,
          * String)}.
-         * <p/>
+         * <p>
          * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
          *
          * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
@@ -791,7 +791,7 @@ public final class Archives extends Utility {
      * <h3>Usage</h3>
      * <h4>Automatic Cache Eviction</h4>
      * <pre>
-     * final <span class="hl3">String[]</span> values = <span class="hl1">Archives.Cache</span>.{@linkplain #access(Command.Process) access}(new {@linkplain Command.Process}&lt;<span class="hl3">String[]</span>, <span class="hl3">IOException</span>>() {
+     * final <span class="hl3">String[]</span> values = <span class="hl1">Archives.Cache</span>.{@linkplain #access(Command.Process) access}(new {@linkplain Command.Process}&lt;<span class="hl3">String[]</span>, <span class="hl3">IOException</span>&gt;() {
      *   public <span class="hl3">String[]</span> run() throws <span class="hl3">IOException</span> {
      *     &hellip; // cache access
      *
@@ -801,7 +801,7 @@ public final class Archives extends Utility {
      * </pre>
      * <h4>Capturing Cache Contents</h4>
      * <pre>
-     * final <span class="hl3">Object</span> <span class="hl2">context</span> = <span class="hl1">Archives.Cache</span>.{@linkplain #access(Command.Process) access}(new {@linkplain Command.Process}&lt;<span class="hl3">Object</span>, RuntimeException>() {
+     * final <span class="hl3">Object</span> <span class="hl2">context</span> = <span class="hl1">Archives.Cache</span>.{@linkplain #access(Command.Process) access}(new {@linkplain Command.Process}&lt;<span class="hl3">Object</span>, RuntimeException&gt;() {
      *   public <span class="hl3">Object</span> run() {
      *     &hellip; // cache access
      *
@@ -811,7 +811,7 @@ public final class Archives extends Utility {
      *
      * &hellip;
      *
-     * final <span class="hl3">String[]</span> values = <span class="hl1">Archives.Cache</span>.{@linkplain #access(Object, Command.Process) access}(<span class="hl2">context</span>, new {@linkplain Command.Process}&lt;<span class="hl3">String[]</span>, <span class="hl3">IOException</span>>() {
+     * final <span class="hl3">String[]</span> values = <span class="hl1">Archives.Cache</span>.{@linkplain #access(Object, Command.Process) access}(<span class="hl2">context</span>, new {@linkplain Command.Process}&lt;<span class="hl3">String[]</span>, <span class="hl3">IOException</span>&gt;() {
      *   public <span class="hl3">String[]</span> run() throws <span class="hl3">IOException</span> {
      *     &hellip; // computation
      *
@@ -828,14 +828,16 @@ public final class Archives extends Utility {
 
         /**
          * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
-         * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method by a new thread made while this call
-         * was still in scope.
+         * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method by a new thread made while this call was
+         * still in scope.
          *
          * @param command the command that potentially accesses nested archives.
          * @param <T>     the return type of the command.
          * @param <E>     the exception type thrown by the command.
          *
          * @return whatever the command returns.
+         *
+         * @throws E the exception that the given command can potentially throw.
          */
         public static <T, E extends Exception> T access(final Process<T, E> command) throws E {
             return Handler.access(command);
@@ -856,11 +858,11 @@ public final class Archives extends Utility {
 
         /**
          * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
-         * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method by a new thread made while this call
-         * was still in scope.
-         * <p/>
-         * The initial content of the cache will consist of what has been {@linkplain #capture captured} in the given <code>context</code> and
-         * whatever else is in the cache at the point of invocation.
+         * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method by a new thread made while this call was
+         * still in scope.
+         * <p>
+         * The initial content of the cache will consist of what has been {@linkplain #capture captured} in the given <code>context</code> and whatever else is
+         * in the cache at the point of invocation.
          *
          * @param context the cache contents captured using a previous {@link #capture} call.
          * @param command the command that potentially accesses nested archives.
@@ -868,6 +870,8 @@ public final class Archives extends Utility {
          * @param <E>     the exception type thrown by the command.
          *
          * @return whatever the command returns.
+         *
+         * @throws E the exception that the given command can potentially throw.
          */
         public static <T, E extends Exception> T access(final Object context, final Process<T, E> command) throws E {
             return Handler.access(context, command);

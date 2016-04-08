@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,18 +26,18 @@ import org.fluidity.composition.ComponentContext;
 
 /**
  * Maintains context state during dependency resolution. This is an internal interface to be used by dependency injection container implementations.
- * <p/>
+ * <p>
  * For any context dependent component, the context state consists of two sets of annotations: defined set and active set.
- * <p/>
+ * <p>
  * The defined set contains all the annotations that have been defined along
  * an instantiation path and is computed as we move downstream in the path by adding new context annotations to it.
- * <p/>
+ * <p>
  * The active set is computed as we go backward on the instantiation path by adding context annotations from the defined set that are accepted by components
  * on the path and removing them as we pass their definition.
- * <p/>
+ * <p>
  * The active set is the component context that is passed to context dependent components and used also as a {@linkplain ComponentCache cache} key for
  * stateless (i.e., cacheable) components regardless of whether they themselves are context dependent or not.
- * <p/>
+ * <p>
  * The above is implemented by<ol>
  * <li>{@linkplain ContainerServices#emptyContext() creating an empty context} definition object at the tail of some dependency path</li>
  * <li>{@linkplain #advance(Type, boolean) advancing} to the next node along that path as we move downstream to each dependency of the current component and
@@ -51,7 +51,7 @@ import org.fluidity.composition.ComponentContext;
  * component</li>
  * <li>passing the resulting definition upstream.</li>
  * </ol>
- * <p/>
+ * <p>
  * This context tracking algorithm ensures that between the component that defines some context and the ones that consume it, all intermediate components will
  * also have a dedicated instance for the active context. This may appear counter-intuitive at first but this rule guarantees that context dependent components
  * will indeed have a unique and isolated instance for each actual context in the application.

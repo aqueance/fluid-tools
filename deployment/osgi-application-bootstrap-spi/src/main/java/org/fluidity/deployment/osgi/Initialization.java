@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.osgi.framework.launch.Framework;
 /**
  * Optional components for a standalone OSGi application to initialize the OSGi framework after it has been started but before any of the bundles have. The
  * receiver can set start levels, initialize conditional permissions, install or remove bundles, etc.
- * <p/>
+ * <p>
  * If the receiver stops the <code>framework</code>, the application will terminate.
  * <h3>Usage</h3>
  * <pre>

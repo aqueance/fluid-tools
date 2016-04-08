@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,19 +37,19 @@ import org.fluidity.composition.ServiceProvider;
  * This container automatically finds, loads, and manages all implementations of the {@link org.fluidity.deployment.osgi.BundleComponents.Managed Managed} interface visible to its class loader, which is
  * the OSGi bundle class loader. Implementations of the <code>Managed</code> interface include more specific components that implement {@link org.fluidity.deployment.osgi.BundleComponents.Registration
  * Registration} and {@link org.fluidity.deployment.osgi.BundleComponents.Registration.Listener Registration.Listener}.
- * <p/>
+ * <p>
  * By design, you never directly use this interface. Rather, you implement your bundle as a collection of components managed by this container.
- * <p/>
+ * <p>
  * <b>Note</b>: Managed components cannot consume or transmit component context. Each bundle will have exactly zero or one instance of every managed component
  * in the empty context and their dependency references will have an empty base context.
  * <h3>Depending on OSGi Services</h3>
  * The dependencies of <code>Managed</code> components annotated with the {@link Service @Service} are dependencies to OSGi services while parameters not so
  * annotated are ordinary dependencies.
- * <p/>
+ * <p>
  * When all of the OSGi services depended on, directly or indirectly through other <code>Managed</code> components, become available, the component is
  * instantiated and its {@link org.fluidity.deployment.osgi.BundleComponents.Managed#start() start()} method is invoked to start the component. The {@link org.fluidity.deployment.osgi.BundleComponents.Stoppable#stop() stop()} method of the component
  * will be invoked when any of those OSGi services becomes unavailable and then the component instance is discarded.
- * <p/>
+ * <p>
  * An OSGi service referenced as a Java interface will be able to see classes in the local OSGi bundle as well as the bundle that exports it.
  * <h4>Example</h4>
  * <pre>
@@ -118,7 +118,7 @@ import org.fluidity.composition.ServiceProvider;
  *   &hellip;
  *
  *   public void check() {
- *       final Collection&lt;Class&lt;?>> failed = status.<span class="hl1">failedComponents</span>();
+ *       final Collection&lt;Class&lt;?&gt;&gt; failed = status.<span class="hl1">failedComponents</span>();
  *       &hellip;
  *   }
  * }
@@ -130,7 +130,7 @@ public interface BundleComponents {
 
     /**
      * A managed component that will be discovered and added to the bundle's container.
-     * <p/>
+     * <p>
      * Managed components may have two kinds of dependencies: OSGi service interfaces annotated with {@link org.fluidity.deployment.osgi.Service @Service} and ordinary types denoting
      * components in the same bundle.
      * </p>
@@ -156,12 +156,12 @@ public interface BundleComponents {
      * {@linkplain BundleComponents.Managed#stop() stopped} by its managing container. In terms of the <a
      * href="http://www.osgi.org/wiki/uploads/Links/whiteboard.pdf">Whiteboard pattern</a>, this is an event consumer that an event source will discover and
      * send events to.
-     * <p/>
+     * <p>
      * The {@link Service.Type} annotation can be used to explicitly specify the service interfaces, which default to those
      * directly implemented by the service class, less {@link BundleComponents.Registration}. If the service class does not directly implement
      * interface, its super class is consulted. If the service class or its ancestor being checked does not have a super class, the class itself will be the
      * service interface.
-     * <p/>
+     * <p>
      * This is a {@link Managed} component thus the start / stop logic described therein applies.
      *
      * @author Tibor Varga
@@ -178,7 +178,7 @@ public interface BundleComponents {
         /**
          * An OSGi service registration listener. In terms of the <a href="http://www.osgi.org/wiki/uploads/Links/whiteboard.pdf">Whiteboard pattern</a>, this
          * is an event source that will receive notifications about event consumer registrations.
-         * <p/>
+         * <p>
          * This is a {@link Managed} component thus the start / stop logic described therein applies.
          *
          * @param <T> the type of the component whose registration events this is a listener for.
@@ -214,7 +214,7 @@ public interface BundleComponents {
 
     /**
      * Super-interface for the various {@linkplain BundleComponents.Managed managed} component interfaces.
-     * <p/>
+     * <p>
      * <b>NOTE</b>: You never use this interface directly but through more specific interfaces such as {@link Managed}, {@link Registration}, and
      * {@link Registration.Listener}.
      *

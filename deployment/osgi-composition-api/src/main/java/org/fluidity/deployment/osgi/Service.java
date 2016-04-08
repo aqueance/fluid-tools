@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,10 @@ import org.fluidity.composition.Component;
 /**
  * Annotates method parameters of a {@link BundleComponents.Managed} component that require an OSGi service instance to resolve. Parameters not so annotated
  * are resolved from the in-bundle dependency injection container(s). See {@link BundleComponents} for details on managed components.
- * <p/>
+ * <p>
  * This annotation applies to constructor parameters but not to fields as a component that depends on OSGi services is not expected to be instantiated until
  * all of its constructor parameters annotated with this type have been registered in the OSGi service registry.
- * <p/>
+ * <p>
  * An OSGi service referenced as a Java interface will be able to see classes in the local OSGi bundle as well as the bundle that exports it.
  */
 @Documented

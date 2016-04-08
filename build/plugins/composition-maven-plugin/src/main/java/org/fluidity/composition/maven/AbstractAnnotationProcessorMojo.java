@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ import org.objectweb.asm.Type;
 /**
  * Mojos that find in a bunch of class files all implementations of a service provider interface, create a service provider file as per the JAR file
  * specification, find all components, generate a package bindings class for each and add these package bindings as service provider descriptor files.
- * <p/>
+ * <p>
  * Subclasses should call {@link AbstractAnnotationProcessorMojo#processDirectory(java.io.File, java.io.File...)} with the directory containing the classes to
  * process. The Maven build object can be obtained by calling {@link AbstractAnnotationProcessorMojo#build()}.
  *

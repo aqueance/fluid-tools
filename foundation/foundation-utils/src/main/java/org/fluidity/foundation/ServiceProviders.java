@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -159,6 +159,8 @@ public final class ServiceProviders extends Utility {
     /**
      * Finds all classes visible to the given class loader that implement or extend the given service provider interface.
      *
+     * @param type     the service provider type; Java uses <code>"services"</code>  while Fluid Tools allow any name here using @{@link
+     *                 org.fluidity.composition.ServiceProvider#type() ServiceProvider(type = "&hellip;")}.
      * @param api      the interface or class all discovered classes should implement or extend.
      * @param loader   the class loader to use to find the classes.
      * @param strict   specifies whether to find classes directly visible to the given class loader (<code>true</code>) or indirectly via any of its parent

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,12 +35,12 @@ public final class Methods extends Utility {
 
     /**
      * Finds method objects in a refactoring friendly way.
-     * <p/>
+     * <p>
      * <b>Note</b>: only works on interface methods.
      * <h3>Usage</h3>
      * Let's say you need to find the {@link java.io.Closeable#close()} method at run time:
      * <pre>
-     * final {@linkplain Method} closeMethod = <span class="hl1">Methods.get</span>(<span class="hl2">Closeable</span>.class, new <span class="hl1">Methods.Invoker</span>&lt;<span class="hl2">Closeable</span>>() {
+     * final {@linkplain Method} closeMethod = <span class="hl1">Methods.get</span>(<span class="hl2">Closeable</span>.class, new <span class="hl1">Methods.Invoker</span>&lt;<span class="hl2">Closeable</span>&gt;() {
      *   public void <span class="hl1">invoke</span>(final <span class="hl2">Closeable</span> capture) {
      *     capture.<span class="hl2">close</span>();
      *   }

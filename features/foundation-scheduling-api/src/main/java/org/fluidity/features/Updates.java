@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,13 @@ package org.fluidity.features;
 /**
  * Periodic update facility. Components wishing to periodically update some data should call {@link #snapshot(long, Snapshot)} upon initialization and then
  * use {@link Snapshot#get()} on the returned snapshot every time they wish to access the periodically updated data.
- * <p/>
+ * <p>
  * <b>NOTE</b>: This component is designed not to keep a hard reference to any object that registers for updates and thus is a preferred way to the
  * {@link Scheduler} component of implementing periodic updates.
- * <p/>
+ * <p>
  * The granularity of the updates can be configured by implementing a {@link org.fluidity.foundation.spi.PropertyProvider} component that returns a valid
  * number for the {@link #UPDATE_GRANULARITY} key. The default period granularity is 1 second.
- * <p/>
+ * <p>
  * See {@link org.fluidity.foundation.Configuration} for details on configuration.
  * <h3>Usage</h3>
  * <pre>
@@ -34,10 +34,10 @@ package org.fluidity.features;
  *
  *   private static final long period = {@linkplain java.util.concurrent.TimeUnit#MILLISECONDS}.{@linkplain java.util.concurrent.TimeUnit#convert(long, java.util.concurrent.TimeUnit) convert}(1, {@linkplain java.util.concurrent.TimeUnit#SECONDS});
  *
- *   private final <span class="hl1">Updates.Snapshot</span>&lt;<span class="hl3">Data</span>> data;
+ *   private final <span class="hl1">Updates.Snapshot</span>&lt;<span class="hl3">Data</span>&gt; data;
  *
  *   <span class="hl2">MyComponent</span>(final <span class="hl1">Updates</span> updates) {
- *     data = updates.<span class="hl1">snapshot</span>(period, new <span class="hl1">Updates.Snapshot</span>&lt;<span class="hl3">Data</span>>() {
+ *     data = updates.<span class="hl1">snapshot</span>(period, new <span class="hl1">Updates.Snapshot</span>&lt;<span class="hl3">Data</span>&gt;() {
  *       public <span class="hl3">Data</span> get() {
  *         return &hellip;;  // update the data
  *       }
@@ -69,13 +69,13 @@ public interface Updates {
     String UPDATE_GRANULARITY = "org.fluidity.features.update-granularity-ms";
 
     /**
-     * Creates a periodically updated on-demand snapshot for some data. The the data is loaded by the given <code>loader</code>, which will be invoked <id>no
-     * more frequently</id> than every <code>period</code> milliseconds.
-     * <p/>
+     * Creates a periodically updated on-demand snapshot for some data. The the data is loaded by the given <code>loader</code>, which will be invoked <i>no
+     * more frequently</i> than every <code>period</code> milliseconds.
+     * <p>
      * The actual data update is implemented by the supplied <code>loader</code>, which will be invoked at most once every <code>period</code> milliseconds.
      * The data will be loaded once before this method returns and after that <i>only</i> when the {@link Snapshot#get()} method is invoked on the returned
      * value.
-     * <p/>
+     * <p>
      * The {@linkplain Updates#UPDATE_GRANULARITY update granularity} configured for this component will pose as the lower bound to any <i>positive</i>
      * <code>period</code> specified to this method.If the <code>period</code> specified is <code>0</code>, the snapshot will be taken once and then cached
      * forever. If the <code>period</code> is negative, no snapshot will be cached and the loader will be invoked at every invocation of {@link Snapshot#get()}.

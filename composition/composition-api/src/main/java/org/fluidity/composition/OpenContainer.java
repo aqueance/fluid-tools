@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ public interface OpenContainer extends ComponentContainer {
     /**
      * Looks up by interface or (super)class and returns a component. This method is provided for boundary objects (objects created outside the container by
      * third party tools) to acquire their dependencies. If there was no explicit binding to the provided class, no component is returned.
-     * <p/>
+     * <p>
      * <b>Note</b>: This method does not allow modification of the component context at the point of invocation so rather than reaching into the container with
      * this method, a better way is to call {@link ComponentContainer#instantiate(Class, ComponentContainer.Bindings...)} to gain access to
      * components in this container.
@@ -73,7 +73,7 @@ public interface OpenContainer extends ComponentContainer {
      * interface itself, has been marked with the {@link ComponentGroup @ComponentGroup} annotation. This method is provided for boundary objects (objects
      * created outside the container by third party tools) to acquire their dependencies. If there was no explicit binding to the provided class, no component
      * is returned.
-     * <p/>
+     * <p>
      * <b>Note</b>: This method does not allow modification of the component context at the point of invocation so rather than reaching into the container with
      * this method, a better way is to call {@link ComponentContainer#instantiate(Class, ComponentContainer.Bindings...)} to gain access to
      * components in this container.

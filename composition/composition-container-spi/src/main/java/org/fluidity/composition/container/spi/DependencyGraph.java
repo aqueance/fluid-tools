@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.fluidity.composition.container.ContextDefinition;
 
 /**
  * A dependency graph of components and component groups. This is an internal interface implemented by dependency injection containers.
- * <p/>
+ * <p>
  * The graph is backed by static and dynamic dependencies between components. Static dependencies are those that can be discovered without instantiating
  * components while dynamic dependencies are those that require component instantiation to manifest.
  * <h3>Usage</h3>
@@ -158,7 +158,7 @@ public interface DependencyGraph {
          * Notifies the traversal's observer, if any, about the instantiation of the given type. See {@link
          * org.fluidity.composition.ComponentContainer.Observer#instantiated(DependencyPath,
          * java.util.concurrent.atomic.AtomicReference) ComponentContainer.Observer.instantiated()} for details.
-         * <p/>
+         * <p>
          * <b>Note:</b> the receiver will <i>not</i> call any method on the
          * instantiated object while executing this method.
          *

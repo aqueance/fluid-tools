@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,11 +55,11 @@ import static org.fluidity.foundation.Command.Process;
 
 /**
  * {@linkplain URLStreamHandler Stream protocol handler} to work with resources inside JAR archives embedded in other JAR archives, ad infinitum.
- * <p/>
+ * <p>
  * When loaded, it adds its enclosing package to the protocol handler package list to make itself known. This stream protocol handler makes it possible for an
  * ordinary {@link java.net.URLClassLoader} to work with JAR archives embedded in other JAR archives, enabling packaged Java applications without loss of
  * functionality such as signed JAR files, etc.
- * <p/>
+ * <p>
  * To use this stream handler, all you need to do is {@linkplain #formatURL(URL, String...) create} URLs that map to this stream protocol handler. For
  * example, if you have a JAR archive named <code>my-archive.jar</code> that embeds another JAR archive, <code>my-dependency.jar</code>, the following will
  * create an URL that can then be fed to an URL class loader:
@@ -325,6 +325,8 @@ public final class Handler extends URLStreamHandler {
      * @param <E>     the exception type thrown by the command.
      *
      * @return whatever the command returns.
+     *
+     * @throws E as is thrown by the command.
      */
     public static <T, E extends Exception> T access(final Process<T, E> command) throws E {
         return Cache.access(command);
@@ -347,7 +349,7 @@ public final class Handler extends URLStreamHandler {
      * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
      * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method by a new thread made while this call
      * was still in scope.
-     * <p/>
+     * <p>
      * The initial content of the cache will consist of what has been {@linkplain #capture(boolean) captured} in the given <code>context</code> and
      * whatever else is in the cache at the point of invocation.
      *
@@ -357,6 +359,8 @@ public final class Handler extends URLStreamHandler {
      * @param <E>     the exception type thrown by the command.
      *
      * @return whatever the command returns.
+     *
+     * @throws E as is thrown by the command.
      */
     public static <T, E extends Exception> T access(final Object context, final Process<T, E> command) throws E {
         return Cache.access(context, command);
@@ -379,7 +383,7 @@ public final class Handler extends URLStreamHandler {
         return directory(root.getPath()) ? new URL(root, resource) : Handler.formatURL(root, resource);
     }
 
-    static boolean directory(final String name) {
+    private static boolean directory(final String name) {
         return name.isEmpty() || name.endsWith("/") || name.endsWith("\\");
     }
 
@@ -390,7 +394,7 @@ public final class Handler extends URLStreamHandler {
      */
     private static class Singleton {
 
-        public static final Handler INSTANCE = new Handler();
+        static final Handler INSTANCE = new Handler();
     }
 
     /**
@@ -659,7 +663,7 @@ public final class Handler extends URLStreamHandler {
          * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
          * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method by a new thread made while this call
          * was still in scope.
-         * <p/>
+         * <p>
          * The initial content of the cache will consist of what has been {@linkplain #capture(boolean) captured} in the given <code>context</code> and
          * whatever else is in the cache at the point of invocation.
          *

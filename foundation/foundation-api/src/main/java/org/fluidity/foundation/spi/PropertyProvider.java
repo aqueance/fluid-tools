@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,8 @@ public interface PropertyProvider {
          * Atomic access to the properties.
          *
          * @return whatever the caller wants {@link PropertyProvider#properties(PropertyProvider.Query)} PropertyProvider.properties()} returned.
+         *
+         * @throws Exception when some error occurs.
          */
         T run() throws Exception;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#dependency-injection">dependency injection</a>. In case a constructor is marked,
  * that particular constructor will be used by the dependency injection container to instantiate the class. If there is only one (public) constructor then that
  * needs <em>not</em> be marked with this annotation.
- * <p/>
+ * <p>
  * The dependency injection container handles the annotated fields as well. If the component was instantiated by the container, no further action is necessary
  * on the part of the developer. To inject the fields of a manually instantiated component, call {@link ComponentContainer#initialize(Object)
  * ComponentContainer.initialize()} on a suitable container.

@@ -87,6 +87,8 @@ public interface SecurityPolicy {
      * Updates the the metadata based on the policy files that have been loaded. Passing <code>null</code> for the value of some entry will delete that entry.
      *
      * @param metadata the metadata to update.
+     *
+     * @throws IOException on I/O failure.
      */
     void update(Output metadata) throws IOException;
 

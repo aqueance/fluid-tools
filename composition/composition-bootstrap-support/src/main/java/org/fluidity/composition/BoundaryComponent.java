@@ -24,7 +24,7 @@ import org.fluidity.foundation.Security;
 /**
  * An abstract class to extend by components at the edge of the application to enjoy field based dependency injection. The class extending this one must
  * declare its dependencies as {@link Inject @Inject} annotated non <code>final</code> instance fields, and call one of the constructors of this class.
- * <p/>
+ * <p>
  * In cases where class extension is not possible, simply use the following code in the constructor, or something similar:
  * <pre>
  * {@linkplain Containers Containers}.{@linkplain org.fluidity.composition.Containers#global(ClassLoader) global}(getClass().getClassLoader()).{@linkplain ComponentContainer#initialize(Object) initialize}(this);

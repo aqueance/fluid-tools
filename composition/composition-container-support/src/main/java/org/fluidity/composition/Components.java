@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,17 +47,17 @@ import org.fluidity.foundation.Utility;
  * This utility is used to determine the <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Introduction#definitions">component interfaces and
  * group interfaces</a> a class should be bound to when it is {@linkplain ComponentContainer.Registry#bindComponent(Class, Class[]) bound} to a dependency
  * injection container.
- * <p/>
+ * <p>
  * Informally, the logic employed attempts to imitate the obvious choices one would make at a cursory glance. With regard to component interfaces, these are:
  * <ul>
  * <li>no {@link Component @Component} annotation is necessary, it is merely there to automate the component binding and to provide parameters thereto</li>
  * <li>a class implementing no interface and extending no superclass is bound to itself</li>
  * <li>a class directly implementing some interfaces is bound to those interfaces</li>
  * </ul>
- * <p/>
+ * <p>
  * With regard to component groups, a component class will be bound to all component groups that it inherits via its class ancestry and any interface
  * implemented by it and any of its ancestors.
- * <p/>
+ * <p>
  * The formal rules for discovering the component interfaces are described by the following recursive algorithm. The term <em>original class</em> denotes the
  * class the algorithm was originally invoked with, while the term <em>the class</em> denotes the class currently under examination by the recursive algorithm.
  * <ol>
@@ -75,9 +75,9 @@ import org.fluidity.foundation.Utility;
  * <li>If the class implements no interfaces directly and its super class is not <code>Object</code> then this algorithm repeats for the super class.</li>
  * <li>If the class directly implements one or more interfaces then the algorithm returns <u>those interfaces</u>.</li>
  * </ol>
- * <p/>
+ * <p>
  * Once the above algorithm has completed, the list of group interfaces is calculated using the algorithm below for each class returned by the algorithm.
- * <p/>
+ * <p>
  * The rules for component group interface discovery are described by the following recursive algorithm. The algorithm is triggered individually for the
  * original class and each component interfaces identified by the recursive algorithm above, and the terms <em>original class</em> and <em>this class</em> will
  * be understood relative to each individual invocation of the algorithm.
@@ -95,7 +95,7 @@ import org.fluidity.foundation.Utility;
  * <li>The algorithm repeats for each directly implemented interface and the super class.</li>
  * <li>If the class is <code>Object</code>, the algorithm returns <u>nothing</u>.</li>
  * </ol>
- * <p/>
+ * <p>
  * Once the above algorithm has completed, the following adjustments are made to the final result:
  * <ul>
  * <li>the component class or, in case of a <code>ComponentFactory</code> implementation, the classes referenced in its <code>@Component(api = &hellip;)</code>

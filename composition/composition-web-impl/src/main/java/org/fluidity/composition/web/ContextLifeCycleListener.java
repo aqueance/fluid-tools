@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,15 +31,15 @@ import org.fluidity.composition.web.impl.TerminationControl;
  * This listener is registered in a <code>web.xml</code> descriptor of a web application prior to Servlet 3.0. For Servlet 3.0 applications, the archive
  * containing this class ships with a web fragment that does the same.
  * <pre>
- * &lt;web-app &hellip;>
+ * &lt;web-app &hellip;&gt;
  * &hellip;
- *   &lt;listener>
- *     &lt;description>Manages the Fluid Tools container life cycle&lt;/description>
- *     &lt;display-name>Fluid Tools Web Application Life-Cycle Listener&lt;/display-name>
- *     &lt;listener-class><span class="hl1">org.fluidity.composition.web.ContextLifeCycleListener</span>&lt;/listener-class>
- *   &lt;/listener>
+ *   &lt;listener&gt;
+ *     &lt;description&gt;Manages the Fluid Tools container life cycle&lt;/description&gt;
+ *     &lt;display-name&gt;Fluid Tools Web Application Life-Cycle Listener&lt;/display-name&gt;
+ *     &lt;listener-class&gt;<span class="hl1">org.fluidity.composition.web.ContextLifeCycleListener</span>&lt;/listener-class&gt;
+ *   &lt;/listener&gt;
  * &hellip;
- * &lt;/web-app>
+ * &lt;/web-app&gt;
  * </pre>
  */
 public final class ContextLifeCycleListener extends BoundaryComponent implements ServletContextListener {

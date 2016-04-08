@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ package org.fluidity.deployment.cli;
  * method. The command line application simply provides an implementation of this interface that is annotated with {@link
  * org.fluidity.composition.Component @Component}, in a JAR file produced by Maven and processed by the
  * <code>org.fluidity.maven:composition-maven-plugin</code> Maven plugin.
- * <p/>
+ * <p>
  * The application exits when the call to the {@link #run(String[]) run()} method returns unless the developer has started and failed to stop non-daemon
  * threads.
  * <h3>Usage</h3>

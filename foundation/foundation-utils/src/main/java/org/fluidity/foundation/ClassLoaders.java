@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ public final class ClassLoaders extends Utility {
      * Finds the named resource in the class loader appropriate for the given class. See {@link #findClassLoader(Class, boolean)
      * ClassLoaders.findClassLoader(type, true)} for the definition of <em>appropriate</em>. The resource name is computed from a format string and its
      * parameters.
-     * <p/>
+     * <p>
      * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
      *
      * @param type   the class to use the appropriate class loader for.
@@ -97,13 +97,15 @@ public final class ClassLoaders extends Utility {
 
     /**
      * Finds the named resources in the given class loader. The resource name is computed from a format string and its parameters. The returned list will not
-     *  contain duplicates.
+     * contain duplicates.
      *
      * @param loader the class loader.
      * @param format the format string.
      * @param params the parameters of the format string.
      *
      * @return the list of URLs for the resource; possibly empty.
+     *
+     * @throws IOException when I/O exception occurs.
      */
     public static Collection<URL> findResources(final ClassLoader loader, final String format, final Object... params) throws IOException {
 
@@ -115,7 +117,7 @@ public final class ClassLoaders extends Utility {
      * Finds the named resource in the class loader appropriate for the given class and returns an input stream to read its contents. See {@link
      * #findClassLoader(Class, boolean) ClassLoaders.findClassLoader(type, true)} for the definition of <em>appropriate</em>. The resource name is computed
      * from a format string and its parameters.
-     * <p/>
+     * <p>
      * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
      *
      * @param type   the class to use the appropriate class loader for.
@@ -155,7 +157,7 @@ public final class ClassLoaders extends Utility {
 
     /**
      * Returns the resource URL where the given class may be loaded from.
-     * <p/>
+     * <p>
      * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
      *
      * @param type the class to return the resource URL for.
@@ -168,7 +170,7 @@ public final class ClassLoaders extends Utility {
 
     /**
      * Returns the input stream where the given class may be loaded from.
-     * <p/>
+     * <p>
      * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
      *
      * @param type the class to return the resource URL for.
@@ -182,7 +184,7 @@ public final class ClassLoaders extends Utility {
     /**
      * Sets the given class loader as the {@linkplain Thread#setContextClassLoader(ClassLoader) context class loader} and returns the previous context class
      * loader.
-     * <p/>
+     * <p>
      * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> and {@link RuntimePermission} <code>"setContextClassLoader"</code>
      * permissions.
      *
@@ -203,7 +205,7 @@ public final class ClassLoaders extends Utility {
     /**
      * Sets as the {@linkplain Thread#setContextClassLoader(ClassLoader) context class loader} the one that loaded the given class and returns the previous
      * context class loader.
-     * <p/>
+     * <p>
      * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> and {@link RuntimePermission} <code>"setContextClassLoader"</code>
      * permissions.
      *
@@ -218,14 +220,14 @@ public final class ClassLoaders extends Utility {
     /**
      * Establishes the given class loader as the {@linkplain Thread#setContextClassLoader(ClassLoader) context class loader}, executes the given command, and
      * then establishes the previous context class loader before returning whatever the command returned, or throwing whatever the command threw.
-     * <p/>
+     * <p>
      * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> and {@link RuntimePermission} <code>"setContextClassLoader"</code>
      * permissions.
      * <h3>Usage</h3>
      * <pre>
      * final {@linkplain ClassLoader} loader = &hellip;;
      *
-     * final boolean success = {@linkplain ClassLoaders}.<span class="hl1">context</span>(loader, new Command.Function&lt;Boolean, {@linkplain ClassLoader}, {@linkplain RuntimeException}>() {
+     * final boolean success = {@linkplain ClassLoaders}.<span class="hl1">context</span>(loader, new Command.Function&lt;Boolean, {@linkplain ClassLoader}, {@linkplain RuntimeException}&gt;() {
      *   public Boolean run(final {@linkplain ClassLoader} loader) throws {@linkplain RuntimeException} {
      *     &hellip; // call some library that uses the {@linkplain Thread#getContextClassLoader() thread context class loader}
      *     return true;

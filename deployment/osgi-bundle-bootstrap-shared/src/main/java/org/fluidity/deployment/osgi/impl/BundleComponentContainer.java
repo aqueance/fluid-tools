@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.fluidity.composition.ComponentContainer;
 /**
  * Component life cycle management backed by the OSGi service registry. This container provides the functionality described for {@link
  * org.fluidity.deployment.osgi.BundleComponents}.
- * <p/>
+ * <p>
  * *Note*: this class is <code>only</code> public to allow access to it from an OSGi  bundle by the bundle's class loader.
  *
  * @param <T> identifies the class the class loader of which to use to populate the bundle's dependency injection container.

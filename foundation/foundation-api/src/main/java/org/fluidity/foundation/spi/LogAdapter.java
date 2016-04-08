@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,20 +20,20 @@ import org.fluidity.foundation.Log;
 
 /**
  * The recommended super class for log implementations.
- * <p/>
+ * <p>
  * The intended boiler-plate code for a subclass implementation, with implementation specific bits <b>highlighted</b>, is as follows:
  * <pre>
  * import <b>external.logging.Log</b>;
  * import <b>external.logging.LogFactory</b>;
  *
- * final class <b>MyLogImpl</b>&lt;T> extends <span class="hl1">{@linkplain LogAdapter}</span>&lt;<b>Log</b>, T> {
+ * final class <b>MyLogImpl</b>&lt;T&gt; extends <span class="hl1">{@linkplain LogAdapter}</span>&lt;<b>Log</b>, T&gt; {
  *
- *   <b>MyLogImpl</b>(final Class&lt;T> source) {
+ *   <b>MyLogImpl</b>(final Class&lt;T&gt; source) {
  *     <span class="hl1">super</span>(<b>LoggerFactory</b>.<b>getLogger</b>(source.getName()));
  *   }
  *
  *   protected Levels levels() {
- *     return new <span class="hl1">{@linkplain org.fluidity.foundation.spi.LogAdapter.Levels Levels}</span>&lt;<b>Log</b>>() {
+ *     return new <span class="hl1">{@linkplain org.fluidity.foundation.spi.LogAdapter.Levels Levels}</span>&lt;<b>Log</b>&gt;() {
  *       public boolean <span class="hl1">trace</span>() {
  *         return <span class="hl1">log</span>.<b>isTraceEnabled</b>();
  *       }
@@ -61,7 +61,7 @@ import org.fluidity.foundation.Log;
  *   &hellip;
  * }
  * </pre>
- * <p/>
+ * <p>
  * The recommended {@link LogFactory} implementation, with implementation specific bits <b>highlighted</b>, is as follows:
  * <pre>
  * import org.fluidity.foundation.Log;
@@ -71,8 +71,8 @@ import org.fluidity.foundation.Log;
  * {@linkplain org.fluidity.composition.ServiceProvider @ServiceProvider}
  * final class <b>MyLogFactory</b> implements <span class="hl1">{@linkplain LogFactory}</span> {
  *
- *   public &lt;T> {@linkplain Log}&lt;T> <span class="hl1">createLog</span>(final Class&lt;T> source) {
- *     return new <b>MyLogImpl</b>&lt;T>(source);
+ *   public &lt;T&gt; {@linkplain Log}&lt;T&gt; <span class="hl1">createLog</span>(final Class&lt;T&gt; source) {
+ *     return new <b>MyLogImpl</b>&lt;T&gt;(source);
  *   }
  * }
  * </pre>

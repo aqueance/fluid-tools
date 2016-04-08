@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.osgi.framework.BundleContext;
 /**
  * This is the OSGi service implementation for the {@link BundleComponents.Status} service API. It requires a delegate to connect to the internal state
  * of the host bundle's {@link BundleComponentContainer}, which will be provided by that same container.
- * <p/>
+ * <p>
  * This is a {@linkplain BundleComponents.Managed managed} {@linkplain BundleComponents.Registration service registration} component, hence no
  * {@link org.fluidity.composition.Component @Component} annotation.
  *

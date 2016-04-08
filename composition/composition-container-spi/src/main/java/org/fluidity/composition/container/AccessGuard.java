@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.fluidity.composition.ComponentContainer;
  * <h3>Usage</h3>
  * <pre>
  * final {@linkplain DependencyInjector} injector = &hellip;
- * final <span class="hl1">AccessGuard</span>&lt;{@linkplain ComponentContainer}> <span class="hl2">access</span> = injector.{@linkplain DependencyInjector#containerGuard() containerGuard}();
+ * final <span class="hl1">AccessGuard</span>&lt;{@linkplain ComponentContainer}&gt; <span class="hl2">access</span> = injector.{@linkplain DependencyInjector#containerGuard() containerGuard}();
  *
  * final {@linkplain org.fluidity.composition.container.spi.DependencyGraph.Node DependencyGraph.Node} node = injector.{@linkplain DependencyInjector#resolve(Class, AccessGuard, DependencyInjector.Resolution) resolve}(&hellip;, <span class="hl2">access</span>, &hellip;);
  * &hellip;

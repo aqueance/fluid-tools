@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,13 @@ import org.fluidity.composition.ComponentContext;
 
 /**
  * Creates instances of a component when mere constructor and field injection is not adequate.
- * <p/>
+ * <p>
  * <b>Note</b>: Component factories expose an internal process to the external world and thus hard measures are taken to protect the former from the latter by
  * wrapping sensitive functionality under highly focused interfaces.
- * <p/>
+ * <p>
  * Component instantiation follows a certain protocol and <code>ComponentFactory</code> objects must follow that protocol to integrate well to Fluid Tools.
  * This interface defines the necessary methods and interfaces for that integration.
- * <p/>
+ * <p>
  * The protocol is as follows:
  * <ul>
  * <li>The {@link #resolve(ComponentContext, ComponentFactory.Resolver) ComponentFactory.resolve()} method is called with the context for the new
@@ -103,23 +103,23 @@ public interface ComponentFactory {
     /**
      * Informs the caller about the static dependencies the created component has in the given context. Actual component instantiation does _not_ take place in
      * this method.
-     * <p/>
+     * <p>
      * The caller is informed about the static dependencies of the component by calls to methods of the {@link ComponentFactory.Resolver resolver} parameter.
-     * <p/>
+     * <p>
      * In the general case, a call to {@link ComponentFactory.Resolver#discover(Class)} will find the injectable constructor of the given type – the component
      * implementation class – and inform the caller about the dependencies found therein. In case some of those declared dependencies don't match the type of
      * the actual object injected by the factory to the component instance, further calls to {@link ComponentFactory.Resolver#resolve(Class, Type,
      * Annotation[])} should be made, one for each such dependency.
-     * <p/>
+     * <p>
      * If the general case above does not apply, more specific methods of the {@link ComponentFactory.Resolver} class can be used to make sure the caller is
      * informed about all dependencies of the component instance.
-     * <p/>
+     * <p>
      * The {@link ComponentFactory.Instance#bind(ComponentFactory.Registry) ComponentFactory.Instance.bind()} method of the returned object will be invoked, at
      * the appropriate time, to actually bind the created component, and its local, internal dependencies to a container. Actual instantiation should, when
      * possible at all, be left to the caller of that method. If the factory absolutely has to instantiate the component on account of, for instance, having to
      * call an external factory, then that instantiation must not take place in this method but in {@link
      * ComponentFactory.Instance#bind(ComponentFactory.Registry) ComponentFactory.Instance.bind()}.
-     * <p/>
+     * <p>
      * The following code snippet shows the basic pattern of the implementation:
      * <pre>
      * public {@linkplain ComponentFactory.Instance Instance} <span class="hl1">resolve</span>(final {@linkplain ComponentContext} context, final {@linkplain ComponentFactory.Resolver Resolver} dependencies) throws Exception {
@@ -132,12 +132,12 @@ public interface ComponentFactory {
      *   }
      * }
      * </pre>
-     * <p/>
+     * <p>
      * The following code snippet shows the pattern of the implementation in case it has to call the component's constructor:
      * <pre>
      * public {@linkplain ComponentFactory.Instance Instance} <span class="hl1">resolve</span>(final {@linkplain ComponentContext} context, final {@linkplain ComponentFactory.Resolver Resolver} dependencies) throws Exception {
-     *   final Constructor&lt;?> <span class="hl2">constructor</span> = dependencies.{@linkplain ComponentFactory.Resolver#constructor(Class) constructor}(<span class="hl2">CreatedComponent</span>.class);
-     *   final Dependency&lt;?>[] <span class="hl3">parameters</span> = dependencies.{@linkplain ComponentFactory.Resolver#resolve(Class, java.lang.reflect.Constructor, int) resolve}(null, <span class="hl2">constructor</span>);
+     *   final Constructor&lt;?&gt; <span class="hl2">constructor</span> = dependencies.{@linkplain ComponentFactory.Resolver#constructor(Class) constructor}(<span class="hl2">CreatedComponent</span>.class);
+     *   final Dependency&lt;?&gt;[] <span class="hl3">parameters</span> = dependencies.{@linkplain ComponentFactory.Resolver#resolve(Class, java.lang.reflect.Constructor, int) resolve}(null, <span class="hl2">constructor</span>);
      *
      *   return new {@linkplain ComponentFactory.Instance Instance}() {
      *     public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws Exception {
@@ -159,7 +159,7 @@ public interface ComponentFactory {
      *   }
      * }
      * </pre>
-     * <p/>
+     * <p>
      * The following code snippet shows the pattern of the implementation in case it has to call some external factory:
      * <pre>
      * public {@linkplain ComponentFactory.Instance Instance} <span class="hl1">resolve</span>(final {@linkplain ComponentContext} context, final {@linkplain ComponentFactory.Resolver Resolver} dependencies) throws Exception {
@@ -178,7 +178,7 @@ public interface ComponentFactory {
      *                                                       Dependency2.class,
      *                                                       String.class,
      *                                                       int.class);
-     *   final Dependency<?>[] <span class="hl3">parameters</span> = dependencies.{@linkplain ComponentFactory.Resolver#resolve(Class, java.lang.reflect.Method) resolve}(null, <span class="hl2">method</span>);
+     *   final Dependency&lt;?&gt;[] <span class="hl3">parameters</span> = dependencies.{@linkplain ComponentFactory.Resolver#resolve(Class, java.lang.reflect.Method) resolve}(null, <span class="hl2">method</span>);
      *
      *   return new {@linkplain ComponentFactory.Instance Instance}() {
      *     public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws Exception {
@@ -257,7 +257,7 @@ public interface ComponentFactory {
          * Resolves a component by its component interface without instantiating the component. The resolved component will see, if it accepts the {@link
          * org.fluidity.composition.Component.Reference @Component.Reference} context annotation, the specified component interface as the dependency reference
          * to it unless the <code>reference</code> parameter is present. The component interface must be assignable to the reference if it is specified.
-         * <p/>
+         * <p>
          * <b>Note</b>: This is a low level method in case none of the {@link #resolve(Class, Constructor, int)}, {@link #resolve(Class, Class, Field)}, or
          * {@link #resolve(Class, Class, Method, int)} satisfies your needs. Please favor those methods to this one.
          *
@@ -275,7 +275,7 @@ public interface ComponentFactory {
          * corresponding to the parameters of the dependency injectable constructor of the supplied component class. For the algorithm on constructor
          * resolution, see the {@link org.fluidity.composition.container.DependencyInjector#constructor(Class, DependencyGraph.Traversal, DependencyResolver,
          * ContextNode, org.fluidity.composition.container.ContextDefinition, Constructor) DependencyInjector.constructor()} method.
-         * <p/>
+         * <p>
          * The constructor discovered by this method is also returned by the {@link #constructor(Class)} method and can then be used to inject the dependencies
          * discovered by this one.
          *
@@ -305,7 +305,7 @@ public interface ComponentFactory {
         /**
          * Informs the recipient about the injectable constructor parameters of the given component class, and then returns a list of dependencies, each
          * corresponding to the parameters of the supplied constructor.
-         * <p/>
+         * <p>
          * Use this method if the component has multiple constructors and the invoking dependency injection container would not be able to figure out which one
          * to use. Otherwise use the {@link #discover(Class)} and {@link #constructor(Class)} methods instead.
          *
@@ -362,7 +362,7 @@ public interface ComponentFactory {
      * Registry to bind components into by a {@link ComponentFactory}. Methods of this interface are to be invoked from the {@link
      * ComponentFactory.Instance#bind(ComponentFactory.Registry) bind()} method of the {@link ComponentFactory.Instance} returned from the factory's {@link
      * ComponentFactory#resolve(ComponentContext, ComponentFactory.Resolver) resolve()} method.
-     * <p/>
+     * <p>
      * The intent for this interface is to restrict access to a {@link org.fluidity.composition.ComponentContainer.Registry} object through a smaller set
      * of methods.
      * <h3>Usage</h3>
@@ -409,11 +409,11 @@ public interface ComponentFactory {
      *
      * <h3>Usage</h3>
      * <pre>
-     * {@linkplain Component @Component}(api = MyComponent<.class)
+     * {@linkplain Component @Component}(api = MyComponent.class)
      * final class MyComponentFactory implements {@linkplain ComponentFactory} {
      *
      *   public {@linkplain ComponentFactory.Instance Instance} resolve(final {@linkplain ComponentContext} context, final {@linkplain ComponentFactory.Resolver Resolver} dependencies) throws Exception {
-     *     final Constructor&lt;?> <span class="hl2">constructor</span> = dependencies.<span class="hl1">constructor</span>(<span class="hl3">MyComponentImpl</span>.class);
+     *     final Constructor&lt;?&gt; <span class="hl2">constructor</span> = dependencies.<span class="hl1">constructor</span>(<span class="hl3">MyComponentImpl</span>.class);
      *
      *     final <span class="hl1">Container</span> container = dependencies.<span class="hl1">local</span>(<span class="hl2">MyComponentImpl</span>.class, new {@linkplain Container.Bindings}() {
      *       public void bindComponents(final {@linkplain Container.Registry} registry) {
@@ -421,7 +421,7 @@ public interface ComponentFactory {
      *       }
      *     }));
      *
-     *     final Dependency&lt;?>[] <span class="hl3">parameters</span> = container.<span class="hl1">resolve</span>(null, <span class="hl2">constructor</span>);
+     *     final Dependency&lt;?&gt;[] <span class="hl3">parameters</span> = container.<span class="hl1">resolve</span>(null, <span class="hl2">constructor</span>);
      *
      *     return new {@linkplain ComponentFactory.Instance Instance}() {
      *       public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws Exception {
@@ -559,6 +559,8 @@ public interface ComponentFactory {
 
             /**
              * Adds component bindings to the given registry.
+             *
+             * @param registry the registry to add the bindings to.
              */
             void bindComponents(Registry registry);
         }

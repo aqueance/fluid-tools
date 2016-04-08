@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@ package org.fluidity.foundation;
  * <pre>
  * final class LightObject {
  *
- *   private final <span class="hl1">Deferred.Factory</span> factory = new <span class="hl1">Deferred.Factory</span><span class="hl2">&lt;HeavyObject></span>() {
+ *   private final <span class="hl1">Deferred.Factory</span> factory = new <span class="hl1">Deferred.Factory</span><span class="hl2">&lt;HeavyObject&gt;</span>() {
  *     public <span class="hl2">HeavyObject</span> <span class="hl1">create()</span> {
  *       return new <span class="hl2">HeavyObject</span>(&hellip;);
  *     }
  *   }
  *
- *   private final <span class="hl1">Deferred.Reference</span><span class="hl2">&lt;HeavyObject></span> reference = <span class="hl1">Deferred.local</span>(factory);
+ *   private final <span class="hl1">Deferred.Reference</span><span class="hl2">&lt;HeavyObject&gt;</span> reference = <span class="hl1">Deferred.local</span>(factory);
  *
  *   &hellip;
  *
@@ -57,9 +57,9 @@ public final class Deferred extends Utility {
      * be invoked the first time the returned object's {@link Reference#get() get()} method is invoked, and then its return value will be cached for use in
      * subsequent invocations. If the factory returns <code>null</code> instead of an object then the <code>null</code> value will be cached and returned in
      * subsequent queries by the returned reference.
-     * <p/>
+     * <p>
      * This reference implements the double-check locking logic with volatile acquire/release semantics to lazily create the referenced object.
-     * <p/>
+     * <p>
      * Note: the returned object will maintain a strong reference to the provided factory.
      *
      * @param factory the factory to create the referred to object.
@@ -76,9 +76,9 @@ public final class Deferred extends Utility {
      * be invoked the first time the returned object's {@link Reference#get() get()} method is invoked, and then its return value will be cached for use in
      * subsequent invocations. If the factory returns <code>null</code> instead of an object then the <code>null</code> value will be cached and returned in
      * subsequent queries by the returned reference.
-     * <p/>
+     * <p>
      * This reference implements uses no locking when invoking the given <code>factory</code>.
-     * <p/>
+     * <p>
      * Note: the returned object will maintain a strong reference to the provided factory.
      *
      * @param factory the factory to create the referred to object.

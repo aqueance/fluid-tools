@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import java.security.PrivilegedAction;
  * <h4>Object Accessibility</h4>
  * <pre>
  * final Method method = &hellip;;
- * final PrivilegedAction&lt;Method> access = Security.setAccessible(method);
+ * final PrivilegedAction&lt;Method&gt; access = Security.setAccessible(method);
  * if (access != null) {
  *     AccessController.doPrivileged(access);
  * }
@@ -78,13 +78,13 @@ public final class Security extends Utility {
 
     /**
      * Convenience method to safely set some object {@linkplain AccessibleObject#setAccessible(boolean) accessible}.
-     * <p/>
+     * <p>
      * If the given <code>object</code> is already {@linkplain AccessibleObject#isAccessible() accessible}, this method returns <code>null</code>.
-     * <p/>
+     * <p>
      * If the <code>object</code> is not {@linkplain AccessibleObject#isAccessible() accessible} and access control is {@link #CONTROLLED enabled}, the method
      * returns a {@link PrivilegedAction} that can be fed to {@link AccessController#doPrivileged(PrivilegedAction)} to make the object
      * {@linkplain AccessibleObject#setAccessible(boolean) accessible}.
-     * <p/>
+     * <p>
      * If the <code>object</code> is not {@linkplain AccessibleObject#isAccessible() accessible} and access control is not {@link #CONTROLLED enabled}, the
      * method simply makes the object {@linkplain AccessibleObject#setAccessible(boolean) accessible}.
      *

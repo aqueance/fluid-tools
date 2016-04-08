@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ public final class MockConfiguration {
      * <pre>
      * public class <span class="hl2">Foo</span>Test extends {@linkplain Simulator} {
      *
-     *   private final <span class="hl1">MockConfiguration.Direct</span>&lt;<span class="hl2">Foo.Settings</span>> configuration
+     *   private final <span class="hl1">MockConfiguration.Direct</span>&lt;<span class="hl2">Foo.Settings</span>&gt; configuration
      *       = <span class="hl1">MockConfiguration</span>.{@linkplain MockConfiguration#direct(Class, Simulator.MockObjects) direct}({@linkplain org.fluidity.testing.Simulator#dependencies() dependencies}(), <span class="hl2">Foo.Settings</span>.class);
      *
      *   &hellip;
@@ -79,7 +79,7 @@ public final class MockConfiguration {
      *   public void testConfigurationQuery() throws Exception {
      *
      *     // expect and set up a call to {@link Configuration#query(Configuration.Query)}
-     *     configuration.<span class="hl1">expectQuery</span>(new {@linkplain org.fluidity.foundation.Command.Operation}&lt;<span class="hl2">Foo.Settings</span>, Exception>() {
+     *     configuration.<span class="hl1">expectQuery</span>(new {@linkplain org.fluidity.foundation.Command.Operation}&lt;<span class="hl2">Foo.Settings</span>, Exception&gt;() {
      *       public void run(final <span class="hl2">Foo.Settings</span> settings) throws Exception {
      *         {@linkplain EasyMock}.expect(settings.&hellip;(&hellip;)).andReturn(&hellip;);
      *       }
@@ -92,7 +92,7 @@ public final class MockConfiguration {
      *   public void testConfigurationSettings() throws Exception {
      *
      *     // expect and set up a call to {@link Configuration#settings()}
-     *     configuration.<span class="hl1">expectSettings</span>(new {@linkplain org.fluidity.foundation.Command.Operation}&lt;<span class="hl2">Foo.Settings</span>, Exception>() {
+     *     configuration.<span class="hl1">expectSettings</span>(new {@linkplain org.fluidity.foundation.Command.Operation}&lt;<span class="hl2">Foo.Settings</span>, Exception&gt;() {
      *       public void run(final <span class="hl2">Foo.Settings</span> settings) throws Exception {
      *         {@linkplain EasyMock}.expect(settings.&hellip;(&hellip;)).andReturn(&hellip;);
      *       }
@@ -146,6 +146,7 @@ public final class MockConfiguration {
          * Sets up an expectation to call {@link Configuration#query(Configuration.Query)} and invokes the given command to setup expectations on the
          * encapsulated mock object for the settings <code>type</code> provided in {@link MockConfiguration#direct}.
          *
+         * @param <R>   the type of the returned value.
          * @param setup the command to invoke with the settings mock object.
          *
          * @throws Exception thrown by the given <code>setup</code> command.
@@ -168,7 +169,7 @@ public final class MockConfiguration {
      * <pre>
      * public class <span class="hl2">Foo</span>Test extends {@linkplain Simulator} {
      *
-     *   private final <span class="hl1">MockConfiguration.Cached</span>&lt;<span class="hl2">Foo.Settings</span>> configuration
+     *   private final <span class="hl1">MockConfiguration.Cached</span>&lt;<span class="hl2">Foo.Settings</span>&gt; configuration
      *       = <span class="hl1">MockConfiguration</span>.{@linkplain MockConfiguration#cached(Class, Simulator.MockObjects) cached}({@linkplain Simulator#dependencies() dependencies}(), <span class="hl2">Foo.Settings</span>.class);
      *
      *   &hellip;
@@ -177,7 +178,7 @@ public final class MockConfiguration {
      *   public void testConfigurationSettings() throws Exception {
      *
      *     // expect and set up a call to {@link org.fluidity.foundation.Configuration#settings()}
-     *     configuration.<span class="hl1">expectSettings</span>(new {@linkplain org.fluidity.foundation.Command.Operation}&lt;<span class="hl2">Foo.Settings</span>, Exception>() {
+     *     configuration.<span class="hl1">expectSettings</span>(new {@linkplain org.fluidity.foundation.Command.Operation}&lt;<span class="hl2">Foo.Settings</span>, Exception&gt;() {
      *       public void run(final <span class="hl2">Foo.Settings</span> settings) throws Exception {
      *         {@linkplain org.easymock.EasyMock}.expect(settings.&hellip;(&hellip;)).andReturn(&hellip;);
      *       }

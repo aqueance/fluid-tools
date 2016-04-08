@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.fluidity.foundation.Generics;
 /**
  * This factory makes it possible to depend on a lazily instantiated component when the {@link Deferred.Reference deferred reference} itself needs to be
  * exposed. The injected deferred reference will <em>not</em> be thread safe.
- * <p/>
+ * <p>
  * Use the {@link Defer @Defer} annotation with the type parameter alone when the deferred reference itself is irrelevant.
  *
  * @author Tibor Varga

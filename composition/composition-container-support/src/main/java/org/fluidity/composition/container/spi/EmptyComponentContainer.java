@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,7 +117,6 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
     /**
      * Invokes the given method of the given object after resolving and injecting its applicable parameters that the given argument list contains no
      * (or <code>null</code>) value for.
-     * <p/>
      *
      * @param component the method to invoke on the provided object.
      * @param explicit  tells if all parameters are subject to injection (<code>true</code>) or only those annotated with {@link Inject @Inject}
@@ -221,7 +220,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
 
     /**
      * Calls {@link #invoke(Object, boolean, Method, Object...) invoke}<code>(component, <b>true</b>, method, arguments)</code>.
-     * <p/>
+     * <p>
      * {@inheritDoc}
      */
     public final Object invoke(final Object component, final Method method, final Object... arguments) throws ResolutionException, InvocationTargetException {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,13 @@ import org.fluidity.foundation.spi.PropertyProvider;
 /**
  * Dependency injected component configuration. A component may have any number of such configurations, each for a different context and / or for a different
  * settings interface.
- * <p/>
+ * <p>
  * The configuration is backed by a {@linkplain PropertyProvider property provider} component that, if implemented, will be queried for data. The properties
  * queried are determined by {@linkplain Configuration.Prefix context annotations} of the configured component up to the point of its dependency reference.
  * <h3>Usage</h3>
  * A configuration is a group of settings consumed by the configured component. The settings are defined by the methods of a custom <em>settings
  * interface</em>, which is specified as the type parameter of the <code>Configuration</code> interface.
- * <p/>
+ * <p>
  * For instance:
  * <pre>
  * // The settings interface
@@ -51,7 +51,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <span class="hl1">{@linkplain Configuration.Prefix @Configuration.Prefix}</span>(<span class="hl3">"some.property"</span>)
  * public final class MyComponent {
  *
- *   MyComponent(final <span class="hl1">{@linkplain Configuration.Prefix @Configuration.Prefix}</span>(<span class="hl3">"prefix"</span>) <span class="hl1">Configuration</span><span class="hl2">&lt;MySettings></span> configuration) {
+ *   MyComponent(final <span class="hl1">{@linkplain Configuration.Prefix @Configuration.Prefix}</span>(<span class="hl3">"prefix"</span>) <span class="hl1">Configuration</span><span class="hl2">&lt;MySettings&gt;</span> configuration) {
  *     final <span class="hl2">MySettings</span> settings = configuration<span class="hl1">.settings()</span>;
  *
  *     // query <span class="hl3">"some.property</span>.<span class="hl3">prefix</span>.<span class="hl3">property.123"</span> from the optional {@linkplain PropertyProvider} component
@@ -66,14 +66,14 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <h4>Query Methods</h4>
  * A settings interface like the above must have all of its methods annotated with {@link Configuration.Property @Configuration.Property}, must have a
  * <a href="#supported_types">supported return type</a>, and the methods may have any number of arguments.
- * <p/>
+ * <p>
  * The given {@link Configuration.Property#key() property keys} are understood to be relative to the dot delimited concatenation of the value of each {@link
  * Configuration.Prefix @Configuration.Prefix} annotation in the dependency path of the configured component.
- * <p/>
+ * <p>
  * If the computed property has no value in the underlying property provider, the first context is stripped and the new property is queried, and this process
  * is repeated until the property provider returns a value or there is no more context to strip, then the last context is stripped from the original property
  * and the new property is queried, and the process is repeated again.
- * <p/>
+ * <p>
  * For instance, if the the dependency path contains <code>@Configuration.Prefix("a")</code>, <code>@Configuration.Prefix("b")</code>, and
  * <code>@Configuration.Prefix("c")</code>, then the method <code>@Configuration.Property(key = "property") String property()</code> will query the following
  * properties, in the given order, from its underlying property provider until it returns a value or there is no more context to strip:
@@ -85,14 +85,13 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <li><code>a.property</code></li>
  * <li><code>property</code></li>
  * </ul>
- * <p/>
+ * <p>
  * Query methods may have parameters that provide values to placeholders in the property key, as shown in the method definition for <code>property</code>
  * above.
- * <p/>
  * <h4>Property Values</h4>
  * The snapshot of the configuration settings above works with an optional {@link PropertyProvider} and an optional implementation of the settings interface
  * itself, which in the above example was <code>MySettings</code>.
- * <p/>
+ * <p>
  * The value returned by the configuration snapshot is computed as follows, in the given order:
  * <ol>
  * <li>If a <code>PropertyProvider</code> component is found, it is queried for the property key specified in the method's {@link
@@ -103,7 +102,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <li>The {@link Configuration.Property#undefined() undefined} parameter is checked. If it is not empty, it is returned, otherwise <code>null</code> is
  * returned for non primitive types and the default value is returned for primitive types.</li>
  * </ol>
- * <a name="supported_types"><h3>Supported Return Types</h3></a>
+ * <h3><a name="supported_types">Supported Return Types</a></h3>
  * <ul>
  * <li><code>String</code></li>
  * <li>Primitive Java type, such as <code>int</code></li>
@@ -120,7 +119,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <h4>Custom Types</h4>
  * The configuration implementation supports both interfaces with query methods and classes with fields as return values from the settings interface. There are
  * a few key differences between the two and you need to choose the one that fits your use of the property data.
- * <p/>
+ * <p>
  * A custom interface:
  * <ul>
  * <li>allows method parameters to vary the property queried for a given method,</li>
@@ -166,15 +165,15 @@ public interface Configuration<T> {
      * Groups {@link Configuration configuration} queries to provide settings consistency. Properties read in the {@link #run read()} method will be
      * consistent in that no property change will take place during the execution of that method. Stashing the <code>read</code> method parameter and invoking
      * its methods outside the <code>read</code> method will not have the same effect.
-     * <p/>
+     * <p>
      * This feature is subject to {@linkplain PropertyProvider#properties(PropertyProvider.Query) property provider} support.
      * <h3>Usage</h3>
      * <pre>
      * {@linkplain org.fluidity.composition.Component @Component}
      * public final class MyComponent {
      *
-     *   MyComponent(final {@linkplain Configuration}&lt;<span class="hl2">MySettings</span>> configuration) {
-     *     final int data = configuration.<span class="hl1">query</span>(new <span class="hl1">Configuration.Query</span>&lt;<span class="hl2">MySettings</span>, Integer>() {
+     *   MyComponent(final {@linkplain Configuration}&lt;<span class="hl2">MySettings</span>&gt; configuration) {
+     *     final int data = configuration.<span class="hl1">query</span>(new <span class="hl1">Configuration.Query</span>&lt;<span class="hl2">MySettings</span>, Integer&gt;() {
      *       public final Integer <span class="hl1">read</span>(final <span class="hl2">MySettings</span> settings) {
      *         return settings.<span class="hl2">property1</span>() + settings.<span class="hl2">property2</span>();
      *       }
@@ -207,6 +206,8 @@ public interface Configuration<T> {
          * @param settings an object implementing the settings interface.
          *
          * @return whatever the caller wants {@link Configuration#query(Configuration.Query) Configuration.query()} returned.
+         *
+         * @throws Exception when some error occurs.
          */
         R run(P settings) throws Exception;
     }
@@ -214,17 +215,17 @@ public interface Configuration<T> {
     /**
      * Annotates a configuration query method to specify what property to query, what default value to return if the property is not defined, and how to
      * process list and map typed configuration values.
-     * <p/>
+     * <p>
      * This annotation is used on interface methods that parameterize a {@link Configuration} dependency is some component.
-     * <p/>
+     * <p>
      * To handle query methods with array and parameterized {@link java.util.Set}, {@link java.util.List} or {@link java.util.Map} return types, the
      * implementation understands JSON encoded arrays and maps, without the top level grouping characters included ('[]' and '{}'), and can convert such
      * property values to arrays, lists, sets and maps, nested in any complexity, as long as the parameterized return type of the annotated method provides
      * adequate information as to the expected type of any item encoded in the property value. Although the grouping and delimiter characters in the encoded
      * property value are configurable, they aren't required to tell whether the item is a map or array since that information is already encoded in the return
      * type of the annotated method.
-     * <p/>
-     * For instance, with a method returning <code>Map&lt;List&lt;String>, long[]></code>, the following property values would be valid:
+     * <p>
+     * For instance, with a method returning <code>Map&lt;List&lt;String&gt;, long[]&gt;</code>, the following property values would be valid:
      * <ul>
      * <li>""</li>
      * <li>"[a, b]: [1, 2, 3]"</li>
@@ -262,7 +263,7 @@ public interface Configuration<T> {
 
         /**
          * For map or multidimensional collection valued properties, this string specifies the character pairs that enclose elements of one dimension.
-         * <p/>
+         * <p>
          * For instance, <code>@Configuration.Property(key = "&hellip;" split = ',' grouping="()")</code> with property value "(1, 2, 3), (4, 5, 6), (7, 8, 9)"
          * results in a 2-dimensional array that is equivalent to the following Java array initializer:  <code>{ {1, 2, 3}, {4, 5, 6}, {7, 8, 9} }</code>.
          *
@@ -311,7 +312,7 @@ public interface Configuration<T> {
          *     &hellip;
          * }
          * </pre>
-         * </p>
+         * <p>
          * <b>Note</b>: the placeholder used in this parameter is <code>"%%s"</code> to allow for interpolating the method parameters. For instance:
          * <pre>
          * interface Settings {

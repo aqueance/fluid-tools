@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,11 +41,11 @@ import org.testng.annotations.AfterMethod;
 /**
  * Facilitates the use of multiple <a href="http://www.easymock.org/">EasyMock</a> control objects. There are two ways to use this class: as a super class
  * (preferred mode), or as a delegate if inheritance is not an option.
- * <p/>
+ * <p>
  * When used as a super class but with a test harness other than TestNG, or when used as a delegate, the test class must call the {@link #clear()}
  * method after every test method. When used as a super class of a TestNG based test class, that method will be <i>automatically</i> invoked after every test
  * method.
- * <p/>
+ * <p>
  * Mock objects are produced by instances of the {@link Simulator.MockObjects} interface. There are three types of mock objects:<ul>
  * <li>{@linkplain MockObjects#normal(Class) normal} mock objects that accept only expected methods,</li>
  * <li>{@linkplain MockObjects#lenient(Class) lenient} mock objects that accept any method, expected or not, and returns default values from unexpected
@@ -57,7 +57,7 @@ import org.testng.annotations.AfterMethod;
  * <li>as temporary method local objects as, e.g., method arguments of the object under test, created by the {@link MockObjects} factory returned by
  * {@link #arguments()}.</li>
  * </ul>
- * <p/>
+ * <p>
  * The factory returned by the {@link #dependencies()} method creates mock objects that will be valid in any test method and <i>should be invoked to initialize
  * instance fields</i> of the test and passed to the object under test, while the factory returned by the {@link #arguments()} method creates mock objects that
  * will be valid only in the calling method and thus <i>can only be used in that method</i>.
@@ -76,7 +76,7 @@ import org.testng.annotations.AfterMethod;
  *     {@linkplain EasyMock}.{@linkplain EasyMock#expect(Object) expect}(dependency.<span class="hl2">getSomeAction</span>()).{@linkplain org.easymock.IExpectationSetters#andReturn(Object) andReturn}(<span class="hl2">action</span>);
  *     {@linkplain EasyMock}.{@linkplain EasyMock#expect(Object) expect}(action.<span class="hl2">perform</span>()).{@linkplain org.easymock.IExpectationSetters#andReturn(Object) andReturn}(true);
  *
- *     final boolean success = <span class="hl1">{@linkplain #verify() verify}</span>(new {@linkplain Work Work}&lt;Boolean>() {
+ *     final boolean success = <span class="hl1">{@linkplain #verify() verify}</span>(new {@linkplain Work Work}&lt;Boolean&gt;() {
  *       public Boolean run() throws Exception {
  *         return component.doSomething();
  *       }
@@ -106,7 +106,7 @@ import org.testng.annotations.AfterMethod;
  *     {@linkplain EasyMock}.{@linkplain EasyMock#expect(Object) expect}(dependency.<span class="hl2">getSomeAction</span>()).{@linkplain org.easymock.IExpectationSetters#andReturn(Object) andReturn}(<span class="hl2">action</span>);
  *     {@linkplain EasyMock}.{@linkplain EasyMock#expect(Object) expect}(action.<span class="hl2">perform</span>()).{@linkplain org.easymock.IExpectationSetters#andReturn(Object) andReturn}(true);
  *
- *     final boolean success = group.<span class="hl1">{@linkplain #verify() verify}</span>(new {@linkplain Work}&lt;Boolean>() {
+ *     final boolean success = group.<span class="hl1">{@linkplain #verify() verify}</span>(new {@linkplain Work}&lt;Boolean&gt;() {
  *       public Boolean run() throws Exception {
  *         return component.doSomething();
  *       }
@@ -166,11 +166,9 @@ public class Simulator {
 
     /**
      * Called after each test method to clear method and thread local mock objects.
-     *
-     * @throws Exception
      */
     @AfterMethod
-    public final synchronized void clear() throws Exception {
+    public final synchronized void clear() {
         dependencies.reset();
         transients.clear();
         arguments = newLocalObjects();
@@ -207,7 +205,7 @@ public class Simulator {
              * Creates mock objects using the supplied <code>factory</code>, sets up expectations therewith, and then returns a task that will, in a separate
              * thread, exercise the object under test to meet those expectations.
              *
-             * @param factory is the mock object factory to create mock objects with.
+             * @param factory the mock object factory to create mock objects with.
              *
              * @return a task to run concurrently.
              */
@@ -508,7 +506,7 @@ public class Simulator {
      * Allows test cases to manage interacting threads. Threads are created by the {@link #concurrent(Simulator.Task.Concurrent) concurrent()} method and
      * started / stopped by the {@link #verify(long, Simulator.Task)}, {@link #verify(long, Simulator.Work)}, {@link #guarantee(long, Simulator.Task)}, or
      * {@link #guarantee(long, Simulator.Work)} method.
-     * <p/>
+     * <p>
      * Threads synchronize on {@linkplain CyclicBarrier barriers} using the {@link #lineup lineup()} method and relative time can be given using {@link
      * #time(float)}.
      * <h3>Usage</h3>
@@ -572,7 +570,7 @@ public class Simulator {
         /**
          * Executes in the calling thread the given task. This method is merely a visual aid to separate the execution of the <code>task</code> from other code
          * sequences.
-         * <p/>
+         * <p>
          * This method may be invoked from a task submitted to {@link #concurrent(Simulator.Task.Concurrent)}.
          *
          * @param task    the task to execute; if <code>null</code>, no code is executed between the two barriers, if any.
@@ -584,7 +582,7 @@ public class Simulator {
         /**
          * Creates a new thread to execute a concurrent task with, and a new {@link Simulator.MockObjects} to create mock objects with for use by the concurrent
          * task. The specified <code>task</code> creates and sets up mock objects and returns a {@link Simulator.Task} that uses those mock objects.
-         * <p/>
+         * <p>
          * This method may <i>not</i> be invoked from a task submitted to another invocation of the <code>concurrent(...)</code>, <code>verify(...)</code>, or
          * <code>guarantee(...)</code> methods.
          *
@@ -612,7 +610,7 @@ public class Simulator {
         /**
          * Releases all threads created by {@link #concurrent(Simulator.Task.Concurrent)}, invokes {@link Simulator#verify(Simulator.Task)}, and then waits, for the
          * given timeout, for all threads to complete.
-         * <p/>
+         * <p>
          * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(Simulator.Task.Concurrent)}.
          *
          * @param timeout the timeout to wait for all threads to complete.
@@ -625,7 +623,7 @@ public class Simulator {
         /**
          * Releases all threads created by {@link #concurrent(Simulator.Task.Concurrent)}, invokes {@link Simulator#guarantee(Simulator.Task)}, and then waits, with the
          * given timeout, for all threads to complete.
-         * <p/>
+         * <p>
          * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(Simulator.Task.Concurrent)}.
          *
          * @param timeout the timeout to wait for all threads to complete.
@@ -638,7 +636,7 @@ public class Simulator {
         /**
          * Releases all threads created by {@link #concurrent(Simulator.Task.Concurrent)}, invokes {@link Simulator#verify(Simulator.Work)}, waits, for the given
          * timeout, for all threads to complete, and returns whatever the <code>block</code> returned.
-         * <p/>
+         * <p>
          * This method may <i>not</i> be invoked from a block submitted to {@link #concurrent(Simulator.Task.Concurrent)}.
          *
          * @param timeout the timeout to wait for all threads to complete.
@@ -654,7 +652,7 @@ public class Simulator {
         /**
          * Releases all threads created by {@link #concurrent(Simulator.Task.Concurrent)}, invokes {@link Simulator#guarantee(Simulator.Work)}, waits, for the given
          * timeout, for all threads to complete, and returns whatever the <code>block</code> returned.
-         * <p/>
+         * <p>
          * This method may <i>not</i> be invoked from a block submitted to {@link #concurrent(Simulator.Task.Concurrent)}.
          *
          * @param timeout the timeout to wait for all threads to complete.
@@ -670,10 +668,10 @@ public class Simulator {
 
     /**
      * Composite mock object. A composite is used in multi-threaded tests to create thread specific mock objects of some dependency of the object under test.
-     * <p/>
+     * <p>
      * The composite is created in the <i>main</i> thread for each dependency of the object under test that will be invoked concurrently, and a composite mock
      * object, returned by the {@link #dependency()} method, is passed to the object under test instead of a mock object as would be in a serial test case.
-     * <p/>
+     * <p>
      * Each concurrent thread must create its own mock object for each dependency it sets up expectations on, using one of the {@link #normal()}, {@link
      * #lenient()}, and {@link #ordered()} methods of this interface.
      * <h3>Usage</h3>
@@ -682,7 +680,7 @@ public class Simulator {
      * <pre>
      * public class SomeComponentTest extends {@linkplain Simulator} {
      *
-     *   private final <span class="hl1">Composite</span>&lt;<span class="hl2">Dependency</span>> composite = <span class="hl1">{@linkplain Simulator#composite(Class, Object) composite}</span>(<span class="hl2">Dependency</span>.class, dependencies().normal(<span class="hl2">Dependency</span>.class));
+     *   private final <span class="hl1">Composite</span>&lt;<span class="hl2">Dependency</span>&gt; composite = <span class="hl1">{@linkplain Simulator#composite(Class, Object) composite}</span>(<span class="hl2">Dependency</span>.class, dependencies().normal(<span class="hl2">Dependency</span>.class));
      *   private final SomeComponent component = new SomeComponent(<span class="hl1">composite</span>.{@linkplain #dependency() dependency}());
      *
      *   &hellip;

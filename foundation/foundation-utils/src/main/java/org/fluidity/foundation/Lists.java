@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ public class Lists extends Utility {
      * casts needed for the operation.
      *
      * @param type the item type of the list/array; may not be <code>null</code>.
-     * @param list is the list to convert to an array; may be <code>null</code>.
+     * @param list the list to convert to an array; may be <code>null</code>.
      * @param <T>  the component type of the given <code>list</code> and the returned array.
      *
      * @return an array containing the elements of the given list; never <code>null</code>.
@@ -123,6 +123,8 @@ public class Lists extends Utility {
     /**
      * Returns a comma delimited list of the given items.
      *
+     * @param items the items to list; may <i>not</i> be <code>null</code>.
+     *
      * @return a comma delimited list of the given items.
      */
     public static String delimited(final Collection<?> items) {
@@ -131,6 +133,8 @@ public class Lists extends Utility {
 
     /**
      * Returns a comma delimited list of the given items.
+     *
+     * @param items the items to list.
      *
      * @return a comma delimited list of the given items.
      */
@@ -141,6 +145,8 @@ public class Lists extends Utility {
     /**
      * Returns {@linkplain Lists.Delimited delimited list} with the given delimiter.
      *
+     * @param delimiter the delimiter to use.
+     *
      * @return {@linkplain Lists.Delimited delimited list} with the given delimiter.
      */
     public static Delimited delimited(final String delimiter) {
@@ -150,6 +156,9 @@ public class Lists extends Utility {
     /**
      * Returns a delimited list of the given items.
      *
+     * @param delimiter the delimiter to use.
+     * @param items     the items to list; may <i>not</i> be <code>null</code>.
+     *
      * @return a delimited list of the given items.
      */
     public static String delimited(final String delimiter, final Collection<?> items) {
@@ -158,6 +167,9 @@ public class Lists extends Utility {
 
     /**
      * Returns a delimited list of the given items.
+     *
+     * @param delimiter the delimiter to use.
+     * @param items     the items to list.
      *
      * @return a delimited list of the given items.
      */
@@ -209,6 +221,8 @@ public class Lists extends Utility {
         /**
          * Collects the given text, appending the delimiter as necessary.
          *
+         * @param text the text to append.
+         *
          * @return the underlying {@link StringBuilder} object.
          */
         public StringBuilder add(final Object text) {
@@ -217,6 +231,8 @@ public class Lists extends Utility {
 
         /**
          * Collects the given list of objects, appending the delimiter as necessary.
+         *
+         * @param list the items to collect; may <i>not</i> be <code>null</code>.
          *
          * @return the underlying {@link StringBuilder} object.
          */
@@ -230,6 +246,8 @@ public class Lists extends Utility {
 
         /**
          * Collects the given list of objects, appending the delimiter as necessary.
+         *
+         * @param list the items to collect.
          *
          * @return the underlying {@link StringBuilder} object.
          */

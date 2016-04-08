@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import static org.fluidity.foundation.Command.Process;
  * <pre>
  * final <span class="hl1">BundleBoundary</span> boundary = &hellip;;
  * final {@linkplain org.osgi.framework.BundleContext} context = &hellip;;
- * final {@linkplain org.osgi.framework.ServiceReference}&lt;<span class="hl2">RemoteComponent</span>> reference = context.getServiceReference(<span class="hl2">RemoteComponent</span>.class);
+ * final {@linkplain org.osgi.framework.ServiceReference}&lt;<span class="hl2">RemoteComponent</span>&gt; reference = context.getServiceReference(<span class="hl2">RemoteComponent</span>.class);
  * final <span class="hl2">RemoteComponent</span> service = boundary.<span class="hl1">imported</span>(<span class="hl2">RemoteComponent</span>.class, context.getService(reference));
  * </pre>
  *
@@ -42,13 +42,13 @@ public interface BundleBoundary {
 
     /**
      * Wraps the given object from another bundle to allow it to find classes in the calling bundle.
-     * <p/>
+     * <p>
      * The given object must implement the given interface and the given interface must be represented at run time by the same class in both bundles; i.e., it
      * must be exported by one bundle and imported by all others.
      *
+     * @param <T>    the type of the given <code>remote</code> object to import.
      * @param type   the Java interface of the remote object.
      * @param remote the object from another bundle.
-     * @param <T>    the type of the given <code>remote</code> object to import.
      *
      * @return the wrapped service.
      */
@@ -57,7 +57,7 @@ public interface BundleBoundary {
     /**
      * Wraps the given <code>local</code> object to allow it to load classes from the bundle of the provided <code>remote</code> object. If the
      * <code>remote</code> object is not known, the receiver of the <code>local</code> object must use the {@link #imported(Class, Object)} method instead.
-     * <p/>
+     * <p>
      * The <code>local</code> object must implement the given interface and the given interface must be represented at run time by the same class in both
      * bundles; i.e., it must be exported by one bundle and imported by all others.
      *
@@ -71,16 +71,18 @@ public interface BundleBoundary {
     <T> T exported(Class<T> type, Object remote, T local);
 
     /**
-     * Invokes the given command with a context class loader that allows the <code>remote</code> object to find classes from the
-     * bundle of the <code>local</code> object.
+     * Invokes the given command with a context class loader that allows the <code>remote</code> object to find classes from the bundle of the
+     * <code>local</code> object.
      *
+     * @param <T>     the return type of the command.
+     * @param <E>     the exception type thrown by the command.
      * @param remote  the remote object.
      * @param local   the local object.
      * @param command the command to allow with the tunneling class loader.
-     * @param <T>     the return type of the command.
-     * @param <E>     the exception type thrown by the command.
      *
      * @return whatever the command returns.
+     *
+     * @throws E as thrown by the command.
      */
     <T, E extends Exception> T invoke(Object remote, Object local, Process<T, E> command) throws E;
 }

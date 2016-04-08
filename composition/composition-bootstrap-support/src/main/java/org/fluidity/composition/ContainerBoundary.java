@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,14 +47,14 @@ import static org.fluidity.foundation.Command.Process;
  * injection</a> <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#dependency-injection-containers">container</a>. This utility class
  * ensures that the container hierarchy of the host application matches the class loader hierarchy. The highest level class loader to have a container is the
  * one that can find the single dependency of this class: {@link ContainerProvider}.
- * <p/>
+ * <p>
  * When instantiated, this class bootstraps all parent containers that have not yet been populated. Instances of this class all work against the same data
  * structure, thereby giving classes instantiated by third parties access to the container relevant to their level in the application's class loader hierarchy.
- * <p/>
+ * <p>
  * Bootstrapping a container hierarchy is performed from the requested container up. Adding bootstrap bindings to a container may fail in cases when the
  * container has already been populated as the ancestor of a lower level container. In such a case it is advised to explicitly bootstrap the higher level
  * container before the lower level container is bootstrapped.
- * <p/>
+ * <p>
  * Access to the shared data structure through instances of this class is thread safe.
  * <h3>Usage</h3>
  * <pre>
@@ -139,8 +139,8 @@ public final class ContainerBoundary implements ComponentContainer {
      * Adds a property to a collection that will be passed to any {@link org.fluidity.composition.spi.PackageBindings} visible by the current class loader that
      * has a constructor with a {@link Map} parameter.
      *
-     * @param key   is the property key.
-     * @param value is the property value.
+     * @param key   the property key.
+     * @param value the property value.
      */
     @SuppressWarnings("unchecked")
     public void setBindingProperty(final Object key, final Object value) {
@@ -163,9 +163,11 @@ public final class ContainerBoundary implements ComponentContainer {
      * taken out of the container by any thread using any of the {@link #initialize(Object)}, {@link ComponentContainer#instantiate(Class,
      * ComponentContainer.Bindings...)}, {@link #makeChildContainer(Bindings...)} or {@link ComponentContainer#makeChildContainer(Bindings...)} methods. Once
      * that happens, this method will throw an {@link IllegalStateException}.
-     * <p/>
+     * <p>
      * Calling this method will trigger population of the associated container and its parents but will not prevent further invocations of this method to add
      * more bindings to the container.
+     *
+     * @param <T> the type of the component instance.
      *
      * @param instance the component instance.
      * @param api      optional list of interfaces to bind the object against.
@@ -182,7 +184,7 @@ public final class ContainerBoundary implements ComponentContainer {
 
     /**
      * Delegates to the enclosed container.
-     * <p/>
+     * <p>
      * {@inheritDoc}
      */
     public OpenContainer makeChildContainer(final Bindings... bindings) {
@@ -191,7 +193,7 @@ public final class ContainerBoundary implements ComponentContainer {
 
     /**
      * Delegates to the enclosed container.
-     * <p/>
+     * <p>
      * {@inheritDoc}
      */
     public OpenContainer makeDomainContainer(final Bindings... bindings) {
@@ -200,7 +202,7 @@ public final class ContainerBoundary implements ComponentContainer {
 
     /**
      * Delegates to the enclosed container.
-     * <p/>
+     * <p>
      * {@inheritDoc}
      */
     public ComponentContainer intercepting(final ComponentInterceptor... interceptors) {
@@ -209,7 +211,7 @@ public final class ContainerBoundary implements ComponentContainer {
 
     /**
      * Delegates to the enclosed container.
-     * <p/>
+     * <p>
      * {@inheritDoc}
      */
     public ObservedContainer observed(final Observer observer) {
@@ -218,7 +220,7 @@ public final class ContainerBoundary implements ComponentContainer {
 
     /**
      * Delegates to the enclosed container.
-     * <p/>
+     * <p>
      * {@inheritDoc}
      */
     public <T> T initialize(final T component) {
@@ -240,7 +242,7 @@ public final class ContainerBoundary implements ComponentContainer {
 
     /**
      * Delegates to the enclosed container.
-     * <p/>
+     * <p>
      * {@inheritDoc}
      */
     public Object invoke(final Object component, final Method method, final Object... arguments) throws ResolutionException, InvocationTargetException {
@@ -249,7 +251,7 @@ public final class ContainerBoundary implements ComponentContainer {
 
     /**
      * Delegates to the enclosed container.
-     * <p/>
+     * <p>
      * {@inheritDoc}
      */
     public <T> T complete(final T component, final Class<? super T>... api) throws ResolutionException {
@@ -258,7 +260,7 @@ public final class ContainerBoundary implements ComponentContainer {
 
     /**
      * Delegates to the enclosed container.
-     * <p/>
+     * <p>
      * {@inheritDoc}
      */
     public <T> T instantiate(final Class<T> componentClass, final Bindings... bindings) throws ResolutionException {

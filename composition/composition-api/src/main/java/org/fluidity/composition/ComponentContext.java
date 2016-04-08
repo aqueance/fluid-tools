@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,11 @@ import java.util.Set;
 /**
  * The <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Composition#consuming-context">run-time context</a> for a component instance. This is
  * the object that components may receive as a dependency to encapsulate the context in which they were instantiated.
- * <p/>
+ * <p>
  * A context represents configuration at the point of reference to a component, which it elects to receive using the
  * {@link Component.Context @Component.Context} annotation. The context is defined by the referring components using custom, user defined, annotations, and are
  * consumed by referred to components that list the custom annotations' type in their <code>@Component.Context</code> annotation.
- * <p/>
+ * <p>
  * Since contexts offer a static configuration mechanism, components with other means of configuration can be adapted to context based configuration
  * using a {@link org.fluidity.composition.spi.ComponentFactory ComponentFactory}, which essentially translates the configuration embedded in the instantiation
  * context to configuration understood by the component being adapted.

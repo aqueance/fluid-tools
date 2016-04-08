@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,35 +27,35 @@ import org.fluidity.foundation.Strings;
 
 /**
  * The external API of a fully populated dependency injection container.
- * <p/>
+ * <p>
  * The static, automatically populated, containers in an application form a hierarchy that matches part of the class loader hierarchy in the application, while
  * dynamically created, and manually populated, containers attach to a static container in that hierarchy. Containers in a hierarchy co-operate in such a way
  * that if a component is not found in a child container, a look-up is performed in its parent. The act of looking up a dependency by its referenced type is
  * called <em>dependency resolution</em>. Telling the container what class to resolve a component interface to is called <em>component binding</em> where a
  * component class is bound to the component interface. The act of a container using its parent to resolve missing dependencies is called <em>defaulting</em>
  * to the parent container.
- * <p/>
+ * <p>
  * In case of a child container bound to a class loader or one returned by the {@link #makeChildContainer(Bindings...) makeChildContainer()} method,
  * dependencies of a component resolved in a parent container will be resolved in that parent container or its ancestors, never in the original child
  * container. In a child container returned by the {@link #makeDomainContainer(Bindings...) makeDomainContainer()} method, however, transitive dependencies
  * will also be resolved from the original child container and its ancestry. The latter case allows segregating the application into dependency resolution
  * domains as long as those domains do not overlap, meaning application code reaching out of one domain and into another.
- * <p/>
+ * <p>
  * Dependency resolution is performed based on the referenced type of the dependency. If there is no binding for the given interface then no component will be
  * injected for that reference.
- * <p/>
+ * <p>
  * Components are instantiated by the container on demand and their dependencies, defined by constructor parameters and {@link Inject @Inject} annotated
  * fields, are resolved in this container or its parent. No setter injection or other means of dependency injection are supported.
- * <p/>
+ * <p>
  * Components instantiated outside a container can still be field injected by the container using its {@link #initialize(Object) initialize()} method.
  * Component instantiation may also be invoked for a component class not in the container using the {@link #instantiate(Class, ComponentContainer.Bindings...)
  * instantiate()} method.
- * <p/>
+ * <p>
  * Components may be context dependent, meaning that distinct instances may be created for different contexts. Entire chains of dependencies, with components
  * themselves not necessarily context dependent, may be instantiated multiple times for different contexts. Although semantically correct, this may not be what
  * you expect so be aware of this effect when working with context dependent components. This is discussed in more detail in the <a
  * href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Composition#working-with-component-contexts">User Guide</a>.
- * <p/>
+ * <p>
  * Containers can also be used to peek into the static dependency graph of your application. This functionality is provided by the {@link
  * ObservedContainer} object returned by the {@link #observed(Observer) observed()} method.
  * <h3>Usage</h3>
@@ -189,7 +189,7 @@ import org.fluidity.foundation.Strings;
  * try {
  *
  *   // handle checked exceptions ...
- *   result = {@linkplain org.fluidity.foundation.Exceptions}.wrap(new Command.Process&lt;<span class="hl2">Integer</span>, Exception>() {
+ *   result = {@linkplain org.fluidity.foundation.Exceptions}.wrap(new Command.Process&lt;<span class="hl2">Integer</span>, Exception&gt;() {
  *     public <span class="hl2">Integer</span> run() throws Exception {
  *
  *       // pass known parameters as the last parameters to this call
@@ -212,7 +212,7 @@ public interface ComponentContainer {
     /**
      * Creates a child container with this one as its parent. Dependencies of components resolved, through the returned container, in this container or its
      * ancestry will be resolved in the <em>same container or its ancestry</em>, never in the child.
-     * <p/>
+     * <p>
      * This method can be used to bind components to a dependency injection container without polluting any shared one with new bindings after it has been set
      * up. The bindings supplied and added to the returned container will <b>not</b> be visible to clients of, or components in, this container.
      *
@@ -225,7 +225,7 @@ public interface ComponentContainer {
     /**
      * Creates a domain container with this one as its parent. Dependencies of components found, through the returned c, in this container or its ancestry
      * will be resolved <em>in the returned child container</em>.
-     * <p/>
+     * <p>
      * Use this with care as a domain container will cause singleton components to be singletons within the represented domain. This is only safe if your
      * application guarantees that the this container is never used directly but only as a parent of the returned domain container, and that domain containers
      * and the components they instantiate never talk to other domain containers or components they instantiated.
@@ -275,10 +275,10 @@ public interface ComponentContainer {
      * {@link ComponentContainer.Registry#bindComponent(Class, Class[]) binds} the given class and the given <code>bindings</code>, and then
      * {@link OpenContainer#getComponent(Class) asks} for an instance of the given class from the child container. No caching takes place with this last step,
      * a new component instance is created at every invocation of this method.
-     * <p/>
+     * <p>
      * If the given class object represents a concrete class, this method instantiates that class as a component, injecting in the process its constructor and
      * field dependencies from the given <code>bindings</code> and the receiving container.
-     * <p/>
+     * <p>
      * If the given class is an interface, this method binds, in addition to the given <code>bindings</code>, every component class whose
      * {@link Component#scope() scope} is set to the given class <em>including</em> the implementation of the given interface itself, and then performs the
      * foregoing.
@@ -325,7 +325,7 @@ public interface ComponentContainer {
     /**
      * Embodies a list of mappings from component class to component interface and / or component group. {@link OpenContainer ComponentContainers} use bindings
      * to map component and component group interfaces to component classes when resolving dependencies.
-     * <p/>
+     * <p>
      * Bindings are mostly used when automatically populating an application's dependency injection container hierarchy. At build time, the
      * <code>org.fluidity.maven:composition-maven-plugin</code> produces bindings to capture the list of {@link Component @Component} annotated classes in a
      * module as component bindings, while at run time Fluid Tools finds these bindings and loads them before the first query is made to a dependency injection
@@ -370,7 +370,7 @@ public interface ComponentContainer {
 
     /**
      * Allows adding component {@linkplain ComponentContainer.Bindings bindings} to a {@linkplain OpenContainer dependency injection container}.
-     * <p/>
+     * <p>
      * The registry offers several ways to map an implementation to an interface in the host container. Which one you need depends on your requirements. These
      * methods are mostly invoked from the {@link ComponentContainer.Bindings#bindComponents(ComponentContainer.Registry) bindComponents()} method of your
      * {@linkplain org.fluidity.composition.spi.PackageBindings binding} implementation.
@@ -444,15 +444,15 @@ public interface ComponentContainer {
          * If the given class is an interface, or if it represents a concrete class and its {@link Component#scope() scope} is set to any of its component
          * interfaces, this method binds, in the container behind this registry, every component class whose {@link Component#scope() scope} is set to the
          * given class, to their respective component interfaces.
-         * <p/>
+         * <p>
          * If the given class object represents a concrete class <em>without</em> its {@link Component#scope() scope} set to its component interface, this method
          * binds, in the container behind this registry, that component class to its component interfaces.
-         * <p/>
+         * <p>
          * The component class will be instantiated on demand by the container when it resolves any of the provided component interfaces.
-         * <p/>
+         * <p>
          * The supplied component class may implement {@link org.fluidity.composition.spi.ComponentFactory}, in which case the receiver must support
          * the factory functionality as described in the <code>ComponentFactory</code> documentation.
-         * <p/>
+         * <p>
          * When the <code>interfaces</code> parameter is empty, the component interfaces of the bound component will be determined by the algorithm
          * documented at {@link Components}.
          *
@@ -469,10 +469,10 @@ public interface ComponentContainer {
          * Binds a component instance to a list of component interfaces in the container behind this registry. Use this method when you have no control over
          * the instantiation of a class as in case of third party tools handing you the component, but you still want to make the instances available for
          * components in the container to depend on.
-         * <p/>
+         * <p>
          * The supplied component instance may be a {@link org.fluidity.composition.spi.ComponentFactory} instance, in which case the receiver must support
          * the factory functionality as described in the <code>ComponentFactory</code> documentation.
-         * <p/>
+         * <p>
          * When the <code>interfaces</code> parameter is empty, the list of interfaces that resolve to the component will be determined by the algorithm
          * documented at {@link Components}.
          *
@@ -497,9 +497,9 @@ public interface ComponentContainer {
         /**
          * Binds a component factory instance to a list of component interfaces in the container behind this registry. Use this method when the list component
          * interfaces that the factory can provide an implementation for is computed at run time.
-         * <p/>
+         * <p>
          * The receiver must support the factory functionality as described in the <code>ComponentFactory</code> documentation.
-         * <p/>
+         * <p>
          * When the <code>interfaces</code> parameter is empty, the list of interfaces that resolve to the component will be determined by the algorithm
          * documented at {@link Components}.
          *
@@ -515,7 +515,7 @@ public interface ComponentContainer {
          * Binds a component class to a list of component interfaces behind this registry and allows, via the returned registry, the caller to add further
          * bindings that will only be visible to the supplied component and each other. These bindings can, for the supplied component, override bindings in
          * the container behind this registry.
-         * <p/>
+         * <p>
          * When the <code>interfaces</code> parameter is empty, the list of interfaces that resolve to the component will be determined by the algorithm
          * documented at {@link Components}.
          *
@@ -580,7 +580,7 @@ public interface ComponentContainer {
 
         /**
          * Notifies the receiver that a dependency has been instantiated. The path is final; elements of the path are actual classes that will be.
-         * <p/>
+         * <p>
          * The {@link DependencyPath#tail()} returns details about the just instantiated component.
          *
          * @param path      the dependency path at which the given type has been instantiated.

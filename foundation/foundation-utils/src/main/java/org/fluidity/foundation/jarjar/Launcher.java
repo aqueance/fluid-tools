@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,10 +38,10 @@ import static org.fluidity.foundation.Command.Process;
  * in the path denoted by the manifest attribute name returned by {@link org.fluidity.foundation.Archives.Nested#attribute(String)
  * Archives.Nested.attribute(null)}. The main class to be loaded is defined by the manifest attribute named in {@link #ORIGINAL_MAIN_CLASS}. The
  * <code>Main-Class</code> manifest attribute has to point to this class, obviously.
- * <p/>
+ * <p>
  * Without arguments, this launcher will try to load the {@link #ORIGINAL_MAIN_CLASS} from the archive the launcher itself was loaded from. This can be
  * overridden with the {@link #URL_PARAM} parameter, which specifies the URL to load as the application.
- * <p/>
+ * <p>
  * The above manifest attributes are set by the appropriate {@link org.fluidity.deployment.plugin.spi.JarManifest} processor when used by the
  * <code>org.fluidity.maven:standalone-jar-maven-plugin</code> Maven plugin.
  *

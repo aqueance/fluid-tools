@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package org.fluidity.foundation;
 
 /**
  * Partially implements the <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#service-providers">service provider</a> discovery
- * mechanism described in the <a href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR File Specification</a>. The
+ * mechanism described in the <a href="http://docs.oracle.com/javase/8/docs/technotes/guides/jar/jar.html#Service_Provider">JAR File Specification</a>. The
  * implementation is partial because this component does not instantiate the service provider classes, it only finds them.
- * <p/>
+ * <p>
  * The goal of this component is to find and return the list of <em>classes</em> that implement a given interface or extend a given class. To find <em>and
  * instantiate</em> those classes, use a dependency injected {@link org.fluidity.composition.ComponentGroup @ComponentGroup} annotated array parameter instead.
  * <h3>Usage</h3>
@@ -30,7 +30,7 @@ package org.fluidity.foundation;
  *
  *   MyComponent(final <span class="hl1">ClassDiscovery</span> discovery) {
  *     final {@linkplain ClassLoader} loader = getClass().getClassLoader();
- *     final Class&lt;<span class="hl2">MyProvider</span>>[] classes = discovery.<span class="hl1">findComponentClasses</span>(<span class="hl2">MyProvider</span>.class, loader, false);
+ *     final Class&lt;<span class="hl2">MyProvider</span>&gt;[] classes = discovery.<span class="hl1">findComponentClasses</span>(<span class="hl2">MyProvider</span>.class, loader, false);
  *     assert classes != null : <span class="hl2">MyProvider</span>.class;
  *     &hellip;
  *   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ interface InterceptorFilter {
     /**
      * Returns only those interceptors from the provided ones whose context annotations are all present in the <em>defined</em> context set. The returned
      * interceptors are sorted by the relative declaration distance of their context annotation that is closest to the current dependency reference.
-     * <p/>
+     * <p>
      * For example, let contexts <code>@A, @B, @C, and @D</code> be defined in that order along the dependency path, and three interceptors be given with the
      * following annotations, respectively:<ul>
      * <li><code>A, C</code></li>

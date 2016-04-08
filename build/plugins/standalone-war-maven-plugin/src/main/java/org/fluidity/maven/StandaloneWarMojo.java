@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,21 +52,21 @@ import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 
 /**
- * Adds code to the project WAR file that allows it to be run as a JAR file; e.g. <code>$ java -jar &lt;file name>.war</code>. More WAR files can be
+ * Adds code to the project WAR file that allows it to be run as a JAR file; e.g. <code>$ java -jar &lt;file name&gt;.war</code>. More WAR files can be
  * specified in the command line and all will be deployed to the same application server.
- * <p/>
+ * <p>
  * <b>Technical Details</b>
- * <p/>
+ * <p>
  * Three different set of libraries are managed: bootstrap dependencies i.e., classes in the JAR/WAR root for <code>java -jar</code> to see, server
  * dependencies i.e., JARs needed to boot up the HTTP server, and application dependencies i.e., JARs in WEB-INF/lib.
- * <p/>
+ * <p>
  * Bootstrap dependencies come from the transitive non-optional run-time dependencies of this plugin itself.
- * <p/>
+ * <p>
  * Server dependencies come from the transitive non-optional run-time dependencies declared for the plugin in the host project's POM and are copied to
  * WEB-INF/boot.
- * <p/>
+ * <p>
  * The list of JARs in WEB-INF/lib is already in the WAR file itself.
- * <p/>
+ * <p>
  * There are various set operations performed in these dependencies to make sure nothing is included that shouldn't.
  *
  * @author Tibor Varga

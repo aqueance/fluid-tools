@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ public abstract class EmptyPackageBindings implements PackageBindings {
 
     /**
      * {@inheritDoc}
-     * <p/>
+     * <p>
      * This implementation does nothing; allows subclasses to do nothing by not overriding this method.
      */
     public void bindComponents(final ComponentContainer.Registry registry) {
@@ -54,7 +54,7 @@ public abstract class EmptyPackageBindings implements PackageBindings {
 
     /**
      * {@inheritDoc}
-     * <p/>
+     * <p>
      * This implementation does nothing; allows subclasses to do nothing by not overriding this method.
      */
     public void initialize(final OpenContainer container, final ContainerTermination shutdown) throws Exception {

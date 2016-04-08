@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,15 +36,15 @@ package org.fluidity.composition;
  *
  *   public void exampleMethod() {
  *     final <span class="hl1">ObservedComponentContainer</span> observed = container.<span class="hl3">observed</span>(new <span class="hl2">{@linkplain ComponentContainer.Observer}</span>() {
- *       public void <span class="hl2">descending</span>(final {@linkplain Class}&lt;?> declaringType,
- *                              final {@linkplain Class}&lt;?> dependencyType,
+ *       public void <span class="hl2">descending</span>(final {@linkplain Class}&lt;?&gt; declaringType,
+ *                              final {@linkplain Class}&lt;?&gt; dependencyType,
  *                              final {@linkplain java.lang.annotation.Annotation}[] typeAnnotations,
  *                              final {@linkplain java.lang.annotation.Annotation}[] referenceAnnotations) {
  *         &hellip;
  *       }
  *
- *       public void <span class="hl2">ascending</span>(final {@linkplain Class}&lt;?> declaringType,
- *                             final {@linkplain Class}&lt;?> dependencyType) {
+ *       public void <span class="hl2">ascending</span>(final {@linkplain Class}&lt;?&gt; declaringType,
+ *                             final {@linkplain Class}&lt;?&gt; dependencyType) {
  *         &hellip;
  *       }
  *
@@ -52,11 +52,11 @@ package org.fluidity.composition;
  *         &hellip;
  *       }
  *
- *       public void <span class="hl2">resolved</span>(final {@linkplain DependencyPath} path, final {@linkplain Class}&lt;?> type) {
+ *       public void <span class="hl2">resolved</span>(final {@linkplain DependencyPath} path, final {@linkplain Class}&lt;?&gt; type) {
  *         &hellip;
  *       }
  *
- *       public void <span class="hl2">instantiated</span>(final {@linkplain DependencyPath} path, final {@linkplain java.util.concurrent.atomic.AtomicReference}&lt;?> object) {
+ *       public void <span class="hl2">instantiated</span>(final {@linkplain DependencyPath} path, final {@linkplain java.util.concurrent.atomic.AtomicReference}&lt;?&gt; object) {
  *
  *         // will return the just instantiated object only <b>after</b> this method completes
  *         assert object.get() == null;

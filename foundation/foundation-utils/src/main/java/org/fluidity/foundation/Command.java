@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,8 @@ public final class Command extends Utility {
 
         /**
          * Executes the command.
+         *
+         * @throws E when some error occurs.
          */
         void run() throws E;
     }
@@ -52,6 +54,10 @@ public final class Command extends Utility {
 
         /**
          * Executes the command with the given parameter.
+         *
+         * @param parameter the parameter received by the command.
+         *
+         * @throws E when some error occurs.
          */
         void run(P parameter) throws E;
     }
@@ -68,6 +74,10 @@ public final class Command extends Utility {
 
         /**
          * Executes the command.
+         *
+         * @return the result of the command.
+         *
+         * @throws E when some error occurs.
          */
         R run() throws E;
     }
@@ -85,6 +95,12 @@ public final class Command extends Utility {
 
         /**
          * Executes the command with the given parameter.
+         *
+         * @param parameter the parameter received by the command.
+         *
+         * @return the result of the command.
+         *
+         * @throws E when some error occurs.
          */
         R run(P parameter) throws E;
     }

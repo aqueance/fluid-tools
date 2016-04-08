@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,14 +43,14 @@ public final class Strings extends Utility {
      * <li>if the object is a proxy and has {@linkplain Proxies.Identity custom identity}, {@link Proxies.Identity#toString(Object)
      * Proxies.Identity.toString()} is invoked with the object and its result is returned;</li>
      * <li>if the object is a proxy, has no {@linkplain Proxies.Identity custom identity}, and <code>identity</code> is <code>false</code>, then
-     * <code>"proxy[&lt;list of interfaces>]"</code> is returned;</li>
+     * <code>"proxy[&lt;list of interfaces&gt;]"</code> is returned;</li>
      * <li>if the object is a proxy, has no {@linkplain Proxies.Identity custom identity}, and <code>identity</code> is <code>true</code>, then {@link
      * #formatId  Strings.formatId()} is invoked and returned;</li>
      * <li>if the object overrides {@link Object#toString()}, the result of invoking that method is returned;</li>
      * <li>Otherwise if <code>identity</code> is <code>true</code> then {@link #formatId Strings.formatId()} is invoked and returned, else the
      * fully qualified name of the object type is returned.</li>
      * </ul>
-     * <p/>
+     * <p>
      * Arrays are formatted as the list of individual items, surrounded with brackets.
      *
      * @param identify  tells if object identity is to be formatted in absence of a custom {@link Object#toString()} method (<code>true</code>) or just the
@@ -140,9 +140,9 @@ public final class Strings extends Utility {
     }
 
     /**
-     * For proxies, it returns <code>"proxy@&lt;identity hash code>[&lt;list of interfaces>]"</code>; for ordinary classes, it returns <code>"&lt;fully
-     * qualified class name>@&lt;identity hash code>"</code>; arrays are formatted as described at {@link #formatClass(boolean, boolean, Class)}.
-     * <p/>
+     * For proxies, it returns <code>"proxy@&lt;identity hash code&gt;[&lt;list of interfaces&gt;]"</code>; for ordinary classes, it returns <code>"&lt;fully
+     * qualified class name&gt;@&lt;identity hash code&gt;"</code>; arrays are formatted as described at {@link #formatClass(boolean, boolean, Class)}.
+     * <p>
      * Arrays are formatted as the list of individual items, surrounded with brackets.
      *
      * @param object the object to format; may be <code>null</code>.
@@ -179,7 +179,7 @@ public final class Strings extends Utility {
      * <li><code>@MyAnnotation(id = 1000, code = "abcd")</code>: "@MyAnnotation(id=1000,code=\"abcd\")"</li>
      * <li><code>@MyAnnotation({ 1, 2, 3 })</code>: "@MyAnnotation({1,2,3})"</li>
      * </ul>
-     * <p/>
+     * <p>
      * Parameters set to their default value are not included.
      *
      * @param identity   if <code>true</code>, return an identifier for the annotation, otherwise its Java-like form.

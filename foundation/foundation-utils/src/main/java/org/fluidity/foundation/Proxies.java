@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import static org.fluidity.foundation.Command.Process;
  * <pre>
  * final class MyComponent {
  *
- *   private final <span class="hl1">Proxies.Identity</span>&lt;<span class="hl2">MyDelegate</span>> <span class="hl3">identity</span> = new <span class="hl1">Proxies.Identity</span>&lt;<span class="hl2">MyDelegate</span>>() {
+ *   private final <span class="hl1">Proxies.Identity</span>&lt;<span class="hl2">MyDelegate</span>&gt; <span class="hl3">identity</span> = new <span class="hl1">Proxies.Identity</span>&lt;<span class="hl2">MyDelegate</span>&gt;() {
  *       &hellip;
  *   }
  *
@@ -171,10 +171,11 @@ public final class Proxies extends Utility {
      *
      * @author Tibor Varga
      */
-    /*
-     *  The proxy invocation handler calling methods on this interface assumes that the instance is the last parameter of the method.
-     */
     public interface Identity<T> {
+
+        /*
+         *  The proxy invocation handler calling methods on this interface assumes that the instance is the last parameter of the method.
+         */
 
         /**
          * Computes the hash code for the given instance.

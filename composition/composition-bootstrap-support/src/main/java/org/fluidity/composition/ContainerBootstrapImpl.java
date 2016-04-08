@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.fluidity.foundation.Log;
 
 /**
  * Bootstraps the component container. This class is exported via the standard service provider discovery mechanism described in the <a
- * href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR File Specification</a>.
+ * href="http://docs.oracle.com/javase/8/docs/technotes/guides/jar/jar.html#Service_Provider">JAR File Specification</a>.
  *
  * @author Tibor Varga
  */

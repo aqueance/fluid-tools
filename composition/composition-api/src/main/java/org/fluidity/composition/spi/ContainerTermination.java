@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@ import org.fluidity.foundation.Command;
  * Enables jobs to be executed when the application shuts down. The implementation is used by dependency injection containers to provide means to
  * notifies components about application termination. Concrete implementations are provided for the various application types, i.e. command line,
  * web, OSGi bundle, etc.
- * <p/>
+ * <p>
  * Application jobs executed at container termination must not rely on any Fluid Tools dependency injection container functionality as containers must be
  * assumed to have shut down already when these jobs are executed.
- * <p/>
+ * <p>
  * Fluid Tools provides implementation for command line applications, web applications and OSGi bundles. If you use Fluid Tools in an application wrapper not
  * listed here then you might need to provide an implementation of this interface for Fluid Tools to function.
- * <p/>
+ * <p>
  * Fluid Tools provides a {@link ContainerTermination.Jobs} component, which the custom {@link ContainerTermination} implementation must simply delegate its
  * method calls to. The only business logic in the latter is the call to {@link ContainerTermination.Jobs#flush()}. In a command line application, for
  * instance, that call is triggered by the JVM shutdown.
@@ -39,17 +39,17 @@ import org.fluidity.foundation.Command;
  *
  *   private final ContainerTermination.Jobs jobs;
  *
- *   <span class="hl2">MyContainerTerminationImpl</span>(final <span class="hl1">{@linkplain ContainerTermination.Jobs}</span>&lt;<span class="hl2">MyContainerTerminationImpl</span>> jobs) {
+ *   <span class="hl2">MyContainerTerminationImpl</span>(final <span class="hl1">{@linkplain ContainerTermination.Jobs}</span>&lt;<span class="hl2">MyContainerTerminationImpl</span>&gt; jobs) {
  *     this.jobs = jobs;
  *     &hellip;
  *   }
  *
  *
- *   public void add(final {@linkplain org.fluidity.foundation.Command.Job}&lt;{@linkplain Exception}> job) {
+ *   public void add(final {@linkplain org.fluidity.foundation.Command.Job}&lt;{@linkplain Exception}&gt; job) {
  *     jobs.{@linkplain ContainerTermination.Jobs#add(org.fluidity.foundation.Command.Job) add}(job);
  *   }
  *
- *   public void remove(final {@linkplain org.fluidity.foundation.Command.Job}&lt;{@linkplain Exception}> job) {
+ *   public void remove(final {@linkplain org.fluidity.foundation.Command.Job}&lt;{@linkplain Exception}&gt; job) {
  *     jobs.{@linkplain ContainerTermination.Jobs#remove(org.fluidity.foundation.Command.Job) remove}(job);
  *   }
  *
@@ -64,21 +64,21 @@ public interface ContainerTermination {
     /**
      * Adds a job to be execute when the application is shut down.
      *
-     * @param job is the job to run prior application shutdown.
+     * @param job the job to run prior application shutdown.
      */
     void add(Command.Job<Exception> job);
 
     /**
      * Undoes a previous call to {@link #add(Command.Job)} with the same job.
      *
-     * @param job is the job to run prior application shutdown.
+     * @param job the job to run prior application shutdown.
      */
     void remove(Command.Job<Exception> job);
 
     /**
      * Maintains the list of jobs on behalf of a {@link ContainerTermination} component. This component is implemented by Fluid Tools and the {@code
      * ContainerTermination} implementation is expected to use it.
-     * <p/>
+     * <p>
      * The type parameter is used to gain access to the {@code ContainerTermination} component using this component in order to verify that no {@linkplain
      * org.fluidity.foundation.Command.Job job} {@linkplain #add(org.fluidity.foundation.Command.Job) added} to this component is loaded by a class loader less
      * stable than that of the {@code ContainerTermination} component; i.e., the class loader of all jobs added must be the same as, or in the ancestry of, the

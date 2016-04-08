@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ package org.fluidity.foundation;
 /**
  * Log interface to use by dependency injected components. An instance is provided to your component via dependency injection. You must use a parameterized
  * reference as the dependency on this interface to specify the class that will be the name of the injected logger.
- * <p/>
+ * <p>
  * Message formatting conforms to the Java print format specification.
- * <p/>
+ * <p>
  * The injected instance will be backed by an actual logging framework; which one is used depends on the {@link org.fluidity.foundation.spi.LogFactory} found
  * in the class path. Fluid Tools implements adapters for popular frameworks; see the <a
  * href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Composition#logging-alternatives">User Guide</a> for details. If no specific logging
@@ -36,7 +36,7 @@ package org.fluidity.foundation;
  *
  *   private final <span class="hl1">Log</span> log;
  *
- *   <span class="hl3">MyComponent</span>(final <span class="hl1">Log</span>&lt;<span class="hl3">MyComponent</span>> log) {
+ *   <span class="hl3">MyComponent</span>(final <span class="hl1">Log</span>&lt;<span class="hl3">MyComponent</span>&gt; log) {
  *     this.log = log;
  *   }
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import org.fluidity.foundation.Log;
 /**
  * Caches components by <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#component-context">context</a> on behalf of a container.
  * Instances of this cache are provided for dependency injection container implementations to cache instantiated components.
- * <p/>
+ * <p>
  * This cache is thread safe.
- * <u3>Usage</u3>
+ * <h3>Usage</h3>
  * <pre>
  * final {@linkplain ContainerServices} services = &hellip;;
  *

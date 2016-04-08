@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,19 +19,19 @@ package org.fluidity.features;
 /**
  * Configuration that is periodically updated. This is a wrapper around {@link org.fluidity.foundation.Configuration} that periodically refreshes the snapshot
  * of the settings object. The methods of the settings interface, if used with this variant of the configuration mechanism, may not have any parameters.
- * <p/>
+ * <p>
  * The granularity of the updates can be configured by implementing a {@link org.fluidity.foundation.spi.PropertyProvider} component that returns a valid
  * number for the {@link #CONFIGURATION_REFRESH_PERIOD} key. The default period granularity is 30 seconds.
- * <p/>
+ * <p>
  * See {@link org.fluidity.foundation.Configuration} for details on configuration.
  * <h3>Usage</h3>
  * <pre>
  * {@linkplain org.fluidity.composition.Component @Component}
  * public final class <span class="hl3">MyComponent</span> {
  *
- *   private final <span class="hl1">{@linkplain Updates.Snapshot}</span>&lt;<span class="hl2">Settings</span>> configuration;
+ *   private final <span class="hl1">{@linkplain Updates.Snapshot}</span>&lt;<span class="hl2">Settings</span>&gt; configuration;
  *
- *   <span class="hl3">MyComponent</span>(final <span class="hl1">ReloadingConfiguration</span>&lt;<span class="hl2">Settings</span>> configuration) {
+ *   <span class="hl3">MyComponent</span>(final <span class="hl1">ReloadingConfiguration</span>&lt;<span class="hl2">Settings</span>&gt; configuration) {
  *     this.configuration = configuration.<span class="hl1">snapshot</span>();
  *   }
  *

@@ -28,9 +28,9 @@ import org.apache.maven.project.MavenProject;
 /**
  * JAR manifest transformation for application wrappers. The <code>org.fluidity.maven:standalone-jar-maven-plugin</code> Maven plugin can be configured with an
  * implementation of this interface to transform the manifest file of the host project.
- * <p/>
+ * <p>
  * The implementation must be registered in a JAR service provider file for the above plugin to find the implementation.
- * <p/>
+ * <p>
  * The execution environment of the implementation is the execution environment of a Maven plugin.
  *
  * @author Tibor Varga
@@ -58,7 +58,7 @@ public interface JarManifest {
          * Dependencies not to include in the project artifact. The dependencies must be listed in a profile with activation (note the <b>exclamation mark</b>
          * before the property name):
          * <pre>
-         * &lt;activation>&lt;property>&lt;name><b>!package-exclude</b>&lt;/name>&lt;/property>&lt;/activation>
+         * &lt;activation&gt;&lt;property&gt;&lt;name&gt;<b>!package-exclude</b>&lt;/name&gt;&lt;/property&gt;&lt;/activation&gt;
          * </pre>
          */
         EXCLUDE("package-exclude"),
@@ -67,9 +67,9 @@ public interface JarManifest {
          * Dependencies to include as an embedded JAR in the project artifact. The dependencies must be listed in a profile with activation (note the
          * <b>exclamation mark</b> before the property name):
          * <pre>
-         * &lt;activation>&lt;property>&lt;name><b>!package-include</b>&lt;/name>&lt;/property>&lt;/activation>
+         * &lt;activation&gt;&lt;property&gt;&lt;name&gt;<b>!package-include</b>&lt;/name&gt;&gt;lt;/property&gt;&lt;/activation&gt;
          * </pre>
-         * <p/>
+         * <p>
          * The artifacts will be included in the artifact under the directory specified bya a call to {@link JarManifest.Dependencies#include(String)}}.
          */
         INCLUDE("package-include"),
@@ -78,7 +78,7 @@ public interface JarManifest {
          * Dependencies to unpack into the root of the project artifact. The dependencies must be listed in a profile with activation (note the <b>exclamation
          * mark</b> before the property name):
          * <pre>
-         * &lt;activation>&lt;property>&lt;name><b>!package-unpack</b>&lt;/name>&lt;/property>&lt;/activation>
+         * &lt;activation&gt;&lt;property&gt;&lt;name&gt;<b>!package-unpack</b>&lt;/name&gt;&lt;/property&gt;&lt;/activation&gt;
          * </pre>
          */
         UNPACK("package-unpack");
@@ -115,7 +115,7 @@ public interface JarManifest {
          *                  time.
          * @param delimiter the delimiter to use to separate the dependency entries.
          *
-         * @throws MojoExecutionException when a non-primary manifest handler tries to invoke this method.
+         * @throws MojoExecutionException when an error occurs.
          */
         void attribute(String name, String delimiter) throws MojoExecutionException;
 
@@ -138,13 +138,15 @@ public interface JarManifest {
          * specify the name under which the dependencies will be found at run time.
          *
          * @param name the name to pass to {@link org.fluidity.foundation.Archives.Nested#attribute(String)} at run time to find the included dependencies.
+         *
+         * @throws MojoExecutionException when an error occurs.
          */
         void include(String name) throws MojoExecutionException;
     }
 
     /**
      * Transforms the provided main manifest attributes of the given Maven project.
-     * <p/>
+     * <p>
      * The <code>org.fluidity.maven:standalone-jar-maven-plugin</code> Maven plugin packages the host project's run-time dependencies into the project
      * artifact, including the original project artifact itself, before invoking this method. If the receiver is the first handler configured for the project,
      * it can call {@link JarManifest.Dependencies#attribute(String, String)} to specify the attribute name under which the packaged dependency list will be

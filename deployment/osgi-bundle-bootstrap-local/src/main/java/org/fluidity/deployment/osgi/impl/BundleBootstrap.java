@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,9 @@ import org.osgi.framework.BundleContext;
 /**
  * Bootstraps the dependency injection container in an OSGi bundle. A properly set up OSGi bundle Maven project will automatically set up this class as the
  * bundle activator for the project artifact. Thus, you should never need to directly deal with this class.
- * <p/>
+ * <p>
  * <b>NOTE 1</b>: This class <em>must</em> be public with a zero-arg constructor for the OSGi container to be able to instantiate it.
- * <p/>
+ * <p>
  * <b>NOTE 2</b>: This class <em>must</em> be loaded by the class loader of the bundle it is expected to bootstrap. The superclass, {@link BoundaryComponent},
  * uses the class loader that loaded this class to find the dependency injection container that will be used as a root container when working with bundle
  * components in the loading bundle. Also, along this class comes the per-bundle implementation of {@link ContainerTermination} that will map the bundle

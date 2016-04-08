@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,10 @@ import java.lang.annotation.Target;
  * This annotation marks interfaces or classes that are expected to have several implementations that are used together as a group by some component. All
  * classes implementing or extending such an interface or class will be provided as a whole, in the form of an array of the marked type, to components that
  * depend on such an array or that use {@link OpenContainer#getComponentGroup(Class) OpenContainer.getComponentGroup()} to get one.
- * <p/>
+ * <p>
  * When the group interface or class is not available to annotate, actual implementations may also be annotated with this class but in that case only those
  * implementations that are actually annotated will be found and provided as a component group.
- * <p/>
+ * <p>
  * Components, i.e., classes annotated with the {@link Component @Component} annotation, may, in addition to being a component, implement or extend an
  * interface or class marked with this annotation. In such a case, however, this annotation will only be recognized if inherited via a component interface,
  * i.e., one by which the component can be depended upon. The algorithm for computing the set of component interfaces is described at {@link

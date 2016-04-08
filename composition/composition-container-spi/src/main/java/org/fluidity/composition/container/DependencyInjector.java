@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import org.fluidity.foundation.Exceptions;
  * final {@linkplain ContainerServices} services = &hellip;;
  * final <span class="hl1">DependencyInjector</span> injector = services.dependencyInjector();
  * &hellip;
- * final Constructor&lt;<span class="hl2">MyComponent</span>> injector.findConstructor(<span class="hl2">MyComponent</span>.class);
+ * final Constructor&lt;<span class="hl2">MyComponent</span>&gt; injector.findConstructor(<span class="hl2">MyComponent</span>.class);
  * </pre>
  *
  * @author Tibor Varga
@@ -108,7 +108,7 @@ public interface DependencyInjector {
 
     /**
      * Find the injectable constructor of the given class.
-     * <p/>
+     * <p>
      * There is no check for any constructor parameter being satisfiable. Synthetic constructors are ignored. If there is any constructor annotated with
      * {@link org.fluidity.composition.Inject @Inject}, that one is returned. If there's only one constructor,
      * it is returned. If there is a default constructor
@@ -116,7 +116,7 @@ public interface DependencyInjector {
      * neither is annotated with <code>@Inject</code>, the other one is returned. If these checks do not yield a single constructor, the same checks are
      * made on public constructors only. If that yields no or multiple constructors, a {@link org.fluidity.composition.ComponentContainer.ResolutionException}
      * is thrown.
-     * <p/>
+     * <p>
      * For synthetic constructors see the <a href="http://java.sun.com/docs/books/jls/third_edition/html/binaryComp.html#13.1">Java Language Specification: The
      * Form of a Binary</a> and search for the term <em>synthetic</em>.
      *

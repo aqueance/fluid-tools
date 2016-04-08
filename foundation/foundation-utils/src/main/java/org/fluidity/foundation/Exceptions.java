@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import static org.fluidity.foundation.Command.Process;
  *     public void run() {
  *
  *       // wrap any checked exception thrown from our code enclosed in the process
- *       <span class="hl1">Exceptions.wrap</span>(new {@linkplain Command.Process}&lt;Void, Exception>() {
+ *       <span class="hl1">Exceptions.wrap</span>(new {@linkplain Command.Process}&lt;Void, Exception&gt;() {
  *         public Void <span class="hl1">run</span>() throws Exception {
  *           &hellip;
  *           throw new <span class="hl2">CheckedException2</span>();
@@ -72,14 +72,31 @@ public final class Exceptions extends Utility {
     private Exceptions() { }
 
     /**
-     * See {@link Tunnel#wrap(Command.Process)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
+     * Executes {@link Tunnel#wrap(Command.Process)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
+     *
+     * @param command the command to execute.
+     * @param <R>     the return type of the command.
+     * @param <E>     the type of the exception thrown by the command.
+     *
+     * @return whatever the given command returns.
      */
     public static <R, E extends Exception> R wrap(final Process<R, E> command) {
         return Exceptions.tunnel.wrap((Object) null, command);
     }
 
     /**
-     * See {@link Tunnel#wrap(Class, Command.Process)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
+     * Executes {@link Tunnel#wrap(Class, Command.Process)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
+     *
+     * @param wrapper the exception class to use to wrap the exception thrown by the command; may be <code>null</code>, in which case {@link Wrapper} will
+     *                be used.
+     * @param command the command to execute.
+     * @param <R>     the return type of the command.
+     * @param <E>     the type of the exception thrown by the command.
+     * @param <T>     the type of the exception to wrap with.
+     *
+     * @return whatever the given command returns.
+     *
+     * @throws T as thrown by the command.
      */
     public static <R, E extends Exception, T extends Exception> R wrap(final Class<T> wrapper, final Process<R, E> command) throws T {
         return Exceptions.tunnel.wrap(wrapper, command);
@@ -87,6 +104,18 @@ public final class Exceptions extends Utility {
 
     /**
      * See {@link Tunnel#wrap(Object, Class, Command.Process)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
+     *
+     * @param label   the error message in the wrapped exception; use {@link Deferred.Label}s to defer computing the label.
+     * @param wrapper the exception class to use to wrap the exception thrown by the command; may be <code>null</code>, in which case {@link Wrapper} will
+     *                be used.
+     * @param command the command to run.
+     * @param <R>     the return type of the command.
+     * @param <E>     the type of the exception thrown by the command.
+     * @param <T>     the type of the exception to wrap with.
+     *
+     * @return whatever the command returns.
+     *
+     * @throws T as thrown by the command.
      */
     public static <R, E extends Exception, T extends Exception> R wrap(final Object label, final Class<T> wrapper, final Process<R, E> command) throws T {
         return Exceptions.tunnel.wrap(label, wrapper, command);
@@ -94,6 +123,10 @@ public final class Exceptions extends Utility {
 
     /**
      * See {@link Tunnel#unwrap(Exception)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
+     *
+     * @param error the head of the exception chain to unwrap.
+     *
+     * @return the first non-wrapper exception in the chain.
      */
     public static Throwable unwrap(final Exception error) {
         return Exceptions.tunnel.unwrap(error);
@@ -161,23 +194,25 @@ public final class Exceptions extends Utility {
         }
 
         /**
-         * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception thrown therefrom.
+         * Executes the given command and wraps any exception thrown therefrom.
          *
-         * @param command the command to execute.
          * @param wrapper the exception class to use to wrap the exception thrown by the command; may be <code>null</code>, in which case {@link Wrapper} will
          *                be used.
+         * @param command the command to execute.
          * @param <R>     the return type of the command.
          * @param <E>     the type of the exception thrown by the command.
          * @param <T>     the type of the exception to wrap with.
          *
          * @return whatever the given command returns.
+         *
+         * @throws T as thrown by the command.
          */
         public <R, E extends Exception, T extends Exception> R wrap(final Class<T> wrapper, final Process<R, E> command) throws T {
             return wrap(null, wrapper, command);
         }
 
         /**
-         * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception thrown therefrom.
+         * Executes the given command and wraps any exception thrown therefrom.
          *
          * @param command the command to execute.
          * @param <R>     the return type of the command.
@@ -217,7 +252,7 @@ public final class Exceptions extends Utility {
         }
 
         /**
-         * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception other than {@link RuntimeException} and {@link Error} thrown
+         * Executes the given command and wraps any exception other than {@link RuntimeException} and {@link Error} thrown
          * therefrom.
          *
          * @param label   the error message in the wrapped exception; use {@link Deferred.Label}s to defer computing the label.
@@ -229,6 +264,8 @@ public final class Exceptions extends Utility {
          * @param <T>     the type of the exception to wrap with.
          *
          * @return whatever the command returns.
+         *
+         * @throws T as thrown by the command.
          */
         @SuppressWarnings("unchecked")
         public <R, E extends Exception, T extends Exception> R wrap(final Object label, final Class<T> wrapper, final Process<R, E> command) throws T {
@@ -293,10 +330,10 @@ public final class Exceptions extends Utility {
         /**
          * Unwraps a chain of exception wrappers from the <i>head</i> of the exception chain starting at the specified <code>error</code>. Exceptions
          * recognized as wrappers are:<ul>
-         * <li><code>any subclass of {@link UndeclaredThrowableException}</code>,</li>
-         * <li><code>any subclass of {@link InvocationTargetException}</code>,</li>
-         * <li><code>any subclass of {@link PrivilegedActionException}</code>,</li>
-         * <li><code>any subclass of any exception type passed to {@link Exceptions#checked(Class[])},</li>
+         * <li>any subclass of {@link UndeclaredThrowableException},</li>
+         * <li>any subclass of {@link InvocationTargetException},</li>
+         * <li>any subclass of {@link PrivilegedActionException},</li>
+         * <li>any subclass of any exception type passed to {@link Exceptions#checked(Class[])},</li>
          * <li><code>{@link RuntimeException}</code>,</li>
          * <li><code>{@link Exceptions.Wrapper}</code>.</li>
          * </ul>

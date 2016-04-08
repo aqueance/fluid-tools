@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,18 +21,18 @@ import org.fluidity.foundation.Log;
 /**
  * Adapts an external logging framework to the Fluid Tools dependency injection system. This interface is used only by implementations of such an adaptor. For
  * logging in your code, see to the documentation of the {@link Log} class.
- * <p/>
+ * <p>
  * The log factory creates source-bound {@link Log} objects. Your implementation should adapt the respective log sink of the logging framework of your choice
  * to the {@link Log} interface. The prevalent implementation of this interface will be looked for as a
- * <a href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR Service Provider</a>.
- * <p/>
+ * <a href="http://docs.oracle.com/javase/8/docs/technotes/guides/jar/jar.html#Service_Provider">JAR Service Provider</a>.
+ * <p>
  * You will need to use Fluid Tools to implement and build your adaptor, and annotate the implementation with both
  * {@link org.fluidity.composition.ServiceProvider @ServiceProvider} and {@link org.fluidity.composition.Component @Component}. The Java archive containing the
  * implementation must be in the class path for it to be found and used, and it must be the <i>only</i> archive in the class path that contains a {@code
  * LogFactory} implementation
- * <p/>
+ * <p>
  * See {@link LogAdapter} for a recommended way to adapt any logging framework to Fluid Tools.
- * <p/>
+ * <p>
  * {@link Log} objects returned by this factory are thread safe as long as the underlying log implementation is.
  *
  * @author Tibor Varga

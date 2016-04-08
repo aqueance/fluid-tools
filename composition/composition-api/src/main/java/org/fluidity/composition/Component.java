@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,10 @@ import java.lang.reflect.Type;
 /**
  * Specifies the <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Introduction#component-interface">component interface(s)</a> that a class implements, which should
  * resolve to the annotated class at run time by a dependency injection container.
- * <p/>
+ * <p>
  * This annotation is also a marker for the <code>org.fluidity.maven:composition-maven-plugin</code> Maven plugin to make configuration-free dependency
  * injection possible.
- * <p/>
+ * <p>
  * For any class marked with this annotation and without having automatic processing disabled, i.e., without {@link #automatic() @Component(automatic =
  * false)}, the <code>composition-maven-plugin</code> Maven plugin will generate at build time the necessary metadata that the dependency injection container
  * will need to pick up and process the annotated class at run time.
@@ -69,10 +69,10 @@ public @interface Component {
 
     /**
      * Specifies the interfaces or classes that should resolve to the annotated class at run time.
-     * <p/>
+     * <p>
      * In case of {@link org.fluidity.composition.spi.ComponentFactory ComponentFactory}, the value applies to the component the factory creates, not the
      * factory itself.
-     * <p/>
+     * <p>
      * When omitted, the property defaults to the list of interfaces determined by the algorithm documented at {@link org.fluidity.composition.Components}.
      *
      * @return an array of class objects.
@@ -82,10 +82,10 @@ public @interface Component {
 
     /**
      * When not specified or set to <code>true</code>, this parameter specifies that the annotated class can be automatically added to a global container.
-     * <p/>
+     * <p>
      * Setting this property to <code>false</code> allows the class to be added to a container programmatically, or to merely to define a list of interfaces
      * for another class to pick up, such as a {@link org.fluidity.composition.spi.ComponentFactory ComponentFactory} implementation.
-     * <p/>
+     * <p>
      * Programmatic handling of the component entails either:<ul>
      *     <li>explicitly {@link ComponentContainer.Registry#bindComponent(Class, Class[]) binding} the class to some
      *     {@link ComponentContainer#makeChildContainer(ComponentContainer.Bindings...) local container},</li>
@@ -122,13 +122,13 @@ public @interface Component {
     /**
      * Specifies that this component is scoped to a component with the given component interface, as opposed to being globally accessible. Setting
      * this parameter implies <code>{@link #automatic automatic} = false</code>.
-     * <p/>
+     * <p>
      * Unless it itself implements the component interface it is scoped to, the annotated component is <em>not</em> supposed to be bound in any way by the
      * developer; it is automatically bound when the given component interface is either
      * {@link ComponentContainer.Registry#bindComponent(Class, Class[]) bound} in a
      * {@link ComponentContainer#makeChildContainer(ComponentContainer.Bindings...) local container} or directly
      * {@link ComponentContainer#instantiate(Class, ComponentContainer.Bindings...) instantiated}.
-     * <p/>
+     * <p>
      * When any of the foregoing occurs, Fluid Tools automatically binds every component that has this parameter set to the given component interface.
      * This makes it possible to have an isolated sub-graph of dependency injected components for every binding / instance of the given component interface.
      *
@@ -141,13 +141,13 @@ public @interface Component {
      * annotated component class. These annotations distinguish instances of the same component class from one another. Such a annotation could, for instance,
      * specify a database identifier for a database access component, etc. The component receives, as a {@link ComponentContext} argument of its constructor,
      * the instances of its accepted annotations prevalent at the point of reference to the component.
-     * <p/>
+     * <p>
      * A special context is the parameterized type of the dependency reference to the context dependent component, {@link
      * Component.Reference @Component.Reference}.
-     * <p/>
+     * <p>
      * When the {@link #ignore()} parameter is present, it causes all definitions, up to but not including the annotated entity, of the specified context
      * annotations to be ignored by the annotated entity.
-     * <p/>
+     * <p>
      * When applied to an annotation type, the {@link #collect} parameter determines how multiple instances of the context annotation are handled.
      * <h3>Usage</h3>
      * <pre>
@@ -187,7 +187,7 @@ public @interface Component {
 
         /**
          * Lists the context annotations that configure the annotated class.
-         * <p/>
+         * <p>
          * This parameter is used only at class level.
          *
          * @return a list of context annotation classes.
@@ -256,12 +256,12 @@ public @interface Component {
      * <pre>
      * {@linkplain Component @Component}
      * {@linkplain Component.Context @Component.Context}(<span class="hl1">Component.Reference</span>.class)
-     * final class <span class="hl2">MyComponent</span>&lt;T> {
+     * final class <span class="hl2">MyComponent</span>&lt;T&gt; {
      *
      *   &#47;**
      *    * The raw value of the type parameter T.
      *    *&#47;
-     *   private final Class&lt;?> type;
+     *   private final Class&lt;?&gt; type;
      *
      *   MyComponent(final {@linkplain ComponentContext} context) {
      *     final <span class="hl1">Component.Reference</span> reference = context.annotation(<span class="hl1">Component.Reference</span>.class, null);
@@ -269,7 +269,7 @@ public @interface Component {
      *     &hellip;
      *   }
      *
-     *   public Class&lt;?> <span class="hl2">type()</span> {
+     *   public Class&lt;?&gt; <span class="hl2">type()</span> {
      *     return type;
      *   }
      * }
@@ -278,7 +278,7 @@ public @interface Component {
      * {@linkplain Component @Component}
      * final class MyReferrer {
      *
-     *   MyReferrer(final <span class="hl2">MyComponent</span><span class="hl3">&lt;MyType></span> dependency) {
+     *   MyReferrer(final <span class="hl2">MyComponent</span><span class="hl3">&lt;MyType&gt;</span> dependency) {
      *     assert dependency.<span class="hl2">type()</span> == <span class="hl3">MyType</span>.class : <span class="hl2">MyComponent</span>.class;
      *     &hellip;
      *   }

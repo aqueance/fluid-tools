@@ -31,17 +31,17 @@ interface ContainerBootstrap {
 
     /**
      * Finds all package component bindings and invokes them to add their bindings and initializes components after all components have been bound.
-     * <p/>
+     * <p>
      * The idea is to find all {@link org.fluidity.composition.spi.PackageBindings} objects and invoke their {@link
      * org.fluidity.composition.spi.PackageBindings#bindComponents(ComponentContainer.Registry)} method.
      *
      * @param services   provides basic services for containers
-     * @param provider   is the provider of actual dependency injection containers and related functionality.
-     * @param properties is the properties to bind to the container as a means to configure binding instances at run time.
-     * @param parent     is the container to use as the parent of the one returned; can be <code>null</code>, in which case a standalone container is
+     * @param provider   the provider of actual dependency injection containers and related functionality.
+     * @param properties the properties to bind to the container as a means to configure binding instances at run time.
+     * @param parent     the container to use as the parent of the one returned; can be <code>null</code>, in which case a standalone container is
      *                   returned.
-     * @param loader     is the class loader to use to discover package bindings. Package bindings found in the class loader ancestry are ignored when the
-     * @param callback   object to notify when a container is initialized or shut down.
+     * @param loader     the class loader to use to discover package bindings. Package bindings found in the class loader ancestry are ignored when the
+     * @param callback   the object to notify when a container is initialized or shut down.
      *
      * @return the container with the bindings registered.
      */
