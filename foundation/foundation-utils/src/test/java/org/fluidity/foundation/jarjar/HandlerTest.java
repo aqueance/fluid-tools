@@ -273,6 +273,36 @@ public class HandlerTest {
         verify(Arrays.asList("level0.txt", "level1.txt", "level2.txt", "level3.txt", "level1.txt", "level2.txt", "level3.txt"), files);
     }
 
+    @Test(dataProvider = "caching")
+    public void testMetadata(final boolean caching) throws Exception {
+        {
+            final URL url = this.container;
+            final URLConnection connection = Archives.connection(caching, url);
+
+            assert connection.getContentLength() != 0 : String.format("Content length of %s", url);
+            assert connection.getContentType() != null : String.format("Content type of %s", url);
+            assert connection.getLastModified() > 0 : String.format("Last modification date of %s", url);
+        }
+
+        {
+            final URL url = Handler.formatURL(container, "level0.txt");
+            final URLConnection connection = Archives.connection(caching, url);
+
+            assert connection.getContentLength() != 0 : String.format("Content length of %s", url);
+            assert connection.getContentType().equals("text/plain") : String.format("Content type of %s", url);
+            assert connection.getLastModified() > 0 : String.format("Last modification date of %s", url);
+        }
+
+        {
+            final URL url = Handler.formatURL(container, "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
+            final URLConnection connection = Archives.connection(caching, url);
+
+            assert connection.getContentLength() != 0 : String.format("Content length of %s", url);
+            assert connection.getContentType().equals("text/plain") : String.format("Content type of %s", url);
+            assert connection.getLastModified() > 0 : String.format("Last modification date of %s", url);
+        }
+    }
+
     @Test
     public void testRelativeURLs() throws Exception {
         verify(Handler.formatURL(container, "level1-2.jar", "level2.jar", "level2.txt"),

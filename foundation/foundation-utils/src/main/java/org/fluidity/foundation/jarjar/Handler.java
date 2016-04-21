@@ -47,6 +47,7 @@ import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Deferred;
+import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Security;
 import org.fluidity.foundation.Streams;
@@ -404,8 +405,14 @@ public final class Handler extends URLStreamHandler {
      */
     private static class Connection extends URLConnection {
 
+        private static final String CONTENT_LENGTH = "content-length";
+        private static final String CONTENT_TYPE = "content-type";
+        private static final String UNKNOWN_TYPE = "application/octet-stream";
+        private static final String LAST_MODIFIED = "last-modified";
+
         private final URLConnection root;
         private final String archive;
+        private final Deferred.Reference<Map<String, Object>> headers;
 
         Connection(final URL url) throws IOException {
             super(url);
@@ -417,6 +424,55 @@ public final class Handler extends URLStreamHandler {
             assert !PROTOCOL.equals(enclosed.getProtocol()) : getURL();
 
             root = enclosed.openConnection();
+            headers = Deferred.global(new Deferred.Factory<Map<String, Object>>() {
+                @Override
+                public Map<String, Object> create() {
+                    return Exceptions.wrap(new Process<Map<String, Object>, Exception>() {
+                        @Override
+                        public Map<String, Object> run() throws Exception {
+                            final Map<String, Object> headers = new HashMap<String, Object>();
+
+                            final URL _url = getURL();
+                            final URL _enclosing = Archives.containing(_url);
+
+                            final String resource = Archives.resourcePath(_url, _enclosing)[0];
+
+                            Archives.read(Archives.open(true, _enclosing), _url, new Archives.Entry() {
+                                public boolean matches(final URL url, final JarEntry entry) throws IOException {
+                                    return resource.equals(entry.getName());
+                                }
+
+                                public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
+                                    final String type = URLConnection.getFileNameMap().getContentTypeFor(resource);
+                                    headers.put(CONTENT_TYPE, type == null ? UNKNOWN_TYPE : type);
+
+                                    headers.put(LAST_MODIFIED, entry.getTime());
+
+                                    long size = entry.getSize();
+
+                                    if (size != -1) {
+                                        headers.put(CONTENT_LENGTH, String.valueOf(size));
+                                    } else {
+                                        final byte[] buffer = new byte[4096];
+
+                                        size = 0;
+                                        for (int length; (length = stream.read(buffer)) != -1; ) {
+                                            size += length;
+                                        }
+
+                                        headers.put(CONTENT_LENGTH, String.valueOf(size));
+                                    }
+
+                                    return false;
+                                }
+                            });
+
+
+                            return Collections.unmodifiableMap(headers);
+                        }
+                    });
+                }
+            });
         }
 
         @Override
@@ -504,6 +560,17 @@ public final class Handler extends URLStreamHandler {
             if (value) {
                 throw new IllegalStateException("Output not supported on nested URLs");
             }
+        }
+
+        @Override
+        public String getHeaderField(final String name) {
+            return (String) headers.get().get(name);
+        }
+
+        @Override
+        public long getLastModified() {
+            final Long lastModified = (Long) headers.get().get(LAST_MODIFIED);
+            return lastModified == null ? -1 : lastModified;
         }
     }
 
@@ -915,7 +982,7 @@ public final class Handler extends URLStreamHandler {
                     data = bytes;
                 }
 
-                Map<String, ArchiveEntry> map = new HashMap<String, ArchiveEntry>();
+                final Map<String, ArchiveEntry> map = new HashMap<String, ArchiveEntry>();
                 loaded = true;
 
                 load(base, data, content, map, buffer, metadata);

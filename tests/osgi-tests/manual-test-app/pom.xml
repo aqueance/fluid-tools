@@ -37,6 +37,78 @@
         </license>
     </licenses>
 
+    <description><![CDATA[
+        Some notes on Eclipse Equinox are in order. The versions referred to herein are the numbers
+        included in JAR names.
+
+        Version 3.7 and are 3.10 have been tested and found broken in terms of embedding the framework.
+
+        Version 3.8 and 3.9 work and have a functioning console without any system bundles that works
+        well with netcat.
+
+        Version 3.11 requires the system bundles included in the "system" profile below to have a
+        console at all, and their remote console pretends to implement the TELNET protocol without
+        understanding a single TELNET command, which makes it impossible to use via netcat. You have
+        to use an actual telnet client to access the console on these "modern" versions.
+
+        Getting the Equinox Framework requires the following.
+
+        If you are downloading version 3.8 or 3.9:
+
+          1. Go to http://archive.eclipse.org/equinox/, and select the latest patch for your chosen
+             version.
+
+          2. Download the "Framework Only" JAR.
+
+          3. Install it using the following Maven command, substituting the marked pieces as appropriate:
+
+            $ mvn -N install:install-file -DgroupId=org.eclipse -DartifactId=equinox -Dpackaging=jar \
+                  -Dversion=<version>.<date> \
+                  -Dfile=<download path>/plugins/org.eclipse.osgi_<version>.<date>-<build>.jar
+
+        If you are downloading the latest and "greatest":
+
+          1. Go to http://download.eclipse.org/equinox/ and click on the stable build latest by date,
+             not by listed order.
+
+          2. Download and extract the SDK.
+
+          3. Install the OSGi Framework using the following Maven command, substituting the marked
+             pieces as appropriate:
+
+            $ mvn -N install:install-file -DgroupId=org.eclipse -DartifactId=equinox -Dpackaging=jar \
+                  -Dversion=<version>.<date> \
+                  -Dfile=<extracted path>/plugins/org.eclipse.osgi_<version>.<date>-<build>.jar
+
+          4. Install each bundle required for the OSGi console, using these Maven commands,
+             substituting the marked pieces as appropriate (<version>.<date> is the Framework
+             version used in the previous step, while <bundle version> is the respective
+             version of the bundle being installed):
+
+            $ mvn -N install:install-file -DgroupId=org.eclipse -DartifactId=equinox -Dpackaging=jar \
+                  -Dversion=<version>.<date> \
+                  -Dclassifier=org.eclipse.equinox.console \
+                  -Dfile=<extracted path>/plugins/org.eclipse.equinox.console_<bundle version>.jar
+
+            $ mvn -N install:install-file -DgroupId=org.eclipse -DartifactId=equinox -Dpackaging=jar \
+                  -Dversion=<version>.<date> \
+                  -Dclassifier=org.apache.felix.gogo.runtime \
+                  -Dfile=<extracted path>/plugins/org.apache.felix.gogo.runtime_<bundle version>.jar
+
+            $ mvn -N install:install-file -DgroupId=org.eclipse -DartifactId=equinox -Dpackaging=jar \
+                  -Dversion=<version>.<date> \
+                  -Dclassifier=org.apache.felix.gogo.shell \
+                  -Dfile=<extracted path>/plugins/org.apache.felix.gogo.shell_<bundle version>.jar
+
+            $ mvn -N install:install-file -DgroupId=org.eclipse -DartifactId=equinox -Dpackaging=jar \
+                  -Dversion=<version>.<date> \
+                  -Dclassifier=org.apache.felix.gogo.command \
+                  -Dfile=<extracted path>/plugins/org.apache.felix.gogo.command_<bundle version>.jar
+
+        The bundles are then listed in the "system" profile in this POM, so that they are installed
+        and started when the OSGi framework starts.
+    ]]></description>
+
     <dependencies>
 
         <dependency>
@@ -105,6 +177,41 @@
                 </dependency>
             </dependencies>
         </profile>
+
+        <profile>
+            <id>system</id>
+            <activation><activeByDefault>true</activeByDefault></activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>org.eclipse</groupId>
+                    <artifactId>equinox</artifactId>
+                    <classifier>org.eclipse.equinox.console</classifier>
+                    <version>${equinox.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.eclipse</groupId>
+                    <artifactId>equinox</artifactId>
+                    <classifier>org.apache.felix.gogo.runtime</classifier>
+                    <version>${equinox.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.eclipse</groupId>
+                    <artifactId>equinox</artifactId>
+                    <classifier>org.apache.felix.gogo.shell</classifier>
+                    <version>${equinox.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.eclipse</groupId>
+                    <artifactId>equinox</artifactId>
+                    <classifier>org.apache.felix.gogo.command</classifier>
+                    <version>${equinox.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
 
     <build>
@@ -121,7 +228,10 @@
 
                 <configuration>
                     <compact>true</compact>
-                    <profiles><profile>bundles</profile></profiles>
+                    <profiles>
+                        <profile>system</profile>
+                        <profile>bundles</profile>
+                    </profiles>
                 </configuration>
 
                 <dependencies>
