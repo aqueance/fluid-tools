@@ -443,18 +443,13 @@ public final class StandaloneJarMojo extends AbstractMojo {
                         outputStream.putNextEntry(new JarEntry(entryName));
 
                         if (artifact.getId().equals(projectId)) {
+                            final URL url = dependency.toURI().toURL();
 
                             // got to check if our project artifact is something we have created in a previous run
                             // i.e., if it contains the project artifact we're about to copy
-                            int processed = Archives.read(false, dependency.toURI().toURL(), new Archives.Entry() {
-                                public boolean matches(final URL url, final JarEntry entry) throws IOException {
-                                    return entryName.equals(entry.getName());
-                                }
-
-                                public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
-                                    Streams.copy(stream, outputStream, buffer, true, false);
-                                    return false;
-                                }
+                            final int processed = Archives.read(false, url, (_url, _entry) -> !entryName.equals(_entry.getName()) ? null : (__url, __entry, stream) -> {
+                                Streams.copy(stream, outputStream, buffer, true, false);
+                                return false;
                             });
 
                             if (processed > 0) {

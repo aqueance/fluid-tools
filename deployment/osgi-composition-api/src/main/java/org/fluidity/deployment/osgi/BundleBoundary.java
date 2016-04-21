@@ -74,7 +74,8 @@ public interface BundleBoundary {
 
     /**
      * Invokes the given command with a context class loader that allows the <code>remote</code> object to find classes from the bundle of the
-     * <code>local</code> object. Any exception thrown by the command will be {@link org.fluidity.foundation.Exceptions#wrap(Process) wrapped}.
+     * <code>local</code> object. Any exception thrown by the command will be {@link org.fluidity.foundation.Exceptions#wrap(org.fluidity.foundation.Command.Process)
+     * wrapped}.
      *
      * @param <T>     the return type of the command.
      * @param <E>     the exception type thrown by the command.

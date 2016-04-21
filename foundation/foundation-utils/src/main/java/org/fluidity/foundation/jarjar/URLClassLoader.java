@@ -47,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.Attributes;
-import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
@@ -515,48 +514,42 @@ public class URLClassLoader extends SecureClassLoader {
                         final Command.Operation<URL, IOException> collect) throws IOException {
             final Manifest manifest[] = { null };
 
-            Archives.read(archive.data(), url, new Archives.Entry() {
-                public boolean matches(final URL url, final JarEntry entry) throws IOException {
-                    return true;
+            Archives.read(archive.data(), url, (_url, entry) -> (__url, _entry, stream) -> {
+                final String resource = _entry.getName();
+                final CodeSigner[] signers = _entry.getCodeSigners();
+
+                final byte[] data = archive.entry(resource).data();
+                assert data != null : Handler.formatURL(__url, resource);
+
+                if (JarFile.MANIFEST_NAME.equals(resource)) {
+                    manifest[0] = new Manifest(new ByteArrayInputStream(data));
                 }
 
-                public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
-                    final String resource = entry.getName();
-                    final CodeSigner[] signers = entry.getCodeSigners();
+                map.put(resource, new Entry() {
+                    private final URL entry = Archives.Nested.formatURL(__url, resource);
 
-                    final byte[] data = archive.entry(resource).data();
-                    assert data != null : Handler.formatURL(url, resource);
-
-                    if (JarFile.MANIFEST_NAME.equals(resource)) {
-                        manifest[0] = new Manifest(new ByteArrayInputStream(data));
+                    public Class<?> define(final String resource) throws IOException {
+                        return defineClass(resource, data, 0, data.length, signers, this);
                     }
 
-                    map.put(resource, new Entry() {
-                        private final URL entry = Archives.Nested.formatURL(url, resource);
+                    public URL url() {
+                        return entry;
+                    }
 
-                        public Class<?> define(final String resource) throws IOException {
-                            return defineClass(resource, data, 0, data.length, signers, this);
-                        }
+                    public Manifest manifest() throws IOException {
+                        return manifest[0];
+                    }
 
-                        public URL url() {
-                            return entry;
-                        }
+                    public InputStream stream() throws IOException {
+                        return new ByteArrayInputStream(data);
+                    }
 
-                        public Manifest manifest() throws IOException {
-                            return manifest[0];
-                        }
+                    public URL root() {
+                        return __url;
+                    }
+                });
 
-                        public InputStream stream() throws IOException {
-                            return new ByteArrayInputStream(data);
-                        }
-
-                        public URL root() {
-                            return url;
-                        }
-                    });
-
-                    return true;
-                }
+                return true;
             });
 
             for (final URL relative : classpath(url, manifest[0], factory)) {

@@ -280,32 +280,27 @@ public final class IncludeJarsMojo extends AbstractMojo {
                         Streams.store(outputStream, content, "UTF-8", buffer, false);
                     });
 
+                    final String policyName = policy.name(packageFile);
+
                     // copy the original archive, excluding entries from our dependency paths
-                    Archives.read(false, packageURL, new Archives.Entry() {
+                    Archives.read(false, packageURL, (url, entry) -> {
+                        final String name = entry.getName();
 
-                        private String policyName = policy.name(packageFile);
-
-                        public boolean matches(final URL url, final JarEntry entry) throws IOException {
-                            final String name = entry.getName();
-
-                            if (name.equals(JarFile.MANIFEST_NAME) || name.equals(ArchivesSupport.META_INF)) {
-                                return false;
-                            }
-
-                            for (final String path : dependencyMap.keySet()) {
-                                if (name.startsWith(path)) {
-                                    return false;
-                                }
-                            }
-
-                            return !name.equals(policyName);
+                        if (name.equals(JarFile.MANIFEST_NAME) || name.equals(ArchivesSupport.META_INF)) {
+                            return null;
                         }
 
-                        public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
-                            outputStream.putNextEntry(new JarEntry(entry.getName()));
+                        for (final String path : dependencyMap.keySet()) {
+                            if (name.startsWith(path)) {
+                                return null;
+                            }
+                        }
+
+                        return name.equals(policyName) ? null : (_url, _entry, stream) -> {
+                            outputStream.putNextEntry(new JarEntry(_entry.getName()));
                             Streams.copy(stream, outputStream, buffer, false, false);
                             return true;
-                        }
+                        };
                     });
 
                     // copy the custom dependencies

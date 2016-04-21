@@ -428,41 +428,34 @@ public final class Handler extends URLStreamHandler {
             this.headers = Deferred.shared(() -> Exceptions.wrap(() -> {
                 final Map<String, List<String>> headers = new HashMap<>();
 
-                final URL _url = getURL();
-                final URL _enclosing = Archives.containing(_url);
+                final URL entry = getURL();
+                final URL enclosing = Archives.containing(entry);
 
-                final String resource = Archives.resourcePath(_url, _enclosing)[0];
+                final String resource = Archives.resourcePath(entry, enclosing)[0];
 
-                Archives.read(Archives.open(true, _enclosing), _url, new Archives.Entry() {
-                    public boolean matches(final URL url1, final JarEntry entry) throws IOException {
-                        return resource.equals(entry.getName());
-                    }
+                Archives.read(Archives.open(true, enclosing), entry, (_url, _entry) -> !resource.equals(_entry.getName()) ? null : (__url, __entry, stream) -> {
+                    final String type = URLConnection.getFileNameMap().getContentTypeFor(resource);
+                    headers.put(CONTENT_TYPE, Collections.singletonList(type == null ? UNKNOWN_TYPE : type));
 
-                    public boolean read(final URL url1, final JarEntry entry, final InputStream stream) throws IOException {
-                        final String type = URLConnection.getFileNameMap().getContentTypeFor(resource);
-                        headers.put(CONTENT_TYPE, Collections.singletonList(type == null ? UNKNOWN_TYPE : type));
+                    headers.put(LAST_MODIFIED, Collections.singletonList(String.valueOf(__entry.getTime())));
 
-                        headers.put(LAST_MODIFIED, Collections.singletonList(String.valueOf(entry.getTime())));
+                    long size = __entry.getSize();
 
-                        long size = entry.getSize();
+                    if (size != -1) {
+                        headers.put(CONTENT_LENGTH, Collections.singletonList(String.valueOf(size)));
+                    } else {
+                        final byte[] buffer = new byte[4096];
 
-                        if (size != -1) {
-                            headers.put(CONTENT_LENGTH, Collections.singletonList(String.valueOf(size)));
-                        } else {
-                            final byte[] buffer = new byte[4096];
-
-                            size = 0;
-                            for (int length; (length = stream.read(buffer)) != -1; ) {
-                                size += length;
-                            }
-
-                            headers.put(CONTENT_LENGTH, Collections.singletonList(String.valueOf(size)));
+                        size = 0;
+                        for (int length; (length = stream.read(buffer)) != -1; ) {
+                            size += length;
                         }
 
-                        return false;
+                        headers.put(CONTENT_LENGTH, Collections.singletonList(String.valueOf(size)));
                     }
-                });
 
+                    return false;
+                });
 
                 return Collections.unmodifiableMap(headers);
             }));
@@ -490,27 +483,25 @@ public final class Handler extends URLStreamHandler {
                         private String file = paths[index];
                         private String directory = directory(file);
 
-                        public boolean matches(final URL url, final JarEntry entry) throws IOException {
+                        public Reader matches(final URL url, final JarEntry entry) throws IOException {
                             final String name = entry.getName();
 
                             if (entry.isDirectory() && name.equals(directory)) {
                                 throw new IOException(String.format("Nested entry '%s' is a directory, URL is invalid: %s", name, url.toExternalForm()));
                             }
 
-                            return file.equals(name);
-                        }
+                            return !file.equals(name) ? null : (_url, _entry, stream) -> {
+                                if (++index == paths.length) {
+                                    found[0] = new ByteArrayInputStream(Streams.copy(stream, new ByteArrayOutputStream(), buffer, false, false).toByteArray());
+                                } else {
+                                    file = paths[index];
+                                    directory = directory(file);
 
-                        public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
-                            if (++index == paths.length) {
-                                found[0] = new ByteArrayInputStream(Streams.copy(stream, new ByteArrayOutputStream(), buffer, false, false).toByteArray());
-                            } else {
-                                file = paths[index];
-                                directory = directory(file);
+                                    Archives.read(stream, _url, this);
+                                }
 
-                                Archives.read(stream, url, this);
-                            }
-
-                            return false;
+                                return false;
+                            };
                         }
 
                         private String directory(final String name) {

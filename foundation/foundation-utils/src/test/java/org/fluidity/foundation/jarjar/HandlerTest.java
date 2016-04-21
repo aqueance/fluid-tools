@@ -244,19 +244,17 @@ public class HandlerTest {
         final List<String> files = new ArrayList<>();
 
         Archives.read(caching, container, new Archives.Entry() {
-            public boolean matches(final URL url, final JarEntry entry) throws IOException {
+            public Reader matches(final URL url, final JarEntry entry) throws IOException {
                 final String name = entry.getName();
 
                 if (name.endsWith(".txt")) {
                     files.add(name);
                 }
 
-                return true;
-            }
-
-            public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
-                Archives.read(caching, Archives.Nested.formatURL(url, entry.getName()), this);
-                return true;
+                return (_url, _entry, stream) -> {
+                    Archives.read(caching, Archives.Nested.formatURL(_url, _entry.getName()), this);
+                    return true;
+                };
             }
         });
 

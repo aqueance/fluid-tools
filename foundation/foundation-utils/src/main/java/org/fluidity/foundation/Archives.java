@@ -49,16 +49,13 @@ import static org.fluidity.foundation.Command.Process;
  * Convenience methods to work with Java archives.
  * <h3>Usage Example</h3>
  * <pre>
- * {@link Archives#read(boolean, URL, Archives.Entry) Archives.read}({@linkplain Archives#containing(Class) Archives.containing}(getClass()), new <span class="hl1">Archives.Entry</span>() {
- *   public boolean <span class="hl1">matches</span>(final {@linkplain URL} url, final {@linkplain JarEntry} entry) throws {@linkplain IOException} {
+ * {@link Archives#read(boolean, URL, Archives.Entry) Archives.read}({@linkplain Archives#containing(Class) Archives.containing}(getClass()), (url, entry) -&gt; {
  *     &hellip;
- *     return true;
- *   }
  *
- *   public boolean <span class="hl1">read</span>(final {@linkplain URL} url, final {@linkplain JarEntry} entry, final {@linkplain InputStream} stream) throws {@linkplain IOException} {
- *     &hellip;
- *     return true;
- *   }
+ *     return (_url, _entry, stream) -&gt; {
+ *         &hellip;
+ *         return true;
+ *     };
  * });
  * </pre>
  *
@@ -119,48 +116,48 @@ public final class Archives extends Utility {
      * Reads entries from a JAR file. If the archive manifest is the first entry in the archive, its {@linkplain JarEntry entry details} will be restricted to
      * those available in a {@link ZipEntry}.
      *
-     * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
-     * @param url    the URL of the Java archive; this will be passed to the {@link Entry} methods.
-     * @param reader the reader to process the archive entries.
+     * @param cached  tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
+     * @param url     the URL of the Java archive; this will be passed to the {@link Entry} methods.
+     * @param matcher the processor to send the entries to.
      *
      * @return the number of entries read.
      *
      * @throws IOException when something goes wrong reading the JAR file.
      */
-    public static int read(final boolean cached, final URL url, final Entry reader) throws IOException {
+    public static int read(final boolean cached, final URL url, final Entry matcher) throws IOException {
         assert url != null;
-        return Archives.read(Archives.open(cached, url), url, reader);
+        return Archives.read(Archives.open(cached, url), url, matcher);
     }
 
     /**
-     * Reads entries from a JAR file contained in the given stream. If the archive manifest is the first entry in the archive, its {@linkplain
-     * JarEntry entry details} will be restricted to those available in a {@link ZipEntry}.
+     * Reads entries from a JAR file contained in the given stream. If the archive manifest is the first entry in the archive, its {@linkplain JarEntry entry
+     * details} will be restricted to those available in a {@link ZipEntry}.
      *
-     * @param input  the archive's content; the stream will be {@linkplain InputStream#close() closed} after reading it.
-     * @param url    the URL archive is coming from; this will be passed to the {@link Entry} methods.
-     * @param reader the reader to process the archive entries.
+     * @param input   the archive's content; the stream will be {@linkplain InputStream#close() closed} after reading it.
+     * @param url     the URL archive is coming from; this will be passed to the {@link Entry} methods.
+     * @param matcher the processor to send the entries to.
      *
      * @return the number of entries read.
      *
      * @throws IOException when something goes wrong reading the JAR file.
      */
-    public static int read(final InputStream input, final URL url, final Entry reader) throws IOException {
-        return read(Streams.load(input, new byte[16384], true), url, reader);
+    public static int read(final InputStream input, final URL url, final Entry matcher) throws IOException {
+        return read(Streams.load(input, new byte[16384], true), url, matcher);
     }
 
     /**
-     * Reads entries from a JAR file contained in the given byte array. If the archive manifest is the first entry in the archive, its {@linkplain
-     * JarEntry entry details} will be restricted to those available in a {@link ZipEntry}.
+     * Reads entries from a JAR file contained in the given byte array. If the archive manifest is the first entry in the archive, its {@linkplain JarEntry
+     * entry details} will be restricted to those available in a {@link ZipEntry}.
      *
-     * @param data   the archive's content.
-     * @param url    the URL archive is coming from; this will be passed to the {@link Entry} methods.
-     * @param reader the reader to process the archive entries.
+     * @param data    the archive's content.
+     * @param url     the URL archive is coming from; this will be passed to the {@link Entry#matches(URL, JarEntry)} method.
+     * @param matcher the processor to send the entries to.
      *
      * @return the number of entries read.
      *
      * @throws IOException when something goes wrong reading the JAR file.
      */
-    public static int read(final byte[] data, final URL url, final Entry reader) throws IOException {
+    public static int read(final byte[] data, final URL url, final Entry matcher) throws IOException {
         final InputStream content = new ByteArrayInputStream(data);
 
         int count = 0;
@@ -183,8 +180,9 @@ public final class Archives extends Utility {
 
             if (manifest != null) {
                 final JarEntry entry = new JarEntry(manifest);
+                final Entry.Reader reader = matcher.matches(url, entry);
 
-                if (reader.matches(url, entry)) {
+                if (reader != null) {
                     ++count;
 
                     if (!reader.read(url, entry, new OpenInputStream(zip))) {
@@ -199,7 +197,9 @@ public final class Archives extends Utility {
         for (JarEntry entry; (entry = jar.getNextJarEntry()) != null; ) {
             try {
                 if (!entry.isDirectory()) {
-                    if (reader.matches(url, entry)) {
+                    final Entry.Reader reader = matcher.matches(url, entry);
+
+                    if (reader != null) {
                         ++count;
 
                         if (!reader.read(url, entry, stream)) {
@@ -547,40 +547,49 @@ public final class Archives extends Utility {
     }
 
     /**
-     * Used by {@link Archives#read(boolean, URL, Archives.Entry) Archives.read()} to select and read entries in a JAR file. The reader will not be invoked for
-     * directory entries.
+     * Selects and reads entries in a JAR file. The reader will not be invoked for directory entries. Used by {@link Archives#read(boolean, URL, Entry)}, {@link
+     * Archives#read(byte[], URL, Entry)}, and {@link Archives#read(InputStream, URL, Entry)}.
      * <h3>Usage</h3>
      * See {@link Archives}.
      *
      * @author Tibor Varga
      */
+    @FunctionalInterface
     public interface Entry {
 
         /**
-         * Tells if the {@link #read(URL, JarEntry, InputStream) read()} method should be invoked with the given entry.
+         * Determines on an entry by entry basis whether to read an archive identified by its URL.
          *
-         * @param url   the URL passed to the originating {@link Archives#read(boolean, URL, Archives.Entry) Archives.read()} call.
+         * @param url   the URL passed to the originating {@link Archives#read(boolean, URL, Entry) Archives.read()} call.
          * @param entry the entry in <code>url</code> to decide about; never <code>null</code>.
          *
-         * @return <code>true</code> if the given entry should be passed to the {@link #read(URL, JarEntry, InputStream) read()} method, <code>false</code> if
-         *         not.
+         * @return An entry reader if the given entry should be read, <code>null</code> otherwise.
          *
          * @throws IOException when something goes wrong reading the JAR file.
          */
-        boolean matches(URL url, JarEntry entry) throws IOException;
+        Reader matches(URL url, JarEntry entry) throws IOException;
 
         /**
-         * Reads the given entry.
+         * Reads one entry from an archive. The object is returned by {@link Entry#matches(URL, JarEntry)}.
          *
-         * @param url    the URL passed to the originating {@link Archives#read(boolean, URL, Archives.Entry) Archives.read()} call.
-         * @param entry  the entry in <code>url</code> to read.
-         * @param stream the stream containing the entry's content; ignores {@link InputStream#close()} calls.
-         *
-         * @return <code>true</code> if further searching is needed, <code>false</code> if search should terminate.
-         *
-         * @throws IOException when something goes wrong reading the JAR file.
+         * @author Tibor Varga
          */
-        boolean read(URL url, JarEntry entry, InputStream stream) throws IOException;
+        @FunctionalInterface
+        interface Reader {
+
+            /**
+             * Reads the given entry.
+             *
+             * @param url    the URL passed to the originating {@link Archives#read(boolean, URL, Archives.Entry) Archives.read()} call.
+             * @param entry  the entry in <code>url</code> to read.
+             * @param stream the stream containing the entry's content; ignores {@link InputStream#close()} calls.
+             *
+             * @return <code>true</code> if further searching is needed, <code>false</code> if search should terminate.
+             *
+             * @throws IOException when something goes wrong reading the JAR file.
+             */
+            boolean read(URL url, JarEntry entry, InputStream stream) throws IOException;
+        }
     }
 
     /**

@@ -17,13 +17,10 @@
 package org.fluidity.deployment.launcher;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.jar.JarEntry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,9 +29,6 @@ import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.ServiceProviders;
-
-import static org.fluidity.foundation.Command.Function;
-import static org.fluidity.foundation.Command.Process;
 
 /**
  * A command line main class that prepares the web container bootstrap process, e.g., creating a work directory, setting up the boot classpath and, then loads
@@ -116,23 +110,17 @@ public final class WebApplicationBootstrap {
                 final URL war = Archives.containing(WebApplicationBootstrap.class);
                 final List<URL> classpath = new ArrayList<>();
 
-                Archives.read(true, war, new Archives.Entry() {
-                    private final String bootEntry = String.format("%s/boot/", Archives.WEB_INF);
+                final String bootEntry = String.format("%s/boot/", Archives.WEB_INF);
 
-                    public boolean matches(final URL url, final JarEntry entry) throws IOException {
-                        final String entryName = entry.getName();
-                        final boolean matches = entryName.startsWith(bootEntry) && !entryName.equals(bootEntry);
+                Archives.read(true, war, (url, entry) -> {
+                    final String entryName = entry.getName();
+                    final boolean matches = entryName.startsWith(bootEntry) && !entryName.equals(bootEntry);
 
-                        if (matches) {
-                            classpath.add(Archives.Nested.formatURL(url, entryName));
-                        }
-
-                        return false;
+                    if (matches) {
+                        classpath.add(Archives.Nested.formatURL(url, entryName));
                     }
 
-                    public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
-                        return true;
-                    }
+                    return null;
                 });
 
                 bootstrapServer(httpPort[0], extract[0], classpath, bootWar, managedApps, Lists.asArray(String.class, params));

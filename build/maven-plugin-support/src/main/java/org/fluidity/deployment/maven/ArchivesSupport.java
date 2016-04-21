@@ -18,8 +18,6 @@ package org.fluidity.deployment.maven;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -64,22 +62,18 @@ public final class ArchivesSupport extends Utility {
                             final Logger log,
                             final Feed feed) throws IOException {
         for (File input; (input = feed.next()) != null; ) {
-            Archives.read(true, input.toURI().toURL(), new Archives.Entry() {
-                public boolean matches(final URL url, final JarEntry entry) throws IOException {
+            Archives.read(true, input.toURI().toURL(), (url, entry) -> {
 
-                    // match all entries except the MANIFEST
-                    return feed.include(entry) && !entry.getName().equals(JarFile.MANIFEST_NAME);
-                }
-
-                public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
-                    final String entryName = entry.getName();
+                // read all entries except the MANIFEST
+                return !feed.include(entry) || entry.getName().equals(JarFile.MANIFEST_NAME) ? null : (_url, _entry, stream) -> {
+                    final String entryName = _entry.getName();
 
                     if (!attributes.containsKey(entryName)) {
                         if (entryName.equals(Archives.INDEX_NAME)) {
-                            log.warn(String.format("JAR index ignored in %s", url));
+                            log.warn(String.format("JAR index ignored in %s", _url));
                         } else if (entryName.startsWith(Archives.META_INF) && entryName.toUpperCase().endsWith(".SF")) {
-                            throw new IOException(String.format("JAR signatures not supported in %s", url));
-                        } else if (entryName.startsWith(ServiceProviders.LOCATION) && !entry.isDirectory()) {
+                            throw new IOException(String.format("JAR signatures not supported in %s", _url));
+                        } else if (entryName.startsWith(ServiceProviders.LOCATION) && !_entry.isDirectory()) {
                             final String[] list = Streams.load(stream, "UTF-8", buffer, false).split("[\n\r]+");
                             final String[] present = providers.get(entryName);
 
@@ -91,14 +85,14 @@ public final class ArchivesSupport extends Utility {
                                 providers.put(entryName, combined);
                             }
                         } else {
-                            attributes.put(entryName, entry.getAttributes());
+                            attributes.put(entryName, _entry.getAttributes());
                         }
-                    } else if (!entry.isDirectory()) {
+                    } else if (!_entry.isDirectory()) {
                         log.warn(String.format("Duplicate entry: %s", entryName));
                     }
 
                     return true;
-                }
+                };
             });
         }
     }
@@ -136,25 +130,21 @@ public final class ArchivesSupport extends Utility {
         }
 
         for (File input; (input = feed.next()) != null; ) {
-            Archives.read(true, input.toURI().toURL(), new Archives.Entry() {
-                public boolean matches(final URL url, final JarEntry entry) throws IOException {
-                    final String entryName = entry.getName();
+            Archives.read(true, input.toURI().toURL(), (url, entry) -> {
+                final String entryName = entry.getName();
 
-                    final boolean done = copied.contains(entryName);
-                    final boolean manifest = entryName.equals(JarFile.MANIFEST_NAME) || entryName.equals(META_INF);
-                    final boolean index = entryName.equals(Archives.INDEX_NAME);
-                    final boolean signature = entryName.startsWith(Archives.META_INF) && entryName.toUpperCase().endsWith(".SF");
+                final boolean done = copied.contains(entryName);
+                final boolean manifest = entryName.equals(JarFile.MANIFEST_NAME) || entryName.equals(META_INF);
+                final boolean index = entryName.equals(Archives.INDEX_NAME);
+                final boolean signature = entryName.startsWith(Archives.META_INF) && entryName.toUpperCase().endsWith(".SF");
 
-                    return !done && !manifest && !index && !signature && feed.include(entry);
-                }
-
-                public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
-                    copied.add(entry.getName());
-                    output.putNextEntry(entry);
+                return done || manifest || index || signature || !feed.include(entry) ? null : (_url, _entry, stream) -> {
+                    copied.add(_entry.getName());
+                    output.putNextEntry(_entry);
                     Streams.copy(stream, output, buffer, false, false);
 
                     return true;
-                }
+                };
             });
         }
     }
