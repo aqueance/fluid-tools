@@ -355,8 +355,8 @@
                         <doctitle>${project.name} API ${project.version}</doctitle>
                         <docfilessubdirs>true</docfilessubdirs>
                         <links>
-                            <link>http://docs.oracle.com/cd/E17802_01/products/products/servlet/2.5/docs/servlet-2_5-mr2/</link>
-                            <link>http://www.osgi.org/javadoc/r4v43/</link>
+                            <link>https://docs.oracle.com/cd/E17802_01/products/products/servlet/2.5/docs/servlet-2_5-mr2/</link>
+                            <link>https://osgi.org/javadoc/r4v43/core/</link>
                             <link>http://www.easymock.org/api/</link>
                         </links>
                         <stylesheetfile>javadoc-${javadoc.version}.css</stylesheetfile>
