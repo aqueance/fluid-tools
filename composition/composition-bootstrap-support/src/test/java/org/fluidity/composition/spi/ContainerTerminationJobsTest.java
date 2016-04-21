@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -61,11 +60,7 @@ public class ContainerTerminationJobsTest extends Simulator {
         EasyMock.expect(context.qualifier(Component.Reference.class, ContainerTermination.Jobs.class)).andReturn(reference);
         EasyMock.expect(reference.parameter(0)).andReturn((Class) caller);
 
-        return verify(new Work<ContainerTermination.Jobs>() {
-            public ContainerTermination.Jobs run() throws Exception {
-                return new ContainerTerminationJobs(NoLogFactory.consume(ContainerTerminationJobs.class), context);
-            }
-        });
+        return verify((Work<ContainerTermination.Jobs>) () -> new ContainerTerminationJobs(NoLogFactory.consume(ContainerTerminationJobs.class), context));
     }
 
     @Test
@@ -74,25 +69,15 @@ public class ContainerTerminationJobsTest extends Simulator {
         list.add(jobs[1]);
 
         // jobs should be invoked
-        test(new Task() {
-            public void run() throws Exception {
-                jobs[1].run();
-                jobs[0].run();
+        test(() -> {
+            jobs[1].run();
+            jobs[0].run();
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        list.flush();
-                    }
-                });
-            }
+            verify(() -> list.flush());
         });
 
         // jobs should not be invoked
-        verify(new Task() {
-            public void run() throws Exception {
-                list.flush();
-            }
-        });
+        verify(() -> list.flush());
     }
 
     @Test
@@ -104,29 +89,19 @@ public class ContainerTerminationJobsTest extends Simulator {
         list.remove(jobs[0]);
 
         // jobs should not be invoked
-        verify(new Task() {
-            public void run() throws Exception {
-                list.flush();
-            }
-        });
+        verify(() -> list.flush());
     }
 
     @Test
     public void testRepeatedCycle() throws Exception {
-        final Task cycle = new Task() {
-            public void run() throws Exception {
-                list.add(jobs[0]);
-                list.add(jobs[1]);
+        final Task cycle = () -> {
+            list.add(jobs[0]);
+            list.add(jobs[1]);
 
-                jobs[1].run();
-                jobs[0].run();
+            jobs[1].run();
+            jobs[0].run();
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        list.flush();
-                    }
-                });
-            }
+            verify(() -> list.flush());
         };
 
         test(cycle);
@@ -144,31 +119,23 @@ public class ContainerTerminationJobsTest extends Simulator {
 
         // job 0 is invoked, forces the thread to wait
         jobs[0].run();
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            public Void answer() throws Throwable {
-                threads.lineup(barrier, 100);
-                // just wait for the concurrent task to execute
-                threads.lineup(barrier, 100);
-                return null;
-            }
+        EasyMock.expectLastCall().andAnswer(() -> {
+            threads.lineup(barrier, 100);
+            // just wait for the concurrent task to execute
+            threads.lineup(barrier, 100);
+            return null;
         });
 
         // this task will be executed while jobs[0] is waiting in execution, releasing jobs[0] at completion
-        threads.concurrent(new Task.Concurrent() {
-            public Task run(final MockObjects ignored) throws Exception {
-                return new Task() {
-                    public void run() throws Exception {
-                        threads.lineup(barrier, 100);
+        threads.concurrent(ignored -> () -> {
+            threads.lineup(barrier, 100);
 
-                        list.remove(jobs[1]);
-                        list.add(jobs[2]);
-                        list.add(jobs[3]);
-                        list.remove(jobs[3]);
+            list.remove(jobs[1]);
+            list.add(jobs[2]);
+            list.add(jobs[3]);
+            list.remove(jobs[3]);
 
-                        threads.lineup(barrier, 100);
-                    }
-                };
-            }
+            threads.lineup(barrier, 100);
         });
 
         // job 2 is invoked
@@ -176,32 +143,22 @@ public class ContainerTerminationJobsTest extends Simulator {
 
         // no other job is invoked
 
-        threads.verify(500, new Task() {
-            public void run() throws Exception {
-                list.flush();
-            }
-        });
+        threads.verify(500, () -> list.flush());
 
         // verify that none remained added/removed
-        test(new Task() {
-            public void run() throws Exception {
-                list.add(jobs[0]);
-                list.add(jobs[1]);
-                list.add(jobs[2]);
-                list.add(jobs[3]);
+        test(() -> {
+            list.add(jobs[0]);
+            list.add(jobs[1]);
+            list.add(jobs[2]);
+            list.add(jobs[3]);
 
-                // all jobs should be invoked once
-                jobs[3].run();
-                jobs[2].run();
-                jobs[1].run();
-                jobs[0].run();
+            // all jobs should be invoked once
+            jobs[3].run();
+            jobs[2].run();
+            jobs[1].run();
+            jobs[0].run();
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        list.flush();
-                    }
-                });
-            }
+            verify(() -> list.flush());
         });
     }
 

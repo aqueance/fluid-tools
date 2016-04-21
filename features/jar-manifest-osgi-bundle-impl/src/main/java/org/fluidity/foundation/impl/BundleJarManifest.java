@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.fluidity.foundation.impl;
 
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,7 +33,6 @@ import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
-import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Methods;
 
@@ -41,7 +40,6 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.interpolation.InterpolationException;
-import org.codehaus.plexus.interpolation.InterpolationPostProcessor;
 import org.codehaus.plexus.interpolation.Interpolator;
 import org.codehaus.plexus.interpolation.PrefixAwareRecursionInterceptor;
 import org.codehaus.plexus.interpolation.PrefixedObjectValueSource;
@@ -76,6 +74,7 @@ import static org.osgi.framework.Constants.REQUIRE_CAPABILITY;
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("WeakerAccess")
 final class BundleJarManifest implements JarManifest {
 
     public static final String DEFAULT_BUNDLE_VERSION = Version.emptyVersion.toString();
@@ -89,25 +88,21 @@ final class BundleJarManifest implements JarManifest {
         dependencies.attribute(BUNDLE_CLASSPATH, ",");
 
         addEntry(attributes, BUNDLE_MANIFESTVERSION, "2");
-        addEntry(attributes, BUNDLE_NAME, new Metadata() { public String get() { return project.getName(); } });
-        addEntry(attributes, BUNDLE_SYMBOLICNAME, new Metadata() { public String get() { return project.getArtifactId(); } });
-        addEntry(attributes, BUNDLE_VERSION, new Metadata() { public String get() { return project.getVersion(); } });
-        addEntry(attributes, BUNDLE_DESCRIPTION, new Metadata() { public String get() { return project.getDescription(); } });
-        addEntry(attributes, BUNDLE_DOCURL, new Metadata() { public String get() { return project.getUrl(); } });
-        addEntry(attributes, BUNDLE_VENDOR, new Metadata() { public String get() { return project.getOrganization().getName(); } });
-        addEntry(attributes, BUNDLE_COPYRIGHT, new Metadata() {
-            public String get() {
-                final String year = project.getInceptionYear();
-                return year == null ? null : String.format("Copyright %s (c) %s. All rights reserved.", project.getOrganization().getName(), year);
-            }
+        addEntry(attributes, BUNDLE_NAME, project::getName);
+        addEntry(attributes, BUNDLE_SYMBOLICNAME, project::getArtifactId);
+        addEntry(attributes, BUNDLE_VERSION, project::getVersion);
+        addEntry(attributes, BUNDLE_DESCRIPTION, project::getDescription);
+        addEntry(attributes, BUNDLE_DOCURL, project::getUrl);
+        addEntry(attributes, BUNDLE_VENDOR, () -> { return project.getOrganization().getName(); });
+        addEntry(attributes, BUNDLE_COPYRIGHT, () -> {
+            final String year = project.getInceptionYear();
+            return year == null ? null : String.format("Copyright %s (c) %s. All rights reserved.", project.getOrganization().getName(), year);
         });
-        addEntry(attributes, REQUIRE_CAPABILITY, new Metadata() {
-            public String get() {
+        addEntry(attributes, REQUIRE_CAPABILITY, () -> {
 
-                // http://www.oracle.com/technetwork/java/javase/versioning-naming-139433.html
-                final String[] version = System.getProperty("java.version").split("\\.");
-                return String.format("osgi.ee;filter:=(&(osgi.ee=JavaSE)(version>=%s.%s))", version[0], version[1]);
-            }
+            // https://www.oracle.com/technetwork/java/javase/versioning-naming-139433.html
+            final String[] version = System.getProperty("java.version").split("\\.");
+            return String.format("osgi.ee;filter:=(&(osgi.ee=JavaSE)(version>=%s.%s))", version[0], version[1]);
         });
 
         final String version = attributes.getValue(BUNDLE_VERSION);
@@ -119,7 +114,7 @@ final class BundleJarManifest implements JarManifest {
         }
 
         final RegexBasedInterpolator interpolator = new RegexBasedInterpolator();
-        final List<String> prefixes = Arrays.asList("project.");
+        final List<String> prefixes = Collections.singletonList("project.");
 
         interpolator.addValueSource(new PropertiesBasedValueSource(System.getProperties()));
         interpolator.addValueSource(new PrefixedPropertiesValueSource(prefixes, project.getProperties(), true));
@@ -130,11 +125,7 @@ final class BundleJarManifest implements JarManifest {
         interpolator.setCacheAnswers(true);
         interpolator.setReusePatterns(true);
 
-        interpolator.addPostProcessor(new InterpolationPostProcessor() {
-            public Object execute(final String expression, final Object value) {
-                return verify((String) value);
-            }
-        });
+        interpolator.addPostProcessor((ignored, value) -> verify((String) value));
 
         try {
             interpolateHeaders(attributes, interpolator, interceptor,
@@ -150,7 +141,7 @@ final class BundleJarManifest implements JarManifest {
             try {
 
                 // create a class loader that sees the project's compile-time dependencies
-                final Set<URL> urls = new HashSet<URL>();
+                final Set<URL> urls = new HashSet<>();
 
                 final String skippedId = project.getArtifact().getId();
                 for (final Artifact dependency : artifacts) {
@@ -161,12 +152,7 @@ final class BundleJarManifest implements JarManifest {
                     }
                 }
 
-                final Method method = Methods.get(BootstrapDiscovery.class, new Methods.Invoker<BootstrapDiscovery>() {
-                    @SuppressWarnings("unchecked")
-                    public void invoke(final BootstrapDiscovery capture) {
-                        capture.activator();
-                    }
-                })[0];
+                final Method method = Methods.get(BootstrapDiscovery.class, BootstrapDiscovery::activator)[0];
 
                 urls.add((Archives.containing(BootstrapDiscovery.class)));
                 urls.add((Archives.containing(BootstrapDiscoveryImpl.class)));
@@ -216,6 +202,7 @@ final class BundleJarManifest implements JarManifest {
         }
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private String correct(final String version) {
         final StringBuilder bundleVersion = new StringBuilder();
 
@@ -267,33 +254,25 @@ final class BundleJarManifest implements JarManifest {
     private static <T> T isolate(final ClassLoader parent, final Collection<URL> urls, final Class<?> type, final Method run, final Object... arguments)
             throws Exceptions.Wrapper, ClassNotFoundException, InstantiationException {
         try {
-            return Archives.Cache.access(new Command.Process<T, RuntimeException>() {
-                public T run() {
-                    return Exceptions.wrap(new Command.Process<T, Exception>() {
-                        public T run() throws Exception {
-                            final ClassLoader isolated = ClassLoaders.create(urls, parent, null);
+            return Archives.Cache.access(() -> Exceptions.wrap(() -> {
+                final ClassLoader isolated = ClassLoaders.create(urls, parent, null);
 
-                            try {
+                try {
 
-                                // find the command
-                                final Object command = isolated.loadClass(type.getName()).newInstance();
+                    // find the command
+                    final Object command = isolated.loadClass(type.getName()).newInstance();
 
-                                // find the method to call in the other class loader
-                                final Method method = isolated
-                                        .loadClass(run.getDeclaringClass().getName())
-                                        .getDeclaredMethod(run.getName(), run.getParameterTypes());
+                    // find the method to call in the other class loader
+                    final Method method = isolated
+                            .loadClass(run.getDeclaringClass().getName())
+                            .getDeclaredMethod(run.getName(), (Class<?>[]) run.getParameterTypes());
 
-                                method.setAccessible(true);
-                                return (T) method.invoke(command, arguments);
-                            } catch (final NoSuchMethodException e) {
-                                throw new AssertionError(e);
-                            } catch (final IllegalAccessException e) {
-                                throw new AssertionError(e);
-                            }
-                        }
-                    });
+                    method.setAccessible(true);
+                    return (T) method.invoke(command, arguments);
+                } catch (final NoSuchMethodException | IllegalAccessException e) {
+                    throw new AssertionError(e);
                 }
-            });
+            }));
         } catch (final Exceptions.Wrapper wrapper) {
             throw wrapper
                     .rethrow(ClassNotFoundException.class)
@@ -304,7 +283,7 @@ final class BundleJarManifest implements JarManifest {
     /**
      * Returns the name of the bundle activator class if Fluid Tools is used in the host Maven project.
      */
-    public interface BootstrapDiscovery {
+    interface BootstrapDiscovery {
 
         /**
          * Returns the name of the bundle activator class, if any.
@@ -318,7 +297,10 @@ final class BundleJarManifest implements JarManifest {
      * This class is loaded from a bespoke class loader defined on the compile-time dependencies of the host Maven project. It checks if the {@link
      * ContainerBoundary} and {@link BundleBootstrap} classes can be found in the project's compile-time class path.
      */
+    @SuppressWarnings("WeakerAccess")   // can't be loaded by BundleJarManifest unless made public
     public static final class BootstrapDiscoveryImpl implements BootstrapDiscovery {
+
+        @SuppressWarnings("ConstantConditions")     // the condition in question is used to attempt to load a class
         public String activator() {
             try {
 
@@ -338,9 +320,7 @@ final class BundleJarManifest implements JarManifest {
 
             try {
                 value = metadata.get();
-            } catch (final NullPointerException e) {
-                value = null;
-            } catch (final IndexOutOfBoundsException e) {
+            } catch (final NullPointerException | IndexOutOfBoundsException e) {
                 value = null;
             }
 
@@ -370,6 +350,7 @@ final class BundleJarManifest implements JarManifest {
     /**
      * Encapsulates the computation of some metadata. The idea is to be able to chain getters without considering <code>null</code> values along the way.
      */
+    @FunctionalInterface
     private interface Metadata {
 
         /**

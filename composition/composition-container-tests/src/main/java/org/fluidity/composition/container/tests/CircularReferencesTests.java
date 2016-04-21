@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
     private static final AtomicBoolean loopback = new AtomicBoolean();
 
-    public CircularReferencesTests(final ArtifactFactory factory) {
+    CircularReferencesTests(final ArtifactFactory factory) {
         super(factory);
     }
 
@@ -411,7 +411,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     private static abstract class GroupMember implements RecursiveGroup {
 
         @SuppressWarnings("UnusedParameters")
-        public GroupMember(final RecursiveGroup[] group) {
+        GroupMember(final RecursiveGroup[] group) {
             assert false;
         }
     }
@@ -450,12 +450,12 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     @Qualifier(Qualifier.Composition.IMMEDIATE)
-    public @interface Context1 { }
+    @interface Context1 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     @Qualifier(Qualifier.Composition.IMMEDIATE)
-    public @interface Context2 { }
+    @interface Context2 { }
 
     @Component(automatic = false)
     private static final class A {
@@ -527,12 +527,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
                 resolved = dependencies.resolve(constructor = B.class.getDeclaredConstructor());
             }
 
-            return new Instance() {
-                @Override
-                public void bind(final Registry registry) throws Exception {
-                    registry.bindInstance(constructor.newInstance(dependencies.instantiate(resolved)));
-                }
-            };
+            return registry -> registry.bindInstance(constructor.newInstance(dependencies.instantiate(resolved)));
         }
     }
 }

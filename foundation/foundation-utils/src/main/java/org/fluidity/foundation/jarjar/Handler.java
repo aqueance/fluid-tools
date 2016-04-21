@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.jar.JarEntry;
@@ -101,26 +102,22 @@ public final class Handler extends URLStreamHandler {
         PROTOCOL = canonicalName.substring(dot + 1, canonicalName.lastIndexOf('.'));
     }
 
-    private static final Deferred.Reference<Void> registration = Deferred.shared(new Deferred.Factory<Void>() {
-        public Void create() {
-            try {
-                AccessController.doPrivileged(new PrivilegedAction<Void>() {
-                    public Void run() {
-                        final String property = System.getProperty(PROTOCOL_HANDLERS_PROPERTY);
+    private static final Deferred.Reference<Void> registration = Deferred.shared(() -> {
+        try {
+            AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+                final String property = System.getProperty(PROTOCOL_HANDLERS_PROPERTY);
 
-                        if (property == null || !Arrays.asList(property.split("\\|")).contains(PACKAGE)) {
-                            System.setProperty(PROTOCOL_HANDLERS_PROPERTY, property == null ? PACKAGE : String.format("%s|%s", PACKAGE, property));
-                        }
+                if (property == null || !Arrays.asList(property.split("\\|")).contains(PACKAGE)) {
+                    System.setProperty(PROTOCOL_HANDLERS_PROPERTY, property == null ? PACKAGE : String.format("%s|%s", PACKAGE, property));
+                }
 
-                        return null;
-                    }
-                });
-            } catch (final AccessControlException e) {
-                // fine, we'll just assume our parent package has been registered already
-            }
-
-            return null;
+                return null;
+            });
+        } catch (final AccessControlException e) {
+            // fine, we'll just assume our parent package has been registered already
         }
+
+        return null;
     });
 
     private static void initialize() {
@@ -199,7 +196,7 @@ public final class Handler extends URLStreamHandler {
     /**
      * Returns the part of the nested archive URL that identifies the outermost enclosing archive.
      */
-    static String enclosedURL(final URL url) {
+    private static String enclosedURL(final URL url) {
         final String path = url.getFile();
         final int delimiter = path.indexOf(DELIMITER);
         return delimiter < 0 ? path : path.substring(0, delimiter);
@@ -221,11 +218,9 @@ public final class Handler extends URLStreamHandler {
      */
     public static URL parseURL(final String specification) throws MalformedURLException {
         try {
-            return !Security.CONTROLLED ? new URL(null, specification, Singleton.INSTANCE) : AccessController.doPrivileged(new PrivilegedExceptionAction<URL>() {
-                public URL run() throws MalformedURLException {
-                    return new URL(null, specification, Singleton.INSTANCE);
-                }
-            });
+            return !Security.CONTROLLED
+                   ? new URL(null, specification, Singleton.INSTANCE)
+                   : AccessController.doPrivileged((PrivilegedExceptionAction<URL>) () -> new URL(null, specification, Singleton.INSTANCE));
         } catch (final PrivilegedActionException e) {
             throw (MalformedURLException) e.getCause();
         }
@@ -430,122 +425,106 @@ public final class Handler extends URLStreamHandler {
 
             this.root = enclosed.openConnection();
 
-            this.headers = Deferred.shared(new Deferred.Factory<Map<String, List<String>>>() {
-                @Override
-                public Map<String, List<String>> create() {
-                    return Exceptions.wrap(new Process<Map<String, List<String>>, Exception>() {
-                        @Override
-                        public Map<String, List<String>> run() throws Exception {
-                            final Map<String, List<String>> headers = new HashMap<String, List<String>>();
+            this.headers = Deferred.shared(() -> Exceptions.wrap(() -> {
+                final Map<String, List<String>> headers = new HashMap<>();
 
-                            final URL _url = getURL();
-                            final URL _enclosing = Archives.containing(_url);
+                final URL _url = getURL();
+                final URL _enclosing = Archives.containing(_url);
 
-                            final String resource = Archives.resourcePath(_url, _enclosing)[0];
+                final String resource = Archives.resourcePath(_url, _enclosing)[0];
 
-                            Archives.read(Archives.open(true, _enclosing), _url, new Archives.Entry() {
-                                public boolean matches(final URL url, final JarEntry entry) throws IOException {
-                                    return resource.equals(entry.getName());
-                                }
+                Archives.read(Archives.open(true, _enclosing), _url, new Archives.Entry() {
+                    public boolean matches(final URL url1, final JarEntry entry) throws IOException {
+                        return resource.equals(entry.getName());
+                    }
 
-                                public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
-                                    final String type = URLConnection.getFileNameMap().getContentTypeFor(resource);
-                                    headers.put(CONTENT_TYPE, Collections.singletonList(type == null ? UNKNOWN_TYPE : type));
+                    public boolean read(final URL url1, final JarEntry entry, final InputStream stream) throws IOException {
+                        final String type = URLConnection.getFileNameMap().getContentTypeFor(resource);
+                        headers.put(CONTENT_TYPE, Collections.singletonList(type == null ? UNKNOWN_TYPE : type));
 
-                                    headers.put(LAST_MODIFIED, Collections.singletonList(String.valueOf(entry.getTime())));
+                        headers.put(LAST_MODIFIED, Collections.singletonList(String.valueOf(entry.getTime())));
 
-                                    long size = entry.getSize();
+                        long size = entry.getSize();
 
-                                    if (size != -1) {
-                                        headers.put(CONTENT_LENGTH, Collections.singletonList(String.valueOf(size)));
-                                    } else {
-                                        final byte[] buffer = new byte[4096];
+                        if (size != -1) {
+                            headers.put(CONTENT_LENGTH, Collections.singletonList(String.valueOf(size)));
+                        } else {
+                            final byte[] buffer = new byte[4096];
 
-                                        size = 0;
-                                        for (int length; (length = stream.read(buffer)) != -1; ) {
-                                            size += length;
-                                        }
-
-                                        headers.put(CONTENT_LENGTH, Collections.singletonList(String.valueOf(size)));
-                                    }
-
-                                    return false;
-                                }
-                            });
-
-
-                            return Collections.unmodifiableMap(headers);
-                        }
-                    });
-                }
-            });
-
-            this.inputStream = Deferred.shared(new Deferred.Factory<InputStream>() {
-                @Override
-                public InputStream create() {
-                    return Exceptions.wrap(new Process<InputStream, IOException>() {
-                        @Override
-                        public InputStream run() throws IOException {
-                            if (getUseCaches()) {
-                                final byte[] contents = Cache.contents(url);
-
-                                if (contents == null) {
-                                    throw new FileNotFoundException(url.toExternalForm());
-                                } else {
-                                    return new ByteArrayInputStream(contents);
-                                }
-                            } else {
-                                final byte[] buffer = new byte[16384];
-                                final InputStream found[] = { null };
-
-                                Archives.read(root.getInputStream(), url, new Archives.Entry() {
-
-                                    // each successive path is nested in the archive at the previous index
-                                    private final String[] paths = Cache.path(url).split(DELIMITER);
-
-                                    // the first path is ignored since that is the enclosing archive
-                                    private int index = 1;
-                                    private String file = paths[index];
-                                    private String directory = directory(file);
-
-                                    public boolean matches(final URL url, final JarEntry entry) throws IOException {
-                                        final String name = entry.getName();
-
-                                        if (entry.isDirectory() && name.equals(directory)) {
-                                            throw new IOException(String.format("Nested entry '%s' is a directory, URL is invalid: %s", name, url.toExternalForm()));
-                                        }
-
-                                        return file.equals(name);
-                                    }
-
-                                    public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
-                                        if (++index == paths.length) {
-                                            found[0] = new ByteArrayInputStream(Streams.copy(stream, new ByteArrayOutputStream(), buffer, false, false).toByteArray());
-                                        } else {
-                                            file = paths[index];
-                                            directory = directory(file);
-
-                                            Archives.read(stream, url, this);
-                                        }
-
-                                        return false;
-                                    }
-
-                                    private String directory(final String name) {
-                                        return name.endsWith("/") ? name : name.concat("/");
-                                    }
-                                });
-
-                                if (found[0] == null) {
-                                    throw new FileNotFoundException(url.toExternalForm());
-                                } else {
-                                    return found[0];
-                                }
+                            size = 0;
+                            for (int length; (length = stream.read(buffer)) != -1; ) {
+                                size += length;
                             }
+
+                            headers.put(CONTENT_LENGTH, Collections.singletonList(String.valueOf(size)));
+                        }
+
+                        return false;
+                    }
+                });
+
+
+                return Collections.unmodifiableMap(headers);
+            }));
+
+            this.inputStream = Deferred.shared(() -> Exceptions.wrap(() -> {
+                if (getUseCaches()) {
+                    final byte[] contents = Cache.contents(url);
+
+                    if (contents == null) {
+                        throw new FileNotFoundException(url.toExternalForm());
+                    } else {
+                        return new ByteArrayInputStream(contents);
+                    }
+                } else {
+                    final byte[] buffer = new byte[16384];
+                    final InputStream found[] = { null };
+
+                    Archives.read(root.getInputStream(), url, new Archives.Entry() {
+
+                        // each successive path is nested in the archive at the previous index
+                        private final String[] paths = Cache.path(url).split(DELIMITER);
+
+                        // the first path is ignored since that is the enclosing archive
+                        private int index = 1;
+                        private String file = paths[index];
+                        private String directory = directory(file);
+
+                        public boolean matches(final URL url, final JarEntry entry) throws IOException {
+                            final String name = entry.getName();
+
+                            if (entry.isDirectory() && name.equals(directory)) {
+                                throw new IOException(String.format("Nested entry '%s' is a directory, URL is invalid: %s", name, url.toExternalForm()));
+                            }
+
+                            return file.equals(name);
+                        }
+
+                        public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
+                            if (++index == paths.length) {
+                                found[0] = new ByteArrayInputStream(Streams.copy(stream, new ByteArrayOutputStream(), buffer, false, false).toByteArray());
+                            } else {
+                                file = paths[index];
+                                directory = directory(file);
+
+                                Archives.read(stream, url, this);
+                            }
+
+                            return false;
+                        }
+
+                        private String directory(final String name) {
+                            return name.endsWith("/") ? name : name.concat("/");
                         }
                     });
+
+                    if (found[0] == null) {
+                        throw new FileNotFoundException(url.toExternalForm());
+                    } else {
+                        return found[0];
+                    }
                 }
-            });
+            }));
         }
 
         @Override
@@ -628,7 +607,7 @@ public final class Handler extends URLStreamHandler {
          *
          * @author Tibor Varga
          */
-        static interface Entry {
+        interface Entry {
 
             /**
              * Returns the content of a named archive entry.
@@ -685,8 +664,8 @@ public final class Handler extends URLStreamHandler {
          */
         private static class Entries {
 
-            private final Map<String, ArchiveEntry> map = new HashMap<String, ArchiveEntry>();
-            private final Set<String> active = new HashSet<String>();
+            private final Map<String, ArchiveEntry> map = new HashMap<>();
+            private final Set<String> active = new HashSet<>();
 
             Entries() {
                 this((Entries) null);
@@ -741,7 +720,7 @@ public final class Handler extends URLStreamHandler {
                 if (all) {
                     return this;
                 } else {
-                    final HashMap<String, ArchiveEntry> list = new HashMap<String, ArchiveEntry>();
+                    final Map<String, ArchiveEntry> list = new HashMap<>();
 
                     for (final String key : active) {
                         list.put(key, map.get(key));
@@ -780,6 +759,7 @@ public final class Handler extends URLStreamHandler {
          *
          * @return whatever the command returns.
          */
+        @SuppressWarnings("StatementWithEmptyBody")
         static <T, E extends Exception> T access(final Object captured, final Process<T, E> command) throws E {
             if (captured != null && !(captured instanceof Map)) {
                 throw new IllegalArgumentException("Invalid captured context; use one returned by the capture(...) method");
@@ -919,7 +899,7 @@ public final class Handler extends URLStreamHandler {
             }
         };
 
-        private static final Map<UUID, Entries> privateCache = new HashMap<UUID, Entries>();
+        private static final Map<UUID, Entries> privateCache = new HashMap<>();
         private static final Entries sharedCache = new Entries();
 
         /**
@@ -981,7 +961,7 @@ public final class Handler extends URLStreamHandler {
             private Map<String, ArchiveEntry> content;
 
             ArchiveEntry(final URL root, final String base) {
-                this(root, base, new HashMap<Metadata, String>(), new HashMap<String, ArchiveEntry>());
+                this(root, base, new HashMap<>(), new HashMap<>());
             }
 
             ArchiveEntry(final URL root, final String base, final ArchiveEntry parent, final byte[] data, final boolean loaded) {
@@ -1021,7 +1001,7 @@ public final class Handler extends URLStreamHandler {
                     data = bytes;
                 }
 
-                final Map<String, ArchiveEntry> map = new HashMap<String, ArchiveEntry>();
+                final Map<String, ArchiveEntry> map = new HashMap<>();
                 loaded = true;
 
                 load(base, data, content, map, buffer, metadata);
@@ -1118,9 +1098,7 @@ public final class Handler extends URLStreamHandler {
                               final Map<String, ArchiveEntry> local,
                               final byte[] buffer,
                               final Map<Metadata, String> meta) throws IOException {
-                final ZipInputStream stream = new ZipInputStream(new ByteArrayInputStream(data));
-
-                try {
+                try (final ZipInputStream stream = new ZipInputStream(new ByteArrayInputStream(data))) {
                     for (ZipEntry next = stream.getNextEntry(); next != null; stream.closeEntry(), next = stream.getNextEntry()) {
                         final String name = next.getName();
 
@@ -1153,8 +1131,6 @@ public final class Handler extends URLStreamHandler {
                             }
                         }
                     }
-                } catch (final IOException e) {
-                    stream.close();
                 }
             }
 

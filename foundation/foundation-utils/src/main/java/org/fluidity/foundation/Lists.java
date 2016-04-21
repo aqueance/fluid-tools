@@ -56,6 +56,7 @@ public class Lists extends Utility {
      *
      * @return a new array containing the values from all non-<code>null</code> <code>arrays</code>.
      */
+    @SafeVarargs
     public static <T> T[] concatenate(final Class<T> type, final T[]... arrays) {
         int length = 0;
 

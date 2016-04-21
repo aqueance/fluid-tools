@@ -26,7 +26,6 @@ import java.lang.reflect.Type;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
-import java.util.Comparator;
 
 /**
  * Common string related utilities.
@@ -83,20 +82,18 @@ public final class Strings extends Utility {
             } else if (object instanceof Type) {
                 return Generics.toString(qualified, (Type) object);
             } else {
-                final PrivilegedAction<Method> access = new PrivilegedAction<Method>() {
-                    public Method run() {
-                        for (Class<?> check = type; check != Object.class; check = check.getSuperclass()) {
-                            try {
-                                final Method method = check.getDeclaredMethod("toString");
-                                method.setAccessible(true);
-                                return method;
-                            } catch (final NoSuchMethodException e) {
-                                // ignored
-                            }
+                final PrivilegedAction<Method> access = () -> {
+                    for (Class<?> check = type; check != Object.class; check = check.getSuperclass()) {
+                        try {
+                            final Method method = check.getDeclaredMethod("toString");
+                            method.setAccessible(true);
+                            return method;
+                        } catch (final NoSuchMethodException e) {
+                            // ignored
                         }
-
-                        return null;
                     }
+
+                    return null;
                 };
 
                 // see if object overrides Object.toString()
@@ -190,12 +187,10 @@ public final class Strings extends Utility {
     public static String describeAnnotation(final boolean identity, final Annotation annotation) {
         final Class<? extends Annotation> type = annotation.annotationType();
 
-        final PrivilegedAction<Method[]> action = new PrivilegedAction<Method[]>() {
-            public Method[] run() {
-                final Method[] methods = type.getDeclaredMethods();
-                AccessibleObject.setAccessible(methods, true);
-                return methods;
-            }
+        final PrivilegedAction<Method[]> action = () -> {
+            final Method[] methods = type.getDeclaredMethods();
+            AccessibleObject.setAccessible(methods, true);
+            return methods;
         };
 
         final Lists.Delimited list = Lists.delimited(", ");
@@ -205,11 +200,7 @@ public final class Strings extends Utility {
             if (methods.length == 1 && methods[0].getName().equals("value")) {
                 appendValue(identity, list.text, methods[0].invoke(annotation));
             } else {
-                Arrays.sort(methods, new Comparator<Method>() {
-                    public int compare(final Method method1, final Method method2) {
-                        return method1.getName().compareTo(method2.getName());
-                    }
-                });
+                Arrays.sort(methods, (method1, method2) -> method1.getName().compareTo(method2.getName()));
 
                 for (final Method method : methods) {
 
@@ -229,9 +220,7 @@ public final class Strings extends Utility {
                     }
                 }
             }
-        } catch (final IllegalAccessException e) {
-            assert false : e;
-        } catch (final InvocationTargetException e) {
+        } catch (final IllegalAccessException | InvocationTargetException e) {
             assert false : e;
         }
 

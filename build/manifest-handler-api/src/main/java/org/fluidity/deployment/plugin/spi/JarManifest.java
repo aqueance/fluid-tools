@@ -100,8 +100,8 @@ public interface JarManifest {
     interface Dependencies {
 
         /**
-         * Tells if any dependencies are configured to be unpacked to the root of the archive. This is normally <code>true</code> unless explicitly set to
-         * <code>false</code> by the host project.
+         * Tells if any dependencies are configured to be unpacked to the root of the archive. If the project uses some launcher, the classes that comprise it
+         * must be unpacked at the root of the archive. This flag is normally <code>true</code> unless explicitly set to <code>false</code> by the host project.
          *
          * @return <code>true</code> if the archive is configured to have launcher related dependencies unpacked; <code>false</code> otherwise.
          */

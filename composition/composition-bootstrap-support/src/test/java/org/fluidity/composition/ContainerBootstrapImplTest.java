@@ -34,13 +34,13 @@ import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("TrivialMethodReference")
 public final class ContainerBootstrapImplTest extends Simulator {
 
     private final MockObjects dependencies = dependencies();
@@ -64,7 +64,7 @@ public final class ContainerBootstrapImplTest extends Simulator {
     public void setup() {
         bootstrap = new ContainerBootstrapImpl();
 
-        EasyMock.expect(services.createLog(EasyMock.<Log>anyObject(), EasyMock.<Class<?>>anyObject())).andReturn(log).anyTimes();
+        EasyMock.expect(services.createLog(EasyMock.anyObject(), EasyMock.anyObject())).andReturn(log).anyTimes();
         EasyMock.expect(services.componentDiscovery()).andReturn(discovery).anyTimes();
     }
 
@@ -89,18 +89,12 @@ public final class ContainerBootstrapImplTest extends Simulator {
 
         final Object[] list = new Object[1];
 
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            public Void answer() throws Throwable {
-                list[0] = EasyMock.getCurrentArguments()[0];
-                return null;
-            }
+        EasyMock.expectLastCall().andAnswer(() -> {
+            list[0] = EasyMock.getCurrentArguments()[0];
+            return null;
         });
 
-        verify(new Task() {
-            public void run() throws Exception {
-                bootstrap.populateContainer(services, provider, null, null, null, callback);
-            }
-        });
+        verify((Task) () -> bootstrap.populateContainer(services, provider, null, null, null, callback));
 
         setup();
 
@@ -108,12 +102,13 @@ public final class ContainerBootstrapImplTest extends Simulator {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testInitialization() throws Exception {
         final ResponsiblePackageBindingsImpl bindings1 = new ResponsiblePackageBindingsImpl();
         final PackageBindingsImpl bindings2 = new PackageBindingsImpl(bindings1);
         final DependentPackageBindingsImpl bindings3 = new DependentPackageBindingsImpl(bindings2);
 
-        final List<PackageBindings> list = new ArrayList<PackageBindings>();
+        final List<PackageBindings> list = new ArrayList<>();
 
         PackageBindingsImpl.bindings = bindings;
         DependentPackageBindingsImpl.bindings = bindings;
@@ -123,55 +118,40 @@ public final class ContainerBootstrapImplTest extends Simulator {
 
         final List<PackageBindings> watched = Arrays.asList(bindings2, bindings3);
 
-        final Command.Job<Exception> job = test(new Work<Command.Job<Exception>>() {
-            public Command.Job<Exception> run() throws Exception {
-                final Class[] classes = { ResponsiblePackageBindingsImpl.class, PackageBindingsImpl.class, DependentPackageBindingsImpl.class };
-                final PackageBindings[] instances = { bindings1, bindings2, bindings3 };
+        final Command.Job<Exception> job = test(() -> {
+            final Class[] classes = { ResponsiblePackageBindingsImpl.class, PackageBindingsImpl.class, DependentPackageBindingsImpl.class };
+            final PackageBindings[] instances = { bindings1, bindings2, bindings3 };
 
-                final Object object = populateContainer(classes, instances, bindings2, bindings3);
+            final Object object = populateContainer(classes, instances, bindings2, bindings3);
 
-                EasyMock.expect(container.getComponent(ContainerTermination.class)).andReturn(termination);
-                EasyMock.expect(container.getComponent(EasyMock.<Class<?>>anyObject())).andReturn(object);
+            EasyMock.expect(container.getComponent(ContainerTermination.class)).andReturn(termination);
+            EasyMock.expect(container.getComponent(EasyMock.anyObject())).andReturn(object);
 
-                final AtomicReference<Command.Job<Exception>> job = new AtomicReference<Command.Job<Exception>>();
+            final AtomicReference<Command.Job<Exception>> _job = new AtomicReference<>();
 
-                termination.add(EasyMock.<Command.Job<Exception>>anyObject());
-                EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
-                    @SuppressWarnings("unchecked")
-                    public Object answer() throws Throwable {
-                        job.set(((Command.Job<Exception>) EasyMock.getCurrentArguments()[0]));
-                        return null;
-                    }
-                });
+            termination.add(EasyMock.anyObject());
+            EasyMock.expectLastCall().andAnswer(() -> {
+                _job.set(((Command.Job<Exception>) EasyMock.getCurrentArguments()[0]));
+                return null;
+            });
 
-                callback.containerInitialized();
+            callback.containerInitialized();
 
-                bindings.initialize(container, termination);
-                EasyMock.expectLastCall().times(2);
+            bindings.initialize(container, termination);
+            EasyMock.expectLastCall().times(2);
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        bootstrap.initializeContainer(container, services);
-                    }
-                });
+            verify(() -> bootstrap.initializeContainer(container, services));
 
-                return job.get();
-            }
+            return _job.get();
         });
 
         assert job != null;
         assert list.equals(watched);
 
-        test(new Task() {
-            public void run() throws Exception {
-                callback.containerShutdown();
+        test(() -> {
+            callback.containerShutdown();
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        job.run();
-                    }
-                });
-            }
+            verify(job::run);
         });
     }
 
@@ -186,15 +166,11 @@ public final class ContainerBootstrapImplTest extends Simulator {
         // must always be invoked
         callback.containerInitialized();
 
-        guarantee(new Task() {
-            public void run() throws Exception {
-                bootstrap.initializeContainer(container, services);
-            }
-        });
+        guarantee(() -> bootstrap.initializeContainer(container, services));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
+    @SuppressWarnings("unchecked")
     public void connectedComponentAssembly() throws Exception {
         final Class[] assemblies = { PackageBindingsImpl.class, DependentPackageBindingsImpl.class, ResponsiblePackageBindingsImpl.class };
 
@@ -225,11 +201,7 @@ public final class ContainerBootstrapImplTest extends Simulator {
 
         registry.bindInstance(EasyMock.anyObject());
 
-        assert container == verify(new Work<MutableContainer>() {
-            public MutableContainer run() throws Exception {
-                return bootstrap.populateContainer(services, provider, null, parent, null, callback);
-            }
-        });
+        assert container == verify(() -> bootstrap.populateContainer(services, provider, null, parent, null, callback));
     }
 
     @SuppressWarnings("unchecked")
@@ -258,11 +230,7 @@ public final class ContainerBootstrapImplTest extends Simulator {
 
         registry.bindInstance(EasyMock.anyObject());
 
-        final MutableContainer populated = verify(new Work<MutableContainer>() {
-            public MutableContainer run() throws Exception {
-                return bootstrap.populateContainer(services, provider, null, null, null, callback);
-            }
-        });
+        final MutableContainer populated = verify(() -> bootstrap.populateContainer(services, provider, null, null, null, callback));
 
         assert populated != null;
     }
@@ -293,20 +261,16 @@ public final class ContainerBootstrapImplTest extends Simulator {
 
         registry.bindInstance(EasyMock.anyObject());
 
-        assert container == verify(new Work<MutableContainer>() {
-            public MutableContainer run() throws Exception {
-                return bootstrap.populateContainer(services, provider, properties, parent, null, callback);
-            }
-        });
+        assert container == verify(() -> bootstrap.populateContainer(services, provider, properties, parent, null, callback));
     }
 
-    public static class ResponsiblePackageBindingsImpl extends EmptyPackageBindings {
+    private static class ResponsiblePackageBindingsImpl extends EmptyPackageBindings {
         // empty
     }
 
-    public static class ShutdownHookPackageBindingsImpl extends EmptyPackageBindings {
+    private static class ShutdownHookPackageBindingsImpl extends EmptyPackageBindings {
 
-        public static PackageBindings bindings;
+        static PackageBindings bindings;
 
         public void bindComponents(final ComponentContainer.Registry registry) {
             bindings.bindComponents(registry);
@@ -317,14 +281,14 @@ public final class ContainerBootstrapImplTest extends Simulator {
         }
     }
 
-    public static class PackageBindingsImpl implements PackageBindings {
+    private static class PackageBindingsImpl implements PackageBindings {
 
-        public static PackageBindings bindings;
+        static PackageBindings bindings;
 
-        public static List<PackageBindings> list;
+        static List<PackageBindings> list;
 
         @SuppressWarnings("UnusedDeclaration")
-        public PackageBindingsImpl(final ResponsiblePackageBindingsImpl dependent) {
+        PackageBindingsImpl(final ResponsiblePackageBindingsImpl dependent) {
             // empty
         }
 
@@ -338,14 +302,14 @@ public final class ContainerBootstrapImplTest extends Simulator {
         }
     }
 
-    public static class DependentPackageBindingsImpl implements PackageBindings {
+    private static class DependentPackageBindingsImpl implements PackageBindings {
 
-        public static PackageBindings bindings;
+        static PackageBindings bindings;
 
-        public static List<PackageBindings> list;
+        static List<PackageBindings> list;
 
         @SuppressWarnings("UnusedDeclaration")
-        public DependentPackageBindingsImpl(final PackageBindingsImpl dependent) {
+        DependentPackageBindingsImpl(final PackageBindingsImpl dependent) {
             // empty
         }
 
@@ -359,10 +323,10 @@ public final class ContainerBootstrapImplTest extends Simulator {
         }
     }
 
-    public static class ConfigurablePackageBindingsImpl extends EmptyPackageBindings {
+    private static class ConfigurablePackageBindingsImpl extends EmptyPackageBindings {
 
-        public static final String KEY = ConfigurablePackageBindingsImpl.class.getName().concat(".key");
-        public static String value;
+        static final String KEY = ConfigurablePackageBindingsImpl.class.getName().concat(".key");
+        static String value;
 
         public ConfigurablePackageBindingsImpl(final Map<String, String> properties) {
             assert properties != null;

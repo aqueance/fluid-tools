@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,35 +38,21 @@ public class SimulatorTest extends Simulator {
         final String prefix = "0";
         final String[] arguments = {"1", "2", "3"};
 
-        EasyMock.expect(component.method(EasyMock.<String>notNull(), varEq(arguments))).andReturn(expected);
+        EasyMock.expect(component.method(EasyMock.notNull(), varEq(arguments))).andReturn(expected);
+        final String actual1 = verify(() -> component.method(prefix, arguments));
 
-        final String actual1 = verify(new Work<String>() {
-            public String run() throws Exception {
-                return component.method(prefix, arguments);
-            }
-        });
+        EasyMock.expect(component.method(EasyMock.notNull(), varSame(arguments))).andReturn(expected);
+        final String actual2 = verify(() -> component.method(prefix, arguments));
 
-        EasyMock.expect(component.method(EasyMock.<String>notNull(), varSame(arguments))).andReturn(expected);
-
-        final String actual2 = verify(new Work<String>() {
-            public String run() throws Exception {
-                return component.method(prefix, arguments);
-            }
-        });
-
-        EasyMock.expect(component.method(EasyMock.<String>notNull(), varNotNull(arguments))).andReturn(expected);
-        final String actual3 = verify(new Work<String>() {
-            public String run() throws Exception {
-                return component.method(prefix, arguments);
-            }
-        });
+        EasyMock.expect(component.method(EasyMock.notNull(), varNotNull(arguments))).andReturn(expected);
+        final String actual3 = verify(() -> component.method(prefix, arguments));
 
         assert expected.equals(actual1) : String.format("%s != %s", expected, actual1);
         assert expected.equals(actual2) : String.format("%s != %s", expected, actual2);
         assert expected.equals(actual3) : String.format("%s != %s", expected, actual3);
     }
 
-    public interface VarargsComponent {
+    private interface VarargsComponent {
 
         String method(final String prefix, final String... values);
     }
@@ -79,33 +65,8 @@ public class SimulatorTest extends Simulator {
 
         final CyclicBarrier barrier = new CyclicBarrier(2);
 
-        threads.concurrent(new Task.Concurrent() {
-            public Task run(final MockObjects ignored) throws Exception {
-                return new Task() {
-                    public void run() throws Exception {
-                        deadLock.lock12(new Command.Job<Exception>() {
-                            public void run() throws Exception {
-                                threads.lineup(barrier, threads.time(5));
-                            }
-                        });
-                    }
-                };
-            }
-        });
-
-        threads.concurrent(new Task.Concurrent() {
-            public Task run(final MockObjects ignored) throws Exception {
-                return new Task() {
-                    public void run() throws Exception {
-                        deadLock.lock21(new Command.Job<Exception>() {
-                            public void run() throws Exception {
-                                threads.lineup(barrier, threads.time(5));
-                            }
-                        });
-                    }
-                };
-            }
-        });
+        threads.concurrent(ignored -> () -> deadLock.lock12(() -> threads.lineup(barrier, threads.time(5))));
+        threads.concurrent(ignored -> () -> deadLock.lock21(() -> threads.lineup(barrier, threads.time(5))));
 
         threads.verify(threads.time(10), (Task) null);
     }
@@ -116,45 +77,31 @@ public class SimulatorTest extends Simulator {
 
         final CyclicBarrier barrier = new CyclicBarrier(2);
 
-        final IAnswer<Void> lineup = new IAnswer<Void>() {
-            public Void answer() throws Throwable {
-                threads.lineup(barrier, threads.time(10));
-                return null;
-            }
+        final IAnswer<Void> lineup = () -> {
+            threads.lineup(barrier, threads.time(10));
+            return null;
         };
 
         final DeadLock deadLock = new DeadLock();
 
-        threads.concurrent(new Task.Concurrent() {
-            public Task run(final MockObjects factory) throws Exception {
-                @SuppressWarnings("unchecked")
-                final Command.Job<Exception> command = (Command.Job<Exception>) factory.normal(Command.Job.class);
+        threads.concurrent(factory -> {
+            @SuppressWarnings("unchecked")
+            final Command.Job<Exception> command = (Command.Job<Exception>) factory.normal(Command.Job.class);
 
-                command.run();
-                EasyMock.expectLastCall().andAnswer(lineup);
+            command.run();
+            EasyMock.expectLastCall().andAnswer(lineup);
 
-                return new Task() {
-                    public void run() throws Exception {
-                        deadLock.lock12(command);
-                    }
-                };
-            }
+            return () -> deadLock.lock12(command);
         });
 
-        threads.concurrent(new Task.Concurrent() {
-            public Task run(final MockObjects factory) throws Exception {
-                @SuppressWarnings("unchecked")
-                final Command.Job<Exception> command = (Command.Job<Exception>) factory.normal(Command.Job.class);
+        threads.concurrent(factory -> {
+            @SuppressWarnings("unchecked")
+            final Command.Job<Exception> command = (Command.Job<Exception>) factory.normal(Command.Job.class);
 
-                command.run();
-                EasyMock.expectLastCall().andAnswer(lineup);
+            command.run();
+            EasyMock.expectLastCall().andAnswer(lineup);
 
-                return new Task() {
-                    public void run() throws Exception {
-                        deadLock.lock21(command);
-                    }
-                };
-            }
+            return () -> deadLock.lock21(command);
         });
 
         threads.guarantee(threads.time(20), (Task) null);
@@ -165,7 +112,7 @@ public class SimulatorTest extends Simulator {
         private final Object lock1 = new Object();
         private final Object lock2 = new Object();
 
-        public void lock12(final Command.Job<Exception> checkpoint) throws Exception {
+        void lock12(final Command.Job<Exception> checkpoint) throws Exception {
             synchronized(lock1) {
                 checkpoint.run();
 
@@ -175,7 +122,7 @@ public class SimulatorTest extends Simulator {
             }
         }
 
-        public void lock21(final Command.Job<Exception> checkpoint) throws Exception  {
+        void lock21(final Command.Job<Exception> checkpoint) throws Exception  {
             synchronized(lock2) {
                 checkpoint.run();
 
@@ -193,24 +140,16 @@ public class SimulatorTest extends Simulator {
 
         final Threads threads = newThreads("concurrent");
 
-        final Task.Concurrent task = new Task.Concurrent() {
-            public Task run(final MockObjects factory) throws Exception {
-                final Runnable dependency = composite.normal();
+        final Task.Concurrent task = factory -> {
+            final Runnable dependency = composite.normal();
 
-                dependency.run();
-                EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
-                    public Object answer() throws Throwable {
-                        Thread.sleep(threads.time(10));
-                        return null;
-                    }
-                });
+            dependency.run();
+            EasyMock.expectLastCall().andAnswer(() -> {
+                Thread.sleep(threads.time(10));
+                return null;
+            });
 
-                return new Task() {
-                    public void run() throws Exception {
-                        component.run();
-                    }
-                };
-            }
+            return (Task) component::run;
         };
 
         for (int i = 0, count = Runtime.getRuntime().availableProcessors(); i < count; ++i) {

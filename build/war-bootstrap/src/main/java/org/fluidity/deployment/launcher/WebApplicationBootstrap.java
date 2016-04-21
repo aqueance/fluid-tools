@@ -69,7 +69,7 @@ public final class WebApplicationBootstrap {
         final ClassLoader bootstrapLoader = bootstrapClass.getClassLoader();
         final String bootUrl = URLDecoder.decode(bootstrapLoader.getResource(name).toExternalForm(), "UTF-8");
 
-        final List<File> managedApps = new ArrayList<File>();
+        final List<File> managedApps = new ArrayList<>();
 
         final Matcher matcher = warFilePattern.matcher(bootUrl);
         if (matcher.matches()) {
@@ -80,7 +80,7 @@ public final class WebApplicationBootstrap {
             final int httpPort[] = { 0 };
             final boolean extract[] = { false };
 
-            final List<String> params = new ArrayList<String>();
+            final List<String> params = new ArrayList<>();
 
             for (int i = 0; i < arguments.length; i++) {
                 String param = arguments[i];
@@ -112,34 +112,32 @@ public final class WebApplicationBootstrap {
                 }
             }
 
-            Archives.Cache.access(new Process<Void, Exception>() {
-                public Void run() throws Exception {
-                    final URL war = Archives.containing(WebApplicationBootstrap.class);
-                    final List<URL> classpath = new ArrayList<URL>();
+            Archives.Cache.access(() -> {
+                final URL war = Archives.containing(WebApplicationBootstrap.class);
+                final List<URL> classpath = new ArrayList<>();
 
-                    Archives.read(true, war, new Archives.Entry() {
-                        private final String bootEntry = String.format("%s/boot/", Archives.WEB_INF);
+                Archives.read(true, war, new Archives.Entry() {
+                    private final String bootEntry = String.format("%s/boot/", Archives.WEB_INF);
 
-                        public boolean matches(final URL url, final JarEntry entry) throws IOException {
-                            final String entryName = entry.getName();
-                            final boolean matches = entryName.startsWith(bootEntry) && !entryName.equals(bootEntry);
+                    public boolean matches(final URL url, final JarEntry entry) throws IOException {
+                        final String entryName = entry.getName();
+                        final boolean matches = entryName.startsWith(bootEntry) && !entryName.equals(bootEntry);
 
-                            if (matches) {
-                                classpath.add(Archives.Nested.formatURL(url, entryName));
-                            }
-
-                            return false;
+                        if (matches) {
+                            classpath.add(Archives.Nested.formatURL(url, entryName));
                         }
 
-                        public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
-                            return true;
-                        }
-                    });
+                        return false;
+                    }
 
-                    bootstrapServer(httpPort[0], extract[0], classpath, bootWar, managedApps, Lists.asArray(String.class, params));
+                    public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
+                        return true;
+                    }
+                });
 
-                    return null;
-                }
+                bootstrapServer(httpPort[0], extract[0], classpath, bootWar, managedApps, Lists.asArray(String.class, params));
+
+                return null;
             });
         } else {
             throw new IllegalArgumentException(String.format("Not a local WAR file: %s", bootUrl));
@@ -156,11 +154,9 @@ public final class WebApplicationBootstrap {
         final ServerBootstrap server = ServiceProviders.findInstance(ServerBootstrap.class, classLoader);
 
         if (server != null) {
-            ClassLoaders.context(classLoader, new Function<Void, ClassLoader, Exception>() {
-                public Void run(final ClassLoader loader) throws Exception {
-                    server.bootstrap(httpPort, extract, bootApp, managedApps, arguments);
-                    return null;
-                }
+            ClassLoaders.context(classLoader, loader -> {
+                server.bootstrap(httpPort, extract, bootApp, managedApps, arguments);
+                return null;
             });
         } else {
             throw new IllegalStateException(String.format("No server bootstrap found (service provider for %s)", ServerBootstrap.class));

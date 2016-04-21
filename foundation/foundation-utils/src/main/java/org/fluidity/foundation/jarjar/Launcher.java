@@ -16,7 +16,6 @@
 
 package org.fluidity.foundation.jarjar;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.AccessController;
@@ -29,9 +28,6 @@ import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Security;
-
-import static org.fluidity.foundation.Command.Function;
-import static org.fluidity.foundation.Command.Process;
 
 /**
  * Launches a main class from a JAR file using a class loader that can load classes from JAR files nested inside the main JAR. Nested JAR files must be located
@@ -47,7 +43,7 @@ import static org.fluidity.foundation.Command.Process;
  *
  * @author Tibor Varga
  */
-@SuppressWarnings("JavadocReference")
+@SuppressWarnings({ "JavadocReference", "WeakerAccess" })
 public final class Launcher {
 
     /**
@@ -77,21 +73,17 @@ public final class Launcher {
      */
     public static void main(final String[] arguments) throws Exception {
         try {
-            Exceptions.wrap(new Process<Void, Exception>() {
-                public Void run() throws Exception {
-                    if (Security.CONTROLLED) {
-                        AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
-                            public Void run() throws Exception {
-                                start(arguments);
-                                return null;
-                            }
-                        });
-                    } else {
+            Exceptions.wrap(() -> {
+                if (Security.CONTROLLED) {
+                    AccessController.doPrivileged((PrivilegedExceptionAction<Void>) () -> {
                         start(arguments);
-                    }
-
-                    return null;
+                        return null;
+                    });
+                } else {
+                    start(arguments);
                 }
+
+                return null;
             });
         } catch (final Exceptions.Wrapper wrapper) {
             throw wrapper.rethrow(Exception.class);
@@ -99,58 +91,50 @@ public final class Launcher {
     }
 
     private static void start(final String[] args) throws Exception {
-        Archives.Cache.access(new Process<Void, Exception>() {
-            public Void run() throws Exception {
-                final Class<?> me = Launcher.class;
-                final URL root = Archives.containing(me);
+        Archives.Cache.access(() -> {
+            final Class<?> me = Launcher.class;
+            final URL root = Archives.containing(me);
 
-                final URL url;
-                final String[] arguments;
+            final URL url;
+            final String[] arguments;
 
-                if (Archives.attributes(true, root, START_CLASS)[0] == null && args.length > 0 && args[0].startsWith(URL_PARAM)) {
-                    final String parameter = args[0].substring(URL_PARAM.length());
+            if (Archives.attributes(true, root, START_CLASS)[0] == null && args.length > 0 && args[0].startsWith(URL_PARAM)) {
+                final String parameter = args[0].substring(URL_PARAM.length());
 
-                    try {
-                        url = new URL(parameter);
-                    } catch (final MalformedURLException e) {
-                        throw new IllegalArgumentException(String.format("Invalid URL: '%s'", parameter), e);
-                    } catch (final IOException e) {
-                        throw new IllegalArgumentException(String.format("Accessing URL %s", parameter), e);
-                    }
-
-                    arguments = new String[args.length - 1];
-                    System.arraycopy(args, 1, arguments, 0, arguments.length);
-                } else {
-                    url = root;
-                    arguments = args;
+                try {
+                    url = new URL(parameter);
+                } catch (final MalformedURLException e) {
+                    throw new IllegalArgumentException(String.format("Invalid URL: '%s'", parameter), e);
                 }
 
-                final String[] attributes = Archives.attributes(true, url, MAIN_CLASS, START_CLASS);
-                final String main = attributes[attributes[1] == null ? 0 : 1];
-
-                if (main == null || main.equals(me.getName())) {
-                    throw new IllegalStateException(String.format("%s main class defined in the %s manifest (attribute %s)",
-                                                                  main == null ? "No" : "Wrong",
-                                                                  url,
-                                                                  main == null ? MAIN_CLASS : START_CLASS));
-                } else {
-                    final List<URL> urls = new ArrayList<URL>();
-
-                    urls.add(url);
-                    urls.addAll(Archives.Nested.dependencies(true, url, null));
-
-                    final ClassLoader parent = ClassLoaders.findClassLoader(me, true);
-                    final ClassLoader loader = ClassLoaders.create(urls, parent, null);
-
-                    ClassLoaders.context(loader, new Function<Object, ClassLoader, Exception>() {
-                        public Object run(final ClassLoader loader) throws Exception {
-                            return loader.loadClass(main).getMethod("main", String[].class).invoke(null, (Object) arguments);
-                        }
-                    });
-                }
-
-                return null;
+                arguments = new String[args.length - 1];
+                System.arraycopy(args, 1, arguments, 0, arguments.length);
+            } else {
+                url = root;
+                arguments = args;
             }
+
+            final String[] attributes = Archives.attributes(true, url, MAIN_CLASS, START_CLASS);
+            final String main = attributes[attributes[1] == null ? 0 : 1];
+
+            if (main == null || main.equals(me.getName())) {
+                throw new IllegalStateException(String.format("%s main class defined in the %s manifest (attribute %s)",
+                                                              main == null ? "No" : "Wrong",
+                                                              url,
+                                                              main == null ? MAIN_CLASS : START_CLASS));
+            } else {
+                final List<URL> urls = new ArrayList<>();
+
+                urls.add(url);
+                urls.addAll(Archives.Nested.dependencies(true, url, null));
+
+                final ClassLoader parent = ClassLoaders.findClassLoader(me, true);
+                final ClassLoader loader = ClassLoaders.create(urls, parent, null);
+
+                ClassLoaders.context(loader, _loader -> _loader.loadClass(main).getMethod("main", String[].class).invoke(null, (Object) arguments));
+            }
+
+            return null;
         });
     }
 }

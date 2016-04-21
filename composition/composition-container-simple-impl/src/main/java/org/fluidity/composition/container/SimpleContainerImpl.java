@@ -35,7 +35,6 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.container.spi.ContextNode;
-import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.DependencyResolver;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Generics;
@@ -46,9 +45,10 @@ import org.fluidity.foundation.Strings;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("WeakerAccess")
 final class SimpleContainerImpl implements ParentContainer {
 
-    private static AtomicReference<Log> log = new AtomicReference<Log>();
+    private static AtomicReference<Log> log = new AtomicReference<>();
 
     private final ContainerServices services;
 
@@ -56,8 +56,8 @@ final class SimpleContainerImpl implements ParentContainer {
     private final ParentContainer domain;
     private final boolean quiet;
 
-    private final Map<Class<?>, ComponentResolver> components = new HashMap<Class<?>, ComponentResolver>();
-    private final Map<Class<?>, GroupResolver> groups = new HashMap<Class<?>, GroupResolver>();
+    private final Map<Class<?>, ComponentResolver> components = new HashMap<>();
+    private final Map<Class<?>, GroupResolver> groups = new HashMap<>();
 
     private final DependencyInjector injector;
 
@@ -130,7 +130,7 @@ final class SimpleContainerImpl implements ParentContainer {
         return resolver;
     }
 
-    public ComponentResolver replace(final Class<?> key, final ComponentResolver previous, final ComponentResolver replacement) {
+    private ComponentResolver replace(final Class<?> key, final ComponentResolver previous, final ComponentResolver replacement) {
         if (components.remove(key) == previous) {
             replaceResolver(key, previous, replacement);
         }
@@ -140,14 +140,15 @@ final class SimpleContainerImpl implements ParentContainer {
         return replacement;
     }
 
+    @FunctionalInterface
     private interface Resolver {
 
         ComponentResolver resolver(Class<?> type);
     }
 
     private void bindResolvers(final Components.Specification[] interfaces, final Resolver main) {
-        final Set<Class<?>> groups = new HashSet<Class<?>>();
-        final Set<ComponentResolver> resolvers = new HashSet<ComponentResolver>();
+        final Set<Class<?>> groups = new HashSet<>();
+        final Set<ComponentResolver> resolvers = new HashSet<>();
 
         for (final Components.Specification api : interfaces) {
             final Class<?> component = api.api;
@@ -204,17 +205,9 @@ final class SimpleContainerImpl implements ParentContainer {
 
             if (resolvers.isCustomFactory()) {
                 bindResolver(component, resolvers.component(component, services.newCache(true), true));
-                bindResolvers(interfaces, new Resolver() {
-                    public ComponentResolver resolver(final Class<?> type) {
-                        return resolvers.factory(type, cache);
-                    }
-                });
+                bindResolvers(interfaces, type -> resolvers.factory(type, cache));
             } else {
-                bindResolvers(interfaces, new Resolver() {
-                    public ComponentResolver resolver(final Class<?> type) {
-                        return resolvers.component(type, cache, false);
-                    }
-                });
+                bindResolvers(interfaces, type -> resolvers.component(type, cache, false));
             }
         }
     }
@@ -344,14 +337,9 @@ final class SimpleContainerImpl implements ParentContainer {
         final InstanceDescriptor descriptor = new InstanceDescriptor(component);
 
         final Class<?> type = component.getClass();
+        final Node.Reference reference = () -> new ResolvedNode(type, injector.fields(component, traversal, resolver, descriptor, context), context.create());
 
-        final Node node = traversal.follow(component, type, type, context, new DependencyGraph.Node.Reference() {
-            public DependencyGraph.Node resolve() {
-                return new ResolvedNode(type, injector.fields(component, traversal, resolver, descriptor, context), context.create());
-            }
-        });
-
-        return node.instance(traversal);
+        return traversal.follow(component, type, type, context, reference).instance(traversal);
     }
 
     public Object invoke(final Object component, final Method method, final ContextDefinition context, final Object[] arguments, final boolean explicit)
@@ -387,37 +375,34 @@ final class SimpleContainerImpl implements ParentContainer {
         } else {
             final Class<?> group = Generics.rawType(Generics.arrayComponentType(reference));
 
-            return traversal.follow(resolver, group != null && group.isAssignableFrom(api) ? group : api, api, context, new Node.Reference() {
-                @Override
-                public Node resolve() {
-                    final Node node = resolver.resolve(domain, SimpleContainerImpl.this, traversal, context, reference);
+            return traversal.follow(resolver, group != null && group.isAssignableFrom(api) ? group : api, api, context, () -> {
+                final Node node = resolver.resolve(domain, this, traversal, context, reference);
 
-                    return new Node() {
-                        public Class<?> type() {
-                            return node.type();
-                        }
+                return new Node() {
+                    public Class<?> type() {
+                        return node.type();
+                    }
 
-                        public Object instance(final Traversal traversal) {
-                            final Collection<Class<?>> interfaces = resolver.groups();
-                            final Set<ComponentContainer.Observer> observers = new HashSet<ComponentContainer.Observer>();
+                    public Object instance(final Traversal traversal) {
+                        final Collection<Class<?>> interfaces = resolver.groups();
+                        final Set<ComponentContainer.Observer> observers = new HashSet<>();
 
-                            // whenever a component is instantiated, all groups it belongs to are notified
-                            for (final Class<?> api : interfaces) {
-                                final List<GroupResolver> resolvers = groupResolvers(api);
+                        // whenever a component is instantiated, all groups it belongs to are notified
+                        for (final Class<?> api : interfaces) {
+                            final List<GroupResolver> resolvers = groupResolvers(api);
 
-                                for (final GroupResolver resolver : resolvers) {
-                                    observers.add(resolver.observer());
-                                }
+                            for (final GroupResolver resolver : resolvers) {
+                                observers.add(resolver.observer());
                             }
-
-                            return node.instance(traversal.observed(Lists.asArray(ComponentContainer.Observer.class, observers)));
                         }
 
-                        public ComponentContext context() {
-                            return node.context();
-                        }
-                    };
-                }
+                        return node.instance(traversal.observed(Lists.asArray(ComponentContainer.Observer.class, observers)));
+                    }
+
+                    public ComponentContext context() {
+                        return node.context();
+                    }
+                };
             });
         }
     }
@@ -427,7 +412,7 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public List<GroupResolver> groupResolvers(final Class<?> api) {
-        final List<GroupResolver> list = new ArrayList<GroupResolver>();
+        final List<GroupResolver> list = new ArrayList<>();
 
         final GroupResolver resolver = groups.get(api);
         if (resolver != null) {
@@ -455,11 +440,7 @@ final class SimpleContainerImpl implements ParentContainer {
         } else {
             final Class<?> arrayApi = Array.newInstance(api, 0).getClass();
 
-            return traversal.follow(group, arrayApi, arrayApi, context, new Node.Reference() {
-                public Node resolve() {
-                    return groupNode(api, resolveGroup(domain, api, traversal, context, reference), context);
-                }
-            });
+            return traversal.follow(group, arrayApi, arrayApi, context, () -> groupNode(api, resolveGroup(domain, api, traversal, context, reference), context));
         }
     }
 
@@ -474,7 +455,7 @@ final class SimpleContainerImpl implements ParentContainer {
         if (group == null) {
             return enclosing;
         } else {
-            final List<GroupResolver.Node> list = new ArrayList<GroupResolver.Node>();
+            final List<GroupResolver.Node> list = new ArrayList<>();
 
             if (enclosing != null) {
                 list.addAll(enclosing);
@@ -570,7 +551,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
         private final Class<?> componentClass;
 
-        public InstanceDescriptor(final Object component) {
+        InstanceDescriptor(final Object component) {
             this.componentClass = component.getClass();
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.fluidity.foundation.Strings;
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("WeakerAccess")
 abstract class FactoryResolver extends AbstractResolver {
 
     /**
@@ -87,7 +88,7 @@ abstract class FactoryResolver extends AbstractResolver {
         final ParentContainer resolver = resolver(domain, container);
 
         final SimpleContainer nested = resolver.newChildContainer(false);
-        final List<ContextDefinition> contexts = new ArrayList<ContextDefinition>();
+        final List<ContextDefinition> contexts = new ArrayList<>();
 
         final ComponentFactory factory = factory(resolver, traversal, context, reference);
         final Class<?> consumer = contextConsumer();
@@ -95,7 +96,7 @@ abstract class FactoryResolver extends AbstractResolver {
         final DependencyInjector injector = nested.services().dependencyInjector();
 
         final AccessGuard<ComponentContainer> containers = injector.containerGuard();
-        final AccessGuard<DependencyGraph.Node> instantiation = new AccessGuard<DependencyGraph.Node>("Dependencies must be instantiated in ComponentFactory.Instance.bind(...).");
+        final AccessGuard<DependencyGraph.Node> instantiation = new AccessGuard<>("Dependencies must be instantiated in ComponentFactory.Instance.bind(...).");
 
         final ComponentFactory.Instance instance = resolve(injector, traversal, context, nested, reference, contexts, factory, consumer, instantiation, containers);
 
@@ -242,9 +243,7 @@ abstract class FactoryResolver extends AbstractResolver {
                     throw new ComponentContainer.ResolutionException("Type %s cannot be assigned to %s", api, reference);
                 }
 
-                return new NodeDependency<T>(traversal, descend(api == null ? Generics.rawType(reference) : api,
-                                                                reference == null ? api : reference,
-                                                                annotations));
+                return new NodeDependency<>(traversal, descend(api == null ? Generics.rawType(reference) : api, reference == null ? api : reference, annotations));
             }
 
             public ComponentFactory.Dependency<?>[] resolve(final Class<?> type, final Method method) {
@@ -281,11 +280,7 @@ abstract class FactoryResolver extends AbstractResolver {
 
             public void fields(final Class<?> type) {
                 assert type != null;
-                final Field[] fields = !Security.CONTROLLED ? type.getDeclaredFields() : AccessController.doPrivileged(new PrivilegedAction<Field[]>() {
-                    public Field[] run() {
-                        return type.getDeclaredFields();
-                    }
-                });
+                final Field[] fields = !Security.CONTROLLED ? type.getDeclaredFields() : AccessController.doPrivileged((PrivilegedAction<Field[]>) type::getDeclaredFields);
 
                 for (final Field field : fields) {
                     if (field.isAnnotationPresent(Inject.class)) {
@@ -316,11 +311,11 @@ abstract class FactoryResolver extends AbstractResolver {
             }
 
             private ComponentFactory.Dependency<?>[] discover(final Type[] types, final Annotation[][] annotations) {
-                final List<ComponentFactory.Dependency<?>> nodes = new ArrayList<ComponentFactory.Dependency<?>>();
+                final List<ComponentFactory.Dependency<?>> nodes = new ArrayList<>();
 
                 for (int i = 0, limit = types.length; i < limit; i++) {
                     final Type type = types[i];
-                    nodes.add(new NodeDependency<Object>(traversal, descend(Generics.rawType(type), Generics.propagate(reference, type), annotations[i])));
+                    nodes.add(new NodeDependency<>(traversal, descend(Generics.rawType(type), Generics.propagate(reference, type), annotations[i])));
                 }
 
                 return Lists.asArray(ComponentFactory.Dependency.class, nodes);
@@ -332,8 +327,7 @@ abstract class FactoryResolver extends AbstractResolver {
                 final SimpleContainer container = nested.newChildContainer(false);
 
                 bindings.bindComponents(new Registry() {
-                    public <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces)
-                            throws ComponentContainer.BindingException {
+                    public <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
                         container.bindComponent(Components.inspect(implementation, interfaces));
                     }
                 });
@@ -361,11 +355,7 @@ abstract class FactoryResolver extends AbstractResolver {
             }
 
             public <T> ComponentFactory.Dependency<T> constant(final T object) {
-                return new ComponentFactory.Dependency<T>() {
-                    public T instance() {
-                        return object;
-                    }
-                };
+                return () -> object;
             }
 
             public Object[] instantiate(final ComponentFactory.Dependency<?>... dependencies) {
@@ -400,7 +390,7 @@ abstract class FactoryResolver extends AbstractResolver {
         private final ContextDefinition context;
         private final DependencyGraph.Traversal traversal;
 
-        private final Set<Class> components = new HashSet<Class>();
+        private final Set<Class> components = new HashSet<>();
 
         RegistryWrapper(final SimpleContainer container, final ContextDefinition context, final DependencyGraph.Traversal traversal) {
             this.container = container;
@@ -429,12 +419,12 @@ abstract class FactoryResolver extends AbstractResolver {
             return specifications;
         }
 
-        public boolean contains(final Class<?> api) {
+        boolean contains(final Class<?> api) {
             return components.contains(api);
         }
     }
 
-    static boolean isGroup(final Class<?> api, final Annotation[] annotations) {
+    private static boolean isGroup(final Class<?> api, final Annotation[] annotations) {
         if (api.isArray()) {
             for (final Annotation annotation : annotations) {
                 if (annotation.annotationType() == ComponentGroup.class) {
@@ -558,6 +548,7 @@ abstract class FactoryResolver extends AbstractResolver {
             return dependencies;
         }
 
+        @SuppressWarnings("unchecked")
         protected final <T> ComponentFactory.Dependency<T> dependency(final Class<T> api,
                                                                       final Type reference,
                                                                       final Annotation[] annotations,
@@ -578,12 +569,7 @@ abstract class FactoryResolver extends AbstractResolver {
                 }
             });
 
-            return new ComponentFactory.Dependency<T>() {
-                @SuppressWarnings("unchecked")
-                public T instance() {
-                    return instances.access(node) == null ? null : (T) node.instance(traversal);
-                }
-            };
+            return () -> instances.access(node) == null ? null : (T) node.instance(traversal);
         }
     }
 }

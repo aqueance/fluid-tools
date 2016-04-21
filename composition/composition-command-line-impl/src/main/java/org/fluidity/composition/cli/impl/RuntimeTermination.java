@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,16 +37,9 @@ final class RuntimeTermination implements ContainerTermination {
     RuntimeTermination(final Jobs<RuntimeTermination> jobs) {
         this.jobs = jobs;
 
-        AccessController.doPrivileged(new PrivilegedAction<Void>() {
-            public Void run() {
-                Runtime.getRuntime().addShutdownHook(new Thread("Container shutdown") {
-                    public void run() {
-                        jobs.flush();
-                    }
-                });
-
-                return null;
-            }
+        AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+            Runtime.getRuntime().addShutdownHook(new Thread(jobs::flush, "Container shutdown"));
+            return null;
         });
     }
 

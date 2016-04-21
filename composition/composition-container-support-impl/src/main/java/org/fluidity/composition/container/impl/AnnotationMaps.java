@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.fluidity.composition.container.impl;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 
 import org.fluidity.foundation.Lists;
@@ -29,6 +29,7 @@ import org.fluidity.foundation.Utility;
 /**
  * Convenience methods on maps of arrays of annotations.
  */
+@SuppressWarnings("WeakerAccess")
 final class AnnotationMaps extends Utility {
 
     private AnnotationMaps() { }
@@ -58,7 +59,7 @@ final class AnnotationMaps extends Utility {
         int result = map.keySet().hashCode();
 
         for (final Annotation[] annotations : sorted(map).values()) {
-            result += 31 * Arrays.hashCode(annotations);
+            result = Objects.hash(result, Arrays.hashCode(annotations));
         }
 
         return result;
@@ -85,11 +86,7 @@ final class AnnotationMaps extends Utility {
     }
 
     private static Map<Class<? extends Annotation>, Annotation[]> sorted(final Map<Class<? extends Annotation>, Annotation[]> map) {
-        final Map<Class<? extends Annotation>, Annotation[]> sorted = new TreeMap<Class<? extends Annotation>, Annotation[]>(new Comparator<Class<? extends Annotation >> () {
-            public int compare(final Class<? extends Annotation> o1, final Class<? extends Annotation> o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
+        final Map<Class<? extends Annotation>, Annotation[]> sorted = new TreeMap<>((o1, o2) -> o1.getName().compareTo(o2.getName()));
 
         sorted.putAll(map);
         return sorted;

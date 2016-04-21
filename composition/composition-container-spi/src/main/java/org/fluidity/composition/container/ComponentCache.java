@@ -82,6 +82,7 @@ public interface ComponentCache {
      *
      * @author Tibor Varga
      */
+    @FunctionalInterface
     interface Entry {
 
         /**

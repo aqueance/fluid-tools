@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,10 +34,12 @@ final class EmptyRegistry implements ComponentContainer.Registry {
         this.delegate = delegate;
     }
 
+    @SafeVarargs
     public final <T> void bindComponent(final Class<T> type, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
         delegate.bindComponent(Components.inspect(type, interfaces));
     }
 
+    @SafeVarargs
     @SuppressWarnings("unchecked")
     public final <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
         if (instance != null) {
@@ -45,8 +47,9 @@ final class EmptyRegistry implements ComponentContainer.Registry {
         }
     }
 
-    public <T> void bindComponentGroup(final Class<T> group, final Class<? extends T>[] types) {
-        final Collection<Class<?>> groups = Collections.<Class<?>>singletonList(group);
+    @SafeVarargs
+    public final <T> void bindComponentGroup(final Class<T> group, final Class<? extends T>... types) {
+        final Collection<Class<?>> groups = Collections.singletonList(group);
 
         for (final Class<? extends T> type : types) {
             delegate.bindComponent(new Components.Interfaces(type, new Components.Specification[] {
@@ -62,6 +65,7 @@ final class EmptyRegistry implements ComponentContainer.Registry {
         }
     }
 
+    @SafeVarargs
     public final <T> ComponentContainer.Registry isolateComponent(final Class<T> type, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
         return delegate.makeChildContainer(Components.inspect(type, interfaces)).getRegistry();
     }

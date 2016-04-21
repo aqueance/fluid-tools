@@ -1,5 +1,5 @@
 <!--
-  Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+  Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@
     <description><![CDATA[
 This plugin scans class files for annotations that instruct it to generate
 service provider descriptor files as per the JAR file specification:
-http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service%20Provider.
+https://docs.oracle.com/javase/8/docs/technotes/guides/jar/jar.html#Service_Provider.
 
 There are two annotations that this plugin looks for.
 

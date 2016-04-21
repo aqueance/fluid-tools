@@ -33,20 +33,11 @@ import org.fluidity.foundation.Generics;
 @SuppressWarnings("UnusedDeclaration")
 final class DeferredReferenceFactory implements ComponentFactory {
 
+    @SuppressWarnings("unchecked")
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
         final Dependency<?> dependency = dependencies.resolve(null, Generics.typeParameter(context.qualifier(Component.Reference.class, null).type(), 0), null);
 
-        final Deferred.Reference<Object> reference = Deferred.local(new Deferred.Factory<Object>() {
-            public Object create() {
-                return dependency.instance();
-            }
-        });
-
-        return new Instance() {
-            @SuppressWarnings("unchecked")
-            public void bind(final Registry registry) throws Exception {
-                registry.bindInstance(reference, Deferred.Reference.class);
-            }
-        };
+        final Deferred.Reference<Object> reference = Deferred.local(dependency::instance);
+        return registry -> registry.bindInstance(reference, Deferred.Reference.class);
     }
 }

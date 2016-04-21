@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -173,10 +173,9 @@ public final class IncludeJarsMojo extends AbstractMojo {
 
         try {
             final File file = createTempFile();
-            final JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(file));
 
-            try {
-                final Map<String, Collection<Artifact>> dependencyMap = new LinkedHashMap<String, Collection<Artifact>>();
+            try (final JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(file))) {
+                final Map<String, Collection<Artifact>> dependencyMap = new LinkedHashMap<>();
 
                 final URL packageURL = packageFile.toURI().toURL();
                 final Manifest manifest = Archives.manifest(false, packageURL);
@@ -216,7 +215,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
 
                         final String projectId = project.getArtifact().getId();
                         final String dependencyPath = String.format("%s/dependencies/%s/", Archives.META_INF, id);
-                        final List<String> dependencyList = new ArrayList<String>();
+                        final List<String> dependencyList = new ArrayList<>();
 
                         for (final Iterator<Artifact> iterator = dependencies.iterator(); iterator.hasNext(); ) {
                             final Artifact artifact = iterator.next();
@@ -264,13 +263,11 @@ public final class IncludeJarsMojo extends AbstractMojo {
                         }
                     }
 
-                    policy.update(new SecurityPolicy.Output() {
-                        public void save(final String name, final String content) throws IOException {
-                            if (content == null) {
-                                mainAttributes.remove(new Attributes.Name(name));
-                            } else {
-                                mainAttributes.putValue(name, content);
-                            }
+                    policy.update((name, content) -> {
+                        if (content == null) {
+                            mainAttributes.remove(new Attributes.Name(name));
+                        } else {
+                            mainAttributes.putValue(name, content);
                         }
                     });
 
@@ -278,11 +275,9 @@ public final class IncludeJarsMojo extends AbstractMojo {
                     outputStream.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
                     manifest.write(outputStream);
 
-                    policy.save(new SecurityPolicy.Output() {
-                        public void save(final String name, final String content) throws IOException {
-                            outputStream.putNextEntry(new JarEntry(name));
-                            Streams.store(outputStream, content, "UTF-8", buffer, false);
-                        }
+                    policy.save((name, content) -> {
+                        outputStream.putNextEntry(new JarEntry(name));
+                        Streams.store(outputStream, content, "UTF-8", buffer, false);
                     });
 
                     // copy the original archive, excluding entries from our dependency paths
@@ -327,12 +322,6 @@ public final class IncludeJarsMojo extends AbstractMojo {
 
                     DependenciesSupport.saveArtifact(project, file, baseName, classifier, DependenciesSupport.JAR_TYPE, log);
                 }
-            } finally {
-                try {
-                    outputStream.close();
-                } catch (final IOException ignored) {
-                    // ignored
-                }
             }
         } catch (final IOException e) {
             throw new MojoExecutionException(String.format("Processing %s", packageFile), e);
@@ -348,7 +337,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
     }
 
     private <V> Map<String, V> clean(final Map<String, V> properties) {
-        final Map<String, V> copy = new HashMap<String, V>(properties);
+        final Map<String, V> copy = new HashMap<>(properties);
 
         for (final JarManifest.Packaging packaging : JarManifest.Packaging.values()) {
             copy.remove(packaging.profile);
@@ -358,7 +347,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
     }
 
     private Map<String, String> include(final JarManifest.Packaging enabled, final Map<String, String> properties) {
-        final Map<String, String> copy = new HashMap<String, String>(properties);
+        final Map<String, String> copy = new HashMap<>(properties);
 
         for (final JarManifest.Packaging packaging : JarManifest.Packaging.values()) {
             if (packaging != enabled) {

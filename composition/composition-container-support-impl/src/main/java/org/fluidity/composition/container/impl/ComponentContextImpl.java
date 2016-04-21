@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,19 +32,10 @@ import org.fluidity.foundation.Deferred;
  */
 final class ComponentContextImpl implements ComponentContext {
 
-    private final Map<Class<? extends Annotation>, Annotation[]> annotations = new HashMap<Class<? extends Annotation>, Annotation[]>();
+    private final Map<Class<? extends Annotation>, Annotation[]> annotations = new HashMap<>();
 
-    private final Deferred.Reference<Integer> hashCode = Deferred.shared(new Deferred.Factory<Integer>() {
-        public Integer create() {
-            return AnnotationMaps.hashCode(annotations);
-        }
-    });
-
-    private final Deferred.Reference<String> identity = Deferred.shared(new Deferred.Factory<String>() {
-        public String create() {
-            return AnnotationMaps.identity(annotations);
-        }
-    });
+    private final Deferred.Reference<Integer> hashCode = Deferred.shared(() -> AnnotationMaps.hashCode(annotations));
+    private final Deferred.Reference<String> identity = Deferred.shared(() -> AnnotationMaps.identity(annotations));
 
     ComponentContextImpl(final Map<Class<? extends Annotation>, Annotation[]> map) {
         for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {

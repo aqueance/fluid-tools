@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,13 +29,14 @@ import org.fluidity.composition.container.spi.DependencyGraph;
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("WeakerAccess")
 abstract class AbstractResolver implements ComponentResolver {
 
     protected final Class<?> api;
     protected final ComponentCache cache;
 
     private final int priority;
-    private final Collection<Class<?>> groups = new HashSet<Class<?>>();
+    private final Collection<Class<?>> groups = new HashSet<>();
 
     protected AbstractResolver(final int priority, final Class<?> api, final ComponentCache cache) {
         this.priority = priority;
@@ -109,11 +110,7 @@ abstract class AbstractResolver implements ComponentResolver {
         }
 
         public Object instance(final DependencyGraph.Traversal traversal) {
-            return cache.lookup(container, container.toString(), node.context(), api, new ComponentCache.Entry() {
-                public Object create() {
-                    return node.instance(traversal);
-                }
-            });
+            return cache.lookup(container, container.toString(), node.context(), api, () -> node.instance(traversal));
         }
 
         public ComponentContext context() {

@@ -23,8 +23,6 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.fluidity.foundation.Command.Process;
-
 /**
  * Convenience utilities concerning proxies.
  * <h3>Usage Example</h3>
@@ -47,6 +45,7 @@ import static org.fluidity.foundation.Command.Process;
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("WeakerAccess")
 public final class Proxies extends Utility {
 
     private Proxies() { }
@@ -94,13 +93,9 @@ public final class Proxies extends Utility {
      */
     @SuppressWarnings("unchecked")
     public static <T> T create(final Class<T> type, final Identity<? extends T> identity, final InvocationHandler handler) {
-        final ClassLoader loader = !Security.CONTROLLED ? type.getClassLoader() : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-            public ClassLoader run() {
-                return type.getClassLoader();
-            }
-        });
+        final ClassLoader loader = !Security.CONTROLLED ? type.getClassLoader() : AccessController.doPrivileged((PrivilegedAction<ClassLoader>) type::getClassLoader);
 
-        final AtomicReference<T> proxy = new AtomicReference<T>();
+        final AtomicReference<T> proxy = new AtomicReference<>();
         proxy.set((T) Proxy.newProxyInstance(loader, new Class<?>[] { type }, new MethodInvocations(handler, proxy, identity)));
         return proxy.get();
     }
@@ -225,25 +220,21 @@ public final class Proxies extends Utility {
         @SuppressWarnings("unchecked")
         public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
             try {
-                return Exceptions.wrap(new Process<Object, Exception>() {
-                    public Object run() throws Exception {
-                        if (method.getDeclaringClass() == Object.class) {
-                            return method.invoke(MethodInvocations.this, arguments);
-                        } else if (handler != null) {
+                return Exceptions.wrap(() -> {
+                    if (method.getDeclaringClass() == Object.class) {
+                        return method.invoke(MethodInvocations.this, arguments);
+                    } else if (handler != null) {
 
-                            // called without access control privileges to subject the handler to access control
-                            try {
-                                return handler.invoke(proxy, method, arguments);
-                            } catch (final Exception e) {
-                                throw e;
-                            } catch (final Error e) {
-                                throw e;
-                            } catch (final Throwable e) {
-                                throw new AssertionError(e);
-                            }
-                        } else {
-                            throw new IllegalStateException(method.toGenericString());
+                        // called without access control privileges to subject the handler to access control
+                        try {
+                            return handler.invoke(proxy, method, arguments);
+                        } catch (final Exception | Error e) {
+                            throw e;
+                        } catch (final Throwable e) {
+                            throw new AssertionError(e);
                         }
+                    } else {
+                        throw new IllegalStateException(method.toGenericString());
                     }
                 });
             } catch (final Exceptions.Wrapper e) {

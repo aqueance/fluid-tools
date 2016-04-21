@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,14 +57,11 @@ final class ServiceImportInterceptor implements ComponentInterceptor {
         this.border = border;
     }
 
+    @SuppressWarnings("unchecked")
     public Dependency intercept(final Type reference, final ComponentContext context, final Dependency dependency) {
         final Class<?> type = Generics.rawType(reference);
+        assert type != null;
 
-        return !type.isInterface() ? dependency : new Dependency() {
-            @SuppressWarnings("unchecked")
-            public Object create() {
-                return border.imported((Class) type, dependency.create());
-            }
-        };
+        return !type.isInterface() ? dependency : () -> border.imported((Class) type, dependency.create());
     }
 }

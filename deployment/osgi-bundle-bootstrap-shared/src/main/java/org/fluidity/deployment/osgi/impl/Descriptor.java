@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,18 @@
 
 package org.fluidity.deployment.osgi.impl;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 /**
+ * Encapsulates an OSGi service dependency, and implements the object identity methods to enable placement in a set.
+ *
  * @author Tibor Varga
  */
+@SuppressWarnings("WeakerAccess")
 abstract class Descriptor {
 
     public final Class<?> type;
 
-    private final AtomicReference<Object> instance = new AtomicReference<Object>();
+    // no need to synchronize access
+    private Object instance;
 
     protected Descriptor(final Class<?> type) {
         this.type = type;
@@ -36,20 +38,21 @@ abstract class Descriptor {
     }
 
     public final void started(final Object instance) {
-        this.instance.set(instance);
+        this.instance = instance;
         failed(false);
     }
 
     public final Object stopped(final boolean failed) {
         try {
-            return instance.getAndSet(null);
+            return instance;
         } finally {
+            instance = null;
             failed(failed);
         }
     }
 
     public final Object instance() {
-        return instance.get();
+        return instance;
     }
 
     @Override

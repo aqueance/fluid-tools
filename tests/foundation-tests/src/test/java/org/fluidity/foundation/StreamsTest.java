@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,26 +78,12 @@ public class StreamsTest extends Simulator {
 
         final byte[] buffer = new byte[0];
 
-        test(new Task() {
-            public void run() throws Exception {
-                verify(new Task() {
-                    public void run() throws Exception {
-                        Streams.copy(new ByteArrayInputStream("".getBytes()), output, buffer, true, false);
-                    }
-                });
-            }
-        });
+        verify((Task) () -> Streams.copy(new ByteArrayInputStream("".getBytes()), output, buffer, true, false));
 
-        test(new Task() {
-            public void run() throws Exception {
-                closeable.close();
+        test(() -> {
+            closeable.close();
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        Streams.copy(new ByteArrayInputStream("".getBytes()), output, buffer, true, true);
-                    }
-                });
-            }
+            verify((Task) () -> Streams.copy(new ByteArrayInputStream("".getBytes()), output, buffer, true, true));
         });
     }
 }

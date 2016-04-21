@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +43,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class BasicResolutionTests extends AbstractContainerTests {
 
-    public BasicResolutionTests(final ArtifactFactory factory) {
+    BasicResolutionTests(final ArtifactFactory factory) {
         super(factory);
     }
 
@@ -64,11 +63,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         }
 
         for (int i = 0; i < 100000 && !collected; ++i) {
-            container.makeChildContainer(new ComponentContainer.Bindings() {
-                public void bindComponents(final ComponentContainer.Registry registry) {
-                    registry.bindInstance(new FinalizationAware());
-                }
-            });
+            container.makeChildContainer(registry -> registry.bindInstance(new FinalizationAware()));
             Runtime.getRuntime().gc();
         }
 
@@ -184,11 +179,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     @Test
     public void transientDependentComponentInstantiation() throws Exception {
-        final Key value = container.instantiate(Value.class, new ComponentContainer.Bindings() {
-            public void bindComponents(ComponentContainer.Registry registry) {
-                registry.bindComponent(DependentValue.class);
-            }
-        });
+        final Key value = container.instantiate(Value.class, (ComponentContainer.Bindings) registry -> registry.bindComponent(DependentValue.class));
 
         assert value != null;
         assert container.getComponent(Key.class) == null;
@@ -198,11 +189,9 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     @Test
     public void transientBindings() throws Exception {
-        final OpenContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
-            public void bindComponents(ComponentContainer.Registry registry) {
-                registry.bindComponent(Value.class);
-                registry.bindComponent(DependentValue.class);
-            }
+        final OpenContainer child = container.makeChildContainer(registry -> {
+            registry.bindComponent(Value.class);
+            registry.bindComponent(DependentValue.class);
         });
 
         final Key value = child.getComponent(Key.class);
@@ -266,8 +255,8 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     public void testObservation() throws Exception {
         registry.bindComponent(MultipleInterfaces.class);
 
-        final Map<Class<?>, Class<?>> resolved = new HashMap<Class<?>, Class<?>>();
-        final List<Class<?>> instantiated = new ArrayList<Class<?>>();
+        final Map<Class<?>, Class<?>> resolved = new HashMap<>();
+        final List<Class<?>> instantiated = new ArrayList<>();
 
         final ObservedContainer observed = container.observed(new ComponentContainer.ObserverSupport() {
             public void resolved(final DependencyPath path, final Class<?> type) {
@@ -316,7 +305,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         container.getComponent(DependencyChain1.class);
     }
 
-    public static class SerializableComponent implements Serializable {
+    private static class SerializableComponent implements Serializable {
 
         /* in real life you'd use <code>Containers.global()</code> here */
         private static ComponentContainer container;
@@ -334,7 +323,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
             container.initialize(this);
         }
 
-        public void verify(final String context) {
+        void verify(final String context) {
             assert dependency != null: String.format("Dependency not set in %s", context);
         }
     }
@@ -346,7 +335,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         }
     }
 
-    public static class OuterClass {
+    private static class OuterClass {
 
         @Component(automatic = false)
         public class InnerClass {

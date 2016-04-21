@@ -58,7 +58,7 @@ public abstract class ContainerProviderAbstractTest extends Simulator {
 
     @BeforeMethod
     public final void setup() {
-        EasyMock.expect(services.createLog(EasyMock.<Log>anyObject(), EasyMock.<Class<?>>anyObject())).andReturn(log).anyTimes();
+        EasyMock.expect(services.createLog(EasyMock.anyObject(), EasyMock.anyObject())).andReturn(log).anyTimes();
         EasyMock.expect(services.componentDiscovery()).andReturn(discovery).anyTimes();
         EasyMock.expect(services.dependencyInjector()).andReturn(injector).anyTimes();
         EasyMock.expect(services.newCache(EasyMock.anyBoolean())).andReturn(cache).anyTimes();
@@ -70,11 +70,7 @@ public abstract class ContainerProviderAbstractTest extends Simulator {
     public final void createsContainer() throws Exception {
         EasyMock.expect(context.copy()).andReturn(copy);
 
-        final MutableContainer container = verify(new Work<MutableContainer>() {
-            public MutableContainer run() throws Exception {
-                return provider.newContainer(services, false);
-            }
-        });
+        final MutableContainer container = verify(() -> provider.newContainer(services, false));
 
         assert container != null;
     }

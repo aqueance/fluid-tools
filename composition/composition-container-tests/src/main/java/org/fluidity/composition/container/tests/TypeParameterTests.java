@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
  */
 public class TypeParameterTests extends AbstractContainerTests {
 
-    public TypeParameterTests(final ArtifactFactory artifacts) {
+    TypeParameterTests(final ArtifactFactory artifacts) {
         super(artifacts);
     }
 
@@ -231,8 +231,8 @@ public class TypeParameterTests extends AbstractContainerTests {
     @Component(automatic = false)
     private static class RootComponent {
 
-        public final TypedComponent3<Serializable> p3;
-        public final TypedComponent4<Serializable> p4;
+        final TypedComponent3<Serializable> p3;
+        final TypedComponent4<Serializable> p4;
 
         @SuppressWarnings("UnusedDeclaration")
         private RootComponent(final TypedComponent3<Serializable> p1, final TypedComponent4<Serializable> p2) {
@@ -245,7 +245,7 @@ public class TypeParameterTests extends AbstractContainerTests {
     private static class SerializableImpl implements Serializable { }
 
     @SuppressWarnings("UnusedDeclaration")
-    public interface TypedComponent<T> { }
+    interface TypedComponent<T> { }
 
     @Component
     @Component.Qualifiers(Component.Reference.class)

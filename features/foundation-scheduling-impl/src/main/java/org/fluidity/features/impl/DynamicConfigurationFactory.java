@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.fluidity.features.impl;
 
 import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -42,6 +41,7 @@ import org.fluidity.foundation.Security;
 @Component.Qualifiers(Component.Reference.class)
 final class DynamicConfigurationFactory implements ComponentFactory {
 
+    @SuppressWarnings("unchecked")
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
         final Component.Reference reference = context.qualifier(Component.Reference.class, DynamicConfiguration.class);
         final Class<?> api = reference.parameter(0);
@@ -54,13 +54,9 @@ final class DynamicConfigurationFactory implements ComponentFactory {
             }
         }
 
-        return new Instance() {
-
-            @SuppressWarnings("unchecked")
-            public void bind(final Registry registry) throws Exception {
-                registry.bindInstance(api, Class.class);
-                registry.bindComponent(DynamicConfigurationImpl.class);
-            }
+        return registry -> {
+            registry.bindInstance(api, Class.class);
+            registry.bindComponent(DynamicConfigurationImpl.class);
         };
     }
 
@@ -71,40 +67,24 @@ final class DynamicConfigurationFactory implements ComponentFactory {
         private final Deferred.Reference<Updates.Snapshot<T>> snapshot;
 
         DynamicConfigurationImpl(final Class<T> type, final Configuration<T> delegate, final Configuration<Settings> configuration, final Updates updates) {
-            this.snapshot = Deferred.shared(new Deferred.Factory<Updates.Snapshot<T>>() {
-                public Updates.Snapshot<T> create() {
-                    return updates.snapshot(configuration.settings().period(), new Updates.Snapshot<T>() {
-                        private Configuration.Query<T, T> all = new Configuration.Query<T, T>() {
-                            public T run(final T settings) throws Exception {
-                                final Map<Method, Object> cache = new HashMap<Method, Object>();
+            final Configuration.Query<T, T> all = settings -> {
+                final Map<Method, Object> cache = new HashMap<>();
 
-                                final PrivilegedAction<Method[]> access = new PrivilegedAction<Method[]>() {
-                                    public Method[] run() {
-                                        final Method[] methods = type.getMethods();
-                                        AccessibleObject.setAccessible(methods, true);
-                                        return methods;
-                                    }
-                                };
+                final PrivilegedAction<Method[]> access = () -> {
+                    final Method[] methods = type.getMethods();
+                    AccessibleObject.setAccessible(methods, true);
+                    return methods;
+                };
 
-                                for (final Method method : (Security.CONTROLLED ? AccessController.doPrivileged(access) : access.run())) {
-                                    assert method.getParameterTypes().length == 0 : method;
-                                    cache.put(method, method.invoke(settings));
-                                }
-
-                                return Proxies.create(type, new InvocationHandler() {
-                                    public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
-                                        return cache.get(method);
-                                    }
-                                });
-                            }
-                        };
-
-                        public T get() {
-                            return delegate.query(all);
-                        }
-                    });
+                for (final Method method : (Security.CONTROLLED ? AccessController.doPrivileged(access) : access.run())) {
+                    assert method.getParameterTypes().length == 0 : method;
+                    cache.put(method, method.invoke(settings));
                 }
-            });
+
+                return Proxies.create(type, (proxy, method, arguments) -> cache.get(method));
+            };
+
+            this.snapshot = Deferred.shared(() -> updates.snapshot(configuration.settings().period(), () -> delegate.query(all)));
         }
 
         public Updates.Snapshot<T> snapshot() {

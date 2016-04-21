@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,6 @@ final class Slf4jLogFactory implements LogFactory {
      * {@inheritDoc}
      */
     public <T> Log<T> createLog(final Class<T> source) {
-        return new Slf4jLogImpl<T>(source);
+        return new Slf4jLogImpl<>(source);
     }
 }

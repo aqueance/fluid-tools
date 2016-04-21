@@ -24,7 +24,7 @@ import org.fluidity.foundation.Log;
  * <p>
  * The log factory creates source-bound {@link Log} objects. Your implementation should adapt the respective log sink of the logging framework of your choice
  * to the {@link Log} interface. The prevalent implementation of this interface will be looked for as a
- * <a href="http://docs.oracle.com/javase/8/docs/technotes/guides/jar/jar.html#Service_Provider">JAR Service Provider</a>.
+ * <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/jar/jar.html#Service_Provider">JAR Service Provider</a>.
  * <p>
  * You will need to use Fluid Tools to implement and build your adaptor, and annotate the implementation with both
  * {@link org.fluidity.composition.ServiceProvider @ServiceProvider} and {@link org.fluidity.composition.Component @Component}. The Java archive containing the

@@ -35,6 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.fluidity.composition.spi.ComponentFactory;
@@ -154,17 +155,18 @@ public final class Components extends Utility {
      * @throws ComponentContainer.BindingException
      *          thrown when an error condition is identified during inspection.
      */
+    @SafeVarargs
     public static <T> Interfaces inspect(final Class<T> componentClass, final Class<? super T>... restrictions) throws ComponentContainer.BindingException {
         if (componentClass == null) {
             throw new IllegalStateException("Component class to inspect is null");
         }
 
-        final Map<Type, Set<Class<?>>> interfaceMap = new LinkedHashMap<Type, Set<Class<?>>>();
-        final Set<Class<?>> path = new LinkedHashSet<Class<?>>();
+        final Map<Type, Set<Class<?>>> interfaceMap = new LinkedHashMap<>();
+        final Set<Class<?>> path = new LinkedHashSet<>();
 
         if (restrictions != null && restrictions.length > 0) {
             final boolean factory = isFactory(componentClass);
-            final Map<Type, Set<Class<?>>> map = new LinkedHashMap<Type, Set<Class<?>>>();
+            final Map<Type, Set<Class<?>>> map = new LinkedHashMap<>();
 
             for (final Class<?> api : restrictions) {
                 if (!factory && !api.isAssignableFrom(componentClass)) {
@@ -195,7 +197,7 @@ public final class Components extends Utility {
         }
 
         // post-processing of component interfaces found
-        final Set<Specification> interfaces = new LinkedHashSet<Specification>();
+        final Set<Specification> interfaces = new LinkedHashSet<>();
 
         for (final Map.Entry<Type, Set<Class<?>>> entry : interfaceMap.entrySet()) {
             final Type type = entry.getKey();
@@ -237,12 +239,10 @@ public final class Components extends Utility {
     }
 
     private static void checkTypeParameters(final Class<?> type, final Type api) {
-        Generics.abstractions(type, new Generics.Inspector() {
-            public Type inspect(final Type check) {
-                checkTypeParameters(type, api, check);
-                checkTypeParameters(Generics.rawType(check), api);
-                return null;
-            }
+        Generics.abstractions(type, check -> {
+            checkTypeParameters(type, api, check);
+            checkTypeParameters(Generics.rawType(check), api);
+            return null;
         });
     }
 
@@ -258,7 +258,7 @@ public final class Components extends Utility {
                                                                   api);
                 }
             } else if (check instanceof ParameterizedType) {
-                final List<Type> specified = new ArrayList<Type>();
+                final List<Type> specified = new ArrayList<>();
                 for (final Type argument : ((ParameterizedType) check).getActualTypeArguments()) {
                     if (!(argument instanceof TypeVariable)) {
                         specified.add(argument);
@@ -275,11 +275,7 @@ public final class Components extends Utility {
 
     private static Type findDeclaredInterface(final Class<?> type, final Class<?> api) {
         if (api != type) {
-            final Type found = Generics.abstractions(type, new Generics.Inspector() {
-                public Type inspect(final Type checked) {
-                    return api == Generics.rawType(checked) ? checked : null;
-                }
-            });
+            final Type found = Generics.abstractions(type, checked -> api == Generics.rawType(checked) ? checked : null);
 
             if (found != null) {
                 return found;
@@ -295,7 +291,7 @@ public final class Components extends Utility {
                                    final Set<Class<?>> path,
                                    final boolean reference,
                                    final boolean resolve) {
-        final Map<Type, Set<Class<?>>> interfaceMap = new LinkedHashMap<Type, Set<Class<?>>>();
+        final Map<Type, Set<Class<?>>> interfaceMap = new LinkedHashMap<>();
         final Class<?> checked = Generics.rawType(type);
 
         if (path.contains(checked)) {
@@ -380,7 +376,7 @@ public final class Components extends Utility {
     }
 
     private static Set<Class<?>> allGroups(final Collection<Set<Class<?>>> list) {
-        final Set<Class<?>> allGroups = new HashSet<Class<?>>();
+        final Set<Class<?>> allGroups = new HashSet<>();
 
         for (final Set<Class<?>> set : list) {
             allGroups.addAll(set);
@@ -392,7 +388,7 @@ public final class Components extends Utility {
     private static Set<Class<?>> groups(final Class<?> type) {
         final boolean factory = isFactory(type);
 
-        final Set<Class<?>> groups = new LinkedHashSet<Class<?>>();
+        final Set<Class<?>> groups = new LinkedHashSet<>();
 
         if (type == Object.class) {
             return groups;
@@ -518,9 +514,7 @@ public final class Components extends Utility {
         }
 
         private int calculateHash() {
-            int result = implementation.hashCode();
-            result = 31 * result + Arrays.hashCode(api);
-            return result;
+            return Objects.hash(implementation, Arrays.hashCode(api));
         }
     }
 
@@ -569,9 +563,7 @@ public final class Components extends Utility {
 
         @Override
         public int hashCode() {
-            int result = api.hashCode();
-            result = 31 * result + Arrays.hashCode(groups);
-            return result;
+            return Objects.hash(api, Arrays.hashCode(groups));
         }
     }
 }

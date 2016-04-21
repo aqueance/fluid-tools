@@ -28,13 +28,13 @@ import org.fluidity.foundation.Log;
 
 /**
  * Bootstraps the component container. This class is exported via the standard service provider discovery mechanism described in the <a
- * href="http://docs.oracle.com/javase/8/docs/technotes/guides/jar/jar.html#Service_Provider">JAR File Specification</a>.
+ * href="https://docs.oracle.com/javase/8/docs/technotes/guides/jar/jar.html#Service_Provider">JAR File Specification</a>.
  *
  * @author Tibor Varga
  */
 final class ContainerBootstrapImpl implements ContainerBootstrap {
 
-    private static AtomicReference<Log> log = new AtomicReference<Log>();
+    private static AtomicReference<Log> log = new AtomicReference<>();
 
     @SuppressWarnings("unchecked")
     public MutableContainer populateContainer(final ContainerServices services,

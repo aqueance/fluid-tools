@@ -50,6 +50,7 @@ import org.osgi.framework.BundleContext;
 @SuppressWarnings("UnusedDeclaration")
 public final class BundleBootstrap extends BoundaryComponent implements BundleActivator {
 
+    // no synchronization necessary: https://osgi.org/javadoc/r4v43/core/org/osgi/framework/BundleActivator.html
     private Activation activation;
 
     /**
@@ -60,17 +61,15 @@ public final class BundleBootstrap extends BoundaryComponent implements BundleAc
      *
      * @throws Exception when anything goes wrong.
      */
+    @SuppressWarnings("unchecked")
     public void start(final BundleContext context) throws Exception {
-        assert activation == null : "Bundle has already been started";
+        if (activation != null) {
+            throw new IllegalStateException("Bundle has already been started");
+        }
 
-        final ComponentContainer container = container().makeDomainContainer(new ComponentContainer.Bindings() {
-            @SuppressWarnings("unchecked")
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindInstance(context, BundleContext.class);
-            }
-        });
-
+        final ComponentContainer container = container().makeDomainContainer(registry -> registry.bindInstance(context, BundleContext.class));
         activation = container.instantiate(Activation.class);
+
         activation.start();
     }
 
@@ -83,8 +82,15 @@ public final class BundleBootstrap extends BoundaryComponent implements BundleAc
      * @throws Exception when anything goes wrong.
      */
     public void stop(final BundleContext context) throws Exception {
-        assert activation != null : "Bundle has not been started";
-        activation.stop();
+        if (activation == null) {
+            throw new IllegalStateException("Bundle has not been started");
+        }
+
+        try {
+            activation.stop();
+        } finally {
+            activation = null;
+        }
     }
 
     /**
@@ -95,11 +101,9 @@ public final class BundleBootstrap extends BoundaryComponent implements BundleAc
     @Component(automatic = false)
     private static class Activation {
 
-        private static final ClassLoader loader = !Security.CONTROLLED ? Activation.class.getClassLoader() : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-            public ClassLoader run() {
-                return Activation.class.getClassLoader();
-            }
-        });
+        private static final ClassLoader loader = !Security.CONTROLLED
+            ? Activation.class.getClassLoader()
+            : AccessController.doPrivileged((PrivilegedAction<ClassLoader>) Activation.class::getClassLoader);
 
         private final BundleComponentContainer components;
         private final Activators activators;
@@ -161,7 +165,7 @@ public final class BundleBootstrap extends BoundaryComponent implements BundleAc
     private static class Activators {
 
         private final BundleContext context;
-        private final List<BundleActivator> activators = new ArrayList<BundleActivator>();
+        private final List<BundleActivator> activators = new ArrayList<>();
         private final Log log;
 
         Activators(final BundleContext context,

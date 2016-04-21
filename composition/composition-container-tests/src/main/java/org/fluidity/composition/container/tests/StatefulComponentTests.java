@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class StatefulComponentTests extends AbstractContainerTests {
 
-    public StatefulComponentTests(final ArtifactFactory factory) {
+    StatefulComponentTests(final ArtifactFactory factory) {
         super(factory);
     }
 
@@ -120,12 +120,7 @@ public final class StatefulComponentTests extends AbstractContainerTests {
     private static class StatefulComponentFactory implements ComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-
-            return new Instance() {
-                public void bind(final Registry registry) throws Exception {
-                    registry.bindComponent(StatelessComponent.class);
-                }
-            };
+            return registry -> registry.bindComponent(StatelessComponent.class);
         }
     }
 }

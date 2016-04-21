@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class ContainerHierarchyTests extends AbstractContainerTests {
 
-    public ContainerHierarchyTests(final ArtifactFactory factory) {
+    ContainerHierarchyTests(final ArtifactFactory factory) {
         super(factory);
     }
 
@@ -53,11 +53,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     public void dependencyFromChildResolvesInParent() throws Exception {
         registry.bindComponent(DependentValue.class);
 
-        final OpenContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(Value.class);
-            }
-        });
+        final OpenContainer child = container.makeChildContainer(registry -> registry.bindComponent(Value.class));
 
         verifyComponent(child);
     }
@@ -74,11 +70,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     public void linkingComponentDependencyResolvesToOtherLinkingComponentAtHigherLevel() throws Exception {
         registry.isolateComponent(DependentValue.class);
 
-        final OpenContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.isolateComponent(Value.class);
-            }
-        });
+        final OpenContainer child = container.makeChildContainer(registry -> registry.isolateComponent(Value.class));
 
         verifyComponent(child);
     }
@@ -88,11 +80,9 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         registry.bindComponent(OtherDependentValue.class);
         registry.bindComponent(OtherValue.class);
 
-        final OpenContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(DependentValue.class);
-                registry.bindComponent(Value.class);
-            }
+        final OpenContainer child = container.makeChildContainer(registry -> {
+            registry.bindComponent(DependentValue.class);
+            registry.bindComponent(Value.class);
         });
 
         verifyComponent(child);
@@ -106,11 +96,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
 
     @Test
     public void childContainerContainsItself() throws Exception {
-        final OpenContainer childContainer = container.makeChildContainer(new ComponentContainer.Bindings() {
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(ContainerDependent.class);
-            }
-        });
+        final OpenContainer childContainer = container.makeChildContainer(registry -> registry.bindComponent(ContainerDependent.class));
 
         final ContainerDependent component = childContainer.getComponent(ContainerDependent.class);
         assert component != null;
@@ -199,11 +185,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
             dependencies.discover(RootComponent.class);
 
-            return new Instance() {
-                public void bind(final Registry registry) throws Exception {
-                    registry.bindComponent(RootComponent.class);
-                }
-            };
+            return registry -> registry.bindComponent(RootComponent.class);
         }
     }
 
@@ -229,11 +211,11 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         }
     }
 
-    private static interface MyRootComponent { }
+    private interface MyRootComponent { }
 
-    private static interface MyScopedRootComponent { }
+    private interface MyScopedRootComponent { }
 
-    private static interface MyNestedScopedComponent { }
+    private interface MyNestedScopedComponent { }
 
     @Component(scope = MyRootComponent.class)
     private static final class MyRootComponentImpl implements MyRootComponent {
@@ -248,11 +230,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
             dependencies.discover(MyScopedRootComponentImpl.class);
 
-            return new Instance() {
-                public void bind(final Registry registry) throws Exception {
-                    registry.bindComponent(MyScopedRootComponentImpl.class);
-                }
-            };
+            return registry -> registry.bindComponent(MyScopedRootComponentImpl.class);
         }
     }
 

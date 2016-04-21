@@ -208,6 +208,7 @@ public interface ComponentFactory {
      *
      * @author Tibor Varga
      */
+    @FunctionalInterface
     interface Instance {
 
         /**
@@ -231,6 +232,7 @@ public interface ComponentFactory {
      *
      * @author Tibor Varga
      */
+    @FunctionalInterface
     interface Dependency<T> {
 
         /**

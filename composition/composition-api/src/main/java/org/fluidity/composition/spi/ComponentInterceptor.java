@@ -85,6 +85,7 @@ public interface ComponentInterceptor<T> {
      *
      * @author Tibor Varga
      */
+    @FunctionalInterface
     interface Dependency<T> {
 
         /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.fluidity.composition.container;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,10 +40,10 @@ import org.fluidity.composition.container.spi.DependencyGraph;
 final class GroupResolver {
 
     private final Class<?> api;
-    private final Set<Class<?>> members = new LinkedHashSet<Class<?>>();
+    private final Set<Class<?>> members = new LinkedHashSet<>();
 
     private volatile int index;     // volatility only guarantees visibility; synchronization is used to guarantee atomicity of mutation
-    private final Map<Class<?>, Integer> instantiated = new ConcurrentHashMap<Class<?>, Integer>(64);
+    private final Map<Class<?>, Integer> instantiated = new ConcurrentHashMap<>(64);
 
     private final ComponentContainer.Observer observer = new ComponentContainer.ObserverSupport() {
         public void instantiated(final DependencyPath path, final AtomicReference<?> ignored) {
@@ -60,20 +59,18 @@ final class GroupResolver {
         }
     };
 
-    private final Comparator<Object> order = new Comparator<Object>() {
-        public int compare(final Object o1, final Object o2) {
-            final Integer order1 = instantiated.get(o1.getClass());
-            final Integer order2 = instantiated.get(o2.getClass());
+    private final Comparator<Object> order = (o1, o2) -> {
+        final Integer order1 = instantiated.get(o1.getClass());
+        final Integer order2 = instantiated.get(o2.getClass());
 
-            if (order1 == null && order2 == null) {
-                return 0;
-            } else if (order1 == null) {
-                return 1;
-            } else if (order2 == null) {
-                return -1;
-            } else {
-                return order1.compareTo(order2);
-            }
+        if (order1 == null && order2 == null) {
+            return 0;
+        } else if (order1 == null) {
+            return 1;
+        } else if (order2 == null) {
+            return -1;
+        } else {
+            return order1.compareTo(order2);
         }
     };
 
@@ -81,10 +78,11 @@ final class GroupResolver {
         this.api = api;
     }
 
-    public ComponentContainer.Observer observer() {
+    ComponentContainer.Observer observer() {
         return observer;
     }
 
+    @FunctionalInterface
     public interface Node {
 
         Collection<?> instance(DependencyGraph.Traversal traversal);
@@ -95,9 +93,9 @@ final class GroupResolver {
                         final SimpleContainer container,
                         final ContextDefinition context,
                         final Type reference) {
-        final List<DependencyGraph.Node> nodes = new ArrayList<DependencyGraph.Node>();
+        final List<DependencyGraph.Node> nodes = new ArrayList<>();
 
-        final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
+        final List<ContextDefinition> consumed = new ArrayList<>();
         for (final Class<?> member : members) {
             final ContextDefinition copy = context.advance(member, true);
 
@@ -109,23 +107,21 @@ final class GroupResolver {
 
         context.collect(consumed);
 
-        return new Node() {
-            public Collection<?> instance(final DependencyGraph.Traversal traversal) {
-                final List<Object> instances = new ArrayList<Object>();
-                final DependencyGraph.Traversal observed = traversal.observed(observer);
+        return _traversal -> {
+            final List<Object> instances = new ArrayList<>();
+            final DependencyGraph.Traversal observed = _traversal.observed(observer);
 
-                for (final DependencyGraph.Node node : nodes) {
-                    instances.add(node.instance(observed));
-                }
-
-                Collections.sort(instances, order);
-
-                return instances;
+            for (final DependencyGraph.Node node : nodes) {
+                instances.add(node.instance(observed));
             }
+
+            Collections.sort(instances, order);
+
+            return instances;
         };
     }
 
-    public void addResolver(final Class<?> api) {
+    void addResolver(final Class<?> api) {
         members.add(api);
     }
 }

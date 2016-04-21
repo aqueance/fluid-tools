@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,11 +73,7 @@ public class StringsTest extends Simulator {
 
         EasyMock.expect(annotation.annotationType()).andReturn((Class) Documented.class);
 
-        final String string = verify(new Work<String>() {
-            public String run() throws Exception {
-                return Strings.describeAnnotation(false, annotation);
-            }
-        });
+        final String string = verify(() -> Strings.describeAnnotation(false, annotation));
 
         assert String.format("@%s", Documented.class.getSimpleName()).equals(string) : string;
     }
@@ -89,11 +85,7 @@ public class StringsTest extends Simulator {
         EasyMock.expect(annotation.annotationType()).andReturn((Class) Retention.class);
         EasyMock.expect(annotation.value()).andReturn(RetentionPolicy.RUNTIME);
 
-        final String string = verify(new Work<String>() {
-            public String run() throws Exception {
-                return Strings.describeAnnotation(false, annotation);
-            }
-        });
+        final String string = verify(() -> Strings.describeAnnotation(false, annotation));
 
         assert String.format("@%s(%s)", Retention.class.getSimpleName(), RetentionPolicy.RUNTIME).equals(string) : string;
     }
@@ -107,11 +99,7 @@ public class StringsTest extends Simulator {
         EasyMock.expect(annotation.annotationType()).andReturn((Class) Target.class);
         EasyMock.expect(annotation.value()).andReturn(value);
 
-        final String string = verify(new Work<String>() {
-            public String run() throws Exception {
-                return Strings.describeAnnotation(false, annotation);
-            }
-        });
+        final String string = verify(() -> Strings.describeAnnotation(false, annotation));
 
         assert String.format("@%s({%s,%s})", Target.class.getSimpleName(), value[0], value[1]).equals(string) : string;
     }
@@ -123,11 +111,7 @@ public class StringsTest extends Simulator {
         EasyMock.expect(annotation.annotationType()).andReturn((Class) ClassValued.class);
         EasyMock.expect(annotation.value()).andReturn(Object[].class);
 
-        final String string = verify(new Work<String>() {
-            public String run() throws Exception {
-                return Strings.describeAnnotation(false, annotation);
-            }
-        });
+        final String string = verify(() -> Strings.describeAnnotation(false, annotation));
 
         assert String.format("@%s.%s(Object[].class)", getClass().getSimpleName(), ClassValued.class.getSimpleName()).equals(string) : string;
     }
@@ -143,11 +127,7 @@ public class StringsTest extends Simulator {
         EasyMock.expect(annotation.id()).andReturn(id);
         EasyMock.expect(annotation.list()).andReturn(list);
 
-        final String string = verify(new Work<String>() {
-            public String run() throws Exception {
-                return Strings.describeAnnotation(false, annotation);
-            }
-        });
+        final String string = verify(() -> Strings.describeAnnotation(false, annotation));
 
         assert String.format("@%s.%s(id=%d, list={%s,%s,%s})", getClass().getSimpleName(), MultiValued.class.getSimpleName(), id, list[0], list[1], list[2]).equals(string) : string;
     }
@@ -163,11 +143,7 @@ public class StringsTest extends Simulator {
         EasyMock.expect(annotation.id()).andReturn(id);
         EasyMock.expect(annotation.list()).andReturn(list);
 
-        final String string = verify(new Work<String>() {
-            public String run() throws Exception {
-                return Strings.describeAnnotation(false, annotation);
-            }
-        });
+        final String string = verify(() -> Strings.describeAnnotation(false, annotation));
 
         assert String.format("@%s.%s", getClass().getSimpleName(), MultiValued.class.getSimpleName()).equals(string) : string;
     }
@@ -228,12 +204,12 @@ public class StringsTest extends Simulator {
         assert expected.equals(actual) : String.format("Expected %s, got %s", expected, actual);
     }
 
-    private static @interface MultiValued {
+    private @interface MultiValued {
         int id() default -1;
         String[] list() default { };
     }
 
-    private static @interface ClassValued {
+    private @interface ClassValued {
         Class value() default Object.class;
     }
 

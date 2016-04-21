@@ -34,6 +34,7 @@ public interface SecurityPolicy {
     /**
      * Something where a named entry can be saved.
      */
+    @FunctionalInterface
     interface Output {
 
         /**

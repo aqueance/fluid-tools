@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,9 +57,11 @@ import org.testng.annotations.Test;
  */
 public final class IntegrationTest {
 
+    @SuppressWarnings("WeakerAccess")
     public static final String INTEGRATION_TEST_MARKER = "Integration-Test";
+
     private Framework framework;
-    private final AtomicReference<Throwable> error = new AtomicReference<Throwable>();
+    private final AtomicReference<Throwable> error = new AtomicReference<>();
 
     @Factory
     @SuppressWarnings("unchecked")
@@ -73,7 +75,7 @@ public final class IntegrationTest {
             final ClassLoader loader = ClassLoaders.findClassLoader(IntegrationTest.class, true);
             final Properties properties = loadProperties("system.properties");
 
-            final Map<String, String> config = new HashMap<String, String>();
+            final Map<String, String> config = new HashMap<>();
 
             for (final Map.Entry entry : properties.entrySet()) {
                 config.put((String) entry.getKey(), (String) entry.getValue());
@@ -82,12 +84,13 @@ public final class IntegrationTest {
             config.put(Constants.FRAMEWORK_BUNDLE_PARENT, Constants.FRAMEWORK_BUNDLE_PARENT_APP);
 
             final FrameworkFactory factory = ServiceProviders.findInstance(FrameworkFactory.class, loader);
+            assert factory != null;
 
             framework = factory.newFramework(config);
             framework.start();
 
             final BundleContext system = framework.getBundleContext();
-            final List<Bundle> bundles = new ArrayList<Bundle>();
+            final List<Bundle> bundles = new ArrayList<>();
 
             // find all JAR manifests visible to our class loader
             for (final URL manifest : ClassLoaders.findResources(ClassLoaders.findClassLoader(IntegrationTest.class, true), JarFile.MANIFEST_NAME)) {
@@ -106,11 +109,9 @@ public final class IntegrationTest {
 
             final CountDownLatch starting = new CountDownLatch(bundles.size());
 
-            final BundleListener bundleListener = new BundleListener() {
-                public void bundleChanged(final BundleEvent event) {
-                    if (event.getType() == BundleEvent.STARTED) {
-                        starting.countDown();
-                    }
+            final BundleListener bundleListener = event -> {
+                if (event.getType() == BundleEvent.STARTED) {
+                    starting.countDown();
                 }
             };
 
@@ -145,7 +146,7 @@ public final class IntegrationTest {
                 assert inactive.isEmpty() : String.format("Inactive components in bundle %s: %s", bundleName, inactive);
             }
 
-            final List<BundleTest> tests = new ArrayList<BundleTest>();
+            final List<BundleTest> tests = new ArrayList<>();
 
             final ServiceReference[] references = system.getServiceReferences(BundleTest.class.getName(), null);
             assert references != null && references.length > 0: String.format("No integration tests found (%s)", BundleTest.class.getName());
@@ -164,13 +165,10 @@ public final class IntegrationTest {
     }
 
     private Properties loadProperties(final String name) throws IOException {
-        final InputStream stream = ClassLoaders.readResource(IntegrationTest.class, name);
         final Properties properties = new Properties();
 
-        try {
+        try (InputStream stream = ClassLoaders.readResource(IntegrationTest.class, name)) {
             properties.load(stream);
-        } finally {
-            stream.close();
         }
 
         return properties;

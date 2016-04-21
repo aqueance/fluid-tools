@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,22 +28,20 @@ public class MethodsTest {
 
     @Test
     public void testReturnTypes() throws Exception {
-        final Method[] methods = Methods.get(VariousMethods.class, new Methods.Invoker<VariousMethods>() {
-            public void invoke(final VariousMethods capture) throws Exception {
-                capture.voidMethod();
-                capture.byteMethod();
-                capture.shortMethod();
-                capture.intMethod();
-                capture.longMethod();
-                capture.floatMethod();
-                capture.doubleMethod();
-                capture.booleanMethod();
-                capture.charMethod();
-                capture.VoidMethod();
-                capture.ObjectMethod();
-                capture.StringMethod();
-                capture.FloatMethod();
-            }
+        final Method[] methods = Methods.get(VariousMethods.class, capture -> {
+            capture.voidMethod();
+            capture.byteMethod();
+            capture.shortMethod();
+            capture.intMethod();
+            capture.longMethod();
+            capture.floatMethod();
+            capture.doubleMethod();
+            capture.booleanMethod();
+            capture.charMethod();
+            capture.VoidMethod();
+            capture.ObjectMethod();
+            capture.StringMethod();
+            capture.FloatMethod();
         });
 
         assert methods.length == 13 : Arrays.toString(methods);
@@ -62,7 +60,7 @@ public class MethodsTest {
         assert "FloatMethod".equals(methods[12].getName()) : methods[12];
     }
 
-    interface VariousMethods {
+    private interface VariousMethods {
         void voidMethod();
         byte byteMethod();
         short shortMethod();

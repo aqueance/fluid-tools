@@ -17,7 +17,6 @@
 package org.fluidity.foundation;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -92,7 +91,7 @@ public final class ServiceProviders extends Utility {
      * @return the implementations of the given interface or an empty list if none found.
      */
     public static <T> List<T> findInstances(final Class<T> interfaceClass, final ClassLoader classLoader) {
-        final List<T> list = new ArrayList<T>();
+        final List<T> list = new ArrayList<>();
 
         for (final Iterator<T> providers = providers(interfaceClass, classLoader); providers != null && providers.hasNext();) {
             list.add(providers.next());
@@ -131,22 +130,18 @@ public final class ServiceProviders extends Utility {
             }
 
             public T next() {
-                return Exceptions.wrap(new Command.Process<T, Exception>() {
-                    public T run() throws Exception {
-                        final PrivilegedExceptionAction<Constructor<T>> action = new PrivilegedExceptionAction<Constructor<T>>() {
-                            public Constructor<T> run() throws NoSuchMethodException {
-                                final Constructor<T> constructor = types[index++].getDeclaredConstructor();
+                return Exceptions.wrap(() -> {
+                    final PrivilegedExceptionAction<Constructor<T>> action = () -> {
+                        final Constructor<T> constructor = types[index++].getDeclaredConstructor();
 
-                                if (!constructor.isAccessible()) {
-                                    constructor.setAccessible(true);
-                                }
+                        if (!constructor.isAccessible()) {
+                            constructor.setAccessible(true);
+                        }
 
-                                return constructor;
-                            }
-                        };
+                        return constructor;
+                    };
 
-                        return (Security.CONTROLLED ? AccessController.doPrivileged(action) : action.run()).newInstance();
-                    }
+                    return (Security.CONTROLLED ? AccessController.doPrivileged(action) : action.run()).newInstance();
                 });
             }
 
@@ -181,93 +176,77 @@ public final class ServiceProviders extends Utility {
                                              final boolean standard,
                                              final boolean inherit,
                                              final Log log) {
-        return Exceptions.wrap(new Command.Process<Class<T>[], Exception>() {
-            public Class<T>[] run() throws Exception {
-                final ClassLoader classLoader = loader != null ? loader : !Security.CONTROLLED ? ClassLoaders.findClassLoader(api, true) : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-                    public ClassLoader run() {
-                        return ClassLoaders.findClassLoader(api, true);
-                    }
-                });
+        return Exceptions.wrap(() -> {
+            final ClassLoader classLoader = loader != null
+                ? loader
+                : !Security.CONTROLLED
+                    ? ClassLoaders.findClassLoader(api, true)
+                    : AccessController.doPrivileged((PrivilegedAction<ClassLoader>) () -> ClassLoaders.findClassLoader(api, true));
 
-                log.debug("Loading %s service provider files for %s using class loader %s", standard ? "standard" : String.format("'%s' type", type), api, classLoader);
+            log.debug("Loading %s service provider files for %s using class loader %s", standard ? "standard" : String.format("'%s' type", type), api, classLoader);
 
-                final Collection<Class<T>> componentList = new LinkedHashSet<Class<T>>();
+            final Collection<Class<T>> componentList = new LinkedHashSet<>();
 
-                for (final URL url : ClassLoaders.findResources(classLoader, "%s/%s", ServiceProviders.location(type), api.getName())) {
-                    log.debug("Loading %s", url);
+            for (final URL url : ClassLoaders.findResources(classLoader, "%s/%s", ServiceProviders.location(type), api.getName())) {
+                log.debug("Loading %s", url);
 
-                    final Collection<Class<T>> localList = new LinkedHashSet<Class<T>>();
-                    final BufferedReader reader = new BufferedReader(new InputStreamReader(Archives.open(true, url), "UTF-8"));
+                final Collection<Class<T>> localList = new LinkedHashSet<>();
+
+                try (final BufferedReader reader = new BufferedReader(new InputStreamReader(Archives.open(true, url), "UTF-8"))) {
                     String content;
 
-                    try {
-                        while ((content = reader.readLine()) != null) {
-                            final int hash = content.indexOf('#');
-                            final String line = (hash < 0 ? content : content.substring(0, hash)).trim();
+                    while ((content = reader.readLine()) != null) {
+                        final int hash = content.indexOf('#');
+                        final String line = (hash < 0 ? content : content.substring(0, hash)).trim();
 
-                            if (!line.isEmpty()) {
-                                final Class<?> rawClass;
+                        if (!line.isEmpty()) {
+                            final Class<?> rawClass;
 
-                                try {
-                                    rawClass = classLoader.loadClass(line);
-                                } catch (final ClassNotFoundException e) {
-                                    log.error(e, "Invalid class name: %s", line);
-                                    continue;
-                                }
+                            try {
+                                rawClass = classLoader.loadClass(line);
+                            } catch (final ClassNotFoundException e) {
+                                log.error(e, "Invalid class name: %s", line);
+                                continue;
+                            }
 
-                                final boolean loadable = !strict || classLoader == (!Security.CONTROLLED ? rawClass.getClassLoader() : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-                                    public ClassLoader run() {
-                                        return rawClass.getClassLoader();
-                                    }
-                                }));
+                            final boolean loadable = !strict || classLoader == (!Security.CONTROLLED ? rawClass.getClassLoader() : AccessController.doPrivileged((PrivilegedAction<ClassLoader>) rawClass::getClassLoader));
+                            final boolean visible = !standard || null != (!Security.CONTROLLED ? rawClass.getDeclaredConstructor() : AccessController.doPrivileged((PrivilegedExceptionAction<Object>) rawClass::getDeclaredConstructor));
 
-                                final boolean visible = !standard || null != (!Security.CONTROLLED ? rawClass.getDeclaredConstructor() : AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
-                                    public Object run() throws NoSuchMethodException {
-                                        return rawClass.getDeclaredConstructor();
-                                    }
-                                }));
+                            if (loadable && visible) {
+                                final boolean compatible = api.isAssignableFrom(rawClass);
 
-                                if (loadable && visible) {
-                                    final boolean compatible = api.isAssignableFrom(rawClass);
+                                if (compatible || (!standard && !inherit)) {
 
-                                    if (compatible || (!standard && !inherit)) {
-                                        @SuppressWarnings("unchecked")
-                                        final Class<T> componentClass = (Class<T>) rawClass;
+                                    @SuppressWarnings("unchecked")
+                                    final Class<T> componentClass = (Class<T>) rawClass;
 
-                                        if (Modifier.isAbstract(componentClass.getModifiers())) {
-                                            log.debug("Ignoring abstract service provider %s", componentClass);
+                                    if (Modifier.isAbstract(componentClass.getModifiers())) {
+                                        log.debug("Ignoring abstract service provider %s", componentClass);
+                                    } else {
+                                        if (componentList.contains(componentClass)) {
+                                            log.error("Multiple export of %s", componentClass);
                                         } else {
-                                            if (componentList.contains(componentClass)) {
-                                                log.error("Multiple export of %s", componentClass);
+                                            if (localList.contains(componentClass)) {
+                                                log.error("Duplicate %s", componentClass);
                                             } else {
-                                                if (localList.contains(componentClass)) {
-                                                    log.error("Duplicate %s", componentClass);
-                                                } else {
-                                                    log.debug("Found %s", componentClass);
-                                                    localList.add(componentClass);
-                                                }
+                                                log.debug("Found %s", componentClass);
+                                                localList.add(componentClass);
                                             }
                                         }
-                                    } else {
-                                        log.error("%s does not implement %s", rawClass, api);
                                     }
+                                } else {
+                                    log.error("%s does not implement %s", rawClass, api);
                                 }
                             }
                         }
-                    } finally {
-                        try {
-                            reader.close();
-                        } catch (final IOException e) {
-                            // ignore
-                        }
                     }
-
-                    componentList.addAll(localList);
                 }
 
-                if (componentList.isEmpty()) log.debug("None found");
-                return Lists.asArray(Class.class, componentList);
+                componentList.addAll(localList);
             }
+
+            if (componentList.isEmpty()) log.debug("None found");
+            return Lists.asArray(Class.class, componentList);
         });
     }
 

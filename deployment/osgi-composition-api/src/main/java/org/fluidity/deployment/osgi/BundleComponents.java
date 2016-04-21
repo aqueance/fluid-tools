@@ -220,6 +220,7 @@ public interface BundleComponents {
      *
      * @author Tibor Varga
      */
+    @FunctionalInterface
     interface Stoppable {
 
         /**

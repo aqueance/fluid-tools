@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ final class ComponentCacheImpl implements ComponentCache {
 
     ComponentCacheImpl(final Log<ComponentCacheImpl> log, boolean stateless) {
         this.log = log;
-        this.caches = stateless ? new WeakHashMap<Object, Map<String, Object>>() : null;
+        this.caches = stateless ? new WeakHashMap<>() : null;
     }
 
     public Object lookup(final Domain domain, final String source, final ComponentContext context, final Class<?> api, final Entry factory) {
@@ -47,13 +47,13 @@ final class ComponentCacheImpl implements ComponentCache {
         Map<String, Object> cache;
 
         if (stateful) {
-            cache = factory == null ? null : new HashMap<String, Object>();
+            cache = factory == null ? null : new HashMap<>();
         } else {
             synchronized (caches) {
                 cache = caches.get(domain);
 
                 if (cache == null && factory != null) {
-                    caches.put(domain, cache = new HashMap<String, Object>());
+                    caches.put(domain, cache = new HashMap<>());
                 }
             }
         }

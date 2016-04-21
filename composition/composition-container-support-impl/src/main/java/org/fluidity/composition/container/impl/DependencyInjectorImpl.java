@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
     }
 
     public AccessGuard<ComponentContainer> containerGuard() {
-        return new AccessGuard<ComponentContainer>("No dynamic dependencies allowed; use a ComponentFactory if you need such functionality");
+        return new AccessGuard<>("No dynamic dependencies allowed; use a ComponentFactory if you need such functionality");
     }
 
     public <T> T fields(final T instance,
@@ -86,7 +86,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         if (instance != null) {
             final Class<?> componentClass = instance.getClass();
-            final Map<Field, DependencyGraph.Node> fields = new IdentityHashMap<Field, DependencyGraph.Node>();
+            final Map<Field, DependencyGraph.Node> fields = new IdentityHashMap<>();
             final AccessGuard<ComponentContainer> guard = containerGuard();
 
             context.collect(resolveFields(traversal, container, contexts, context, componentClass, fields, guard));
@@ -174,15 +174,13 @@ final class DependencyInjectorImpl implements DependencyInjector {
     public Constructor<?> findConstructor(final Class<?> componentClass) throws ResolutionException {
         Constructor<?> designated = null;
 
-        final List<Constructor<?>> privateConstructors = new ArrayList<Constructor<?>>();
-        final List<Constructor<?>> packageConstructors = new ArrayList<Constructor<?>>();
-        final List<Constructor<?>> publicConstructors = new ArrayList<Constructor<?>>();
+        final List<Constructor<?>> privateConstructors = new ArrayList<>();
+        final List<Constructor<?>> packageConstructors = new ArrayList<>();
+        final List<Constructor<?>> publicConstructors = new ArrayList<>();
 
-        final Constructor<?>[] constructors = !Security.CONTROLLED ? componentClass.getDeclaredConstructors() : AccessController.doPrivileged(new PrivilegedAction<Constructor<?>[]>() {
-            public Constructor<?>[] run() {
-                return componentClass.getDeclaredConstructors();
-            }
-        });
+        final Constructor<?>[] constructors = !Security.CONTROLLED
+                                              ? componentClass.getDeclaredConstructors()
+                                              : AccessController.doPrivileged((PrivilegedAction<Constructor<?>[]>) componentClass::getDeclaredConstructors);
 
         for (final Constructor<?> constructor : constructors) {
             if (!constructor.isSynthetic()) {
@@ -279,7 +277,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                             final ContextNode contexts,
                                             final ContextDefinition context,
                                             final Constructor<?> constructor) {
-        final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
+        final List<ContextDefinition> consumed = new ArrayList<>();
 
         final Class<?> componentClass = constructor.getDeclaringClass();
 
@@ -314,7 +312,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             }));
         }
 
-        final Map<Field, DependencyGraph.Node> fields = new IdentityHashMap<Field, DependencyGraph.Node>();
+        final Map<Field, DependencyGraph.Node> fields = new IdentityHashMap<>();
 
         consumed.addAll(resolveFields(traversal, container, contexts, context, componentClass, fields, guard));
 
@@ -343,20 +341,13 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 final Object cached = container.cached(api, componentContext);
 
                 if (cached == null) {
-                    final Deferred.Label label = Deferred.label(new Deferred.Factory<String>() {
-                        public String create() {
-                            return String.format("Invoking %s with %s", constructor, Strings.formatId(arguments));
-                        }
-                    });
-
                     final PrivilegedAction<Constructor> access = Security.setAccessible((Constructor) constructor);
+                    final Process<Object, Exception> action = () -> (access == null ? constructor : AccessController.doPrivileged(access)).newInstance(arguments);
 
                     traversal.instantiating(componentClass);
-                    return traversal.instantiated(componentClass, Exceptions.wrap(label, ResolutionException.class, new Process<Object, Exception>() {
-                        public Object run() throws Exception {
-                            return (access == null ? constructor : AccessController.doPrivileged(access)).newInstance(arguments);
-                        }
-                    }));
+
+                    final Deferred.Label label = Deferred.label(() -> String.format("Invoking %s with %s", constructor, Strings.formatId(arguments)));
+                    return traversal.instantiated(componentClass, Exceptions.wrap(label, ResolutionException.class, action));
                 } else {
                     return cached;
                 }
@@ -365,24 +356,19 @@ final class DependencyInjectorImpl implements DependencyInjector {
     }
 
     private Object injectFields(final Map<Field, DependencyGraph.Node> fields, final DependencyGraph.Traversal traversal, final Object instance) {
-        final Deferred.Label label = Deferred.label(new Deferred.Factory<String>() {
-            public String create() {
-                return String.format("Setting %s fields", Strings.formatClass(false, true, instance.getClass()));
-            }
-        });
+        final Deferred.Label label = Deferred.label(() -> String.format("Setting %s fields", Strings.formatClass(false, true, instance.getClass())));
 
-        return Exceptions.wrap(label, ResolutionException.class, new Process<Object, Exception>() {
-            public Object run() throws Exception {
-                for (final Map.Entry<Field, DependencyGraph.Node> entry : fields.entrySet()) {
-                    final Field field = entry.getKey();
+        return Exceptions.wrap(label, ResolutionException.class, () -> {
+            for (final Map.Entry<Field, DependencyGraph.Node> entry : fields.entrySet()) {
+                final Field field = entry.getKey();
 
-                    if (field.get(instance) == null) {
-                        field.set(instance, arguments(field.getDeclaringClass(), traversal, entry.getValue())[0]);
-                    }
+                // only unassigned fields get assigned
+                if (field.get(instance) == null) {
+                    field.set(instance, arguments(field.getDeclaringClass(), traversal, entry.getValue())[0]);
                 }
-
-                return instance;
             }
+
+            return instance;
         });
     }
 
@@ -417,6 +403,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
      *
      * @author Tibor Varga
      */
+    @FunctionalInterface
     private interface FieldCommand {
 
         /**
@@ -428,12 +415,10 @@ final class DependencyInjectorImpl implements DependencyInjector {
     }
 
     private void processFields(final Class<?> type, final FieldCommand command) {
-        final Field[] fields = AccessController.doPrivileged(new PrivilegedAction<Field[]>() {
-            public Field[] run() {
-                final Field[] fields = type.getDeclaredFields();
-                AccessibleObject.setAccessible(fields, true);
-                return fields;
-            }
+        final Field[] fields = AccessController.doPrivileged((PrivilegedAction<Field[]>) () -> {
+            final Field[] _fields = type.getDeclaredFields();
+            AccessibleObject.setAccessible(_fields, true);
+            return _fields;
         });
 
         for (final Field field : fields) {
@@ -460,43 +445,39 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                                   final Class<?> declaringType,
                                                   final Map<Field, DependencyGraph.Node> nodes,
                                                   final AccessGuard<ComponentContainer> guard) {
-        final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
+        final List<ContextDefinition> consumed = new ArrayList<>();
         final boolean parameterized = Components.isParameterized(declaringType);
 
-        processFields(declaringType, new FieldCommand() {
-            public void process(final Field field) {
-                consumed.add(injectDependency(false, traversal, container, contexts, context, declaringType, parameterized, guard, new Dependency() {
-                    public Type reference() {
-                        return field.getGenericType();
-                    }
-
-                    public <T extends Annotation> T annotation(final Class<T> annotationClass) {
-                        return field.getAnnotation(annotationClass);
-                    }
-
-                    public Annotation[] annotations() {
-                        return field.getAnnotations();
-                    }
-
-                    public void set(final DependencyGraph.Node node) {
-                        nodes.put(field, node);
-                    }
-                }));
+        processFields(declaringType, field -> consumed.add(injectDependency(false, traversal, container, contexts, context, declaringType, parameterized, guard, new Dependency() {
+            public Type reference() {
+                return field.getGenericType();
             }
-        });
+
+            public <T extends Annotation> T annotation(final Class<T> annotationClass) {
+                return field.getAnnotation(annotationClass);
+            }
+
+            public Annotation[] annotations() {
+                return field.getAnnotations();
+            }
+
+            public void set(final DependencyGraph.Node node) {
+                nodes.put(field, node);
+            }
+        })));
 
         return consumed;
     }
 
-    ContextDefinition injectDependency(final boolean resolving,
-                                       final DependencyGraph.Traversal traversal,
-                                       final DependencyResolver container,
-                                       final ContextNode contexts,
-                                       final ContextDefinition original,
-                                       final Class<?> declaringType,
-                                       final boolean parameterized,
-                                       final AccessGuard<ComponentContainer> containerGuard,
-                                       final Dependency dependency) {
+    private ContextDefinition injectDependency(final boolean resolving,
+                                               final DependencyGraph.Traversal traversal,
+                                               final DependencyResolver container,
+                                               final ContextNode contexts,
+                                               final ContextDefinition original,
+                                               final Class<?> declaringType,
+                                               final boolean parameterized,
+                                               final AccessGuard<ComponentContainer> containerGuard,
+                                               final Dependency dependency) {
         final Component.Reference inbound = original.reference();
         final Type reference = inbound == null || !parameterized ? dependency.reference() : Generics.propagate(inbound.type(), dependency.reference());
 
@@ -535,9 +516,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                                   declaringType);
                 }
 
-                final Class<?> groupType = componentGroup.api() != null && componentGroup.api().length > 0
-                                           ? componentGroup.api()[0]
-                                           : null;
+                final Class<?> groupType = componentGroup.api().length > 0 ? componentGroup.api()[0] : null;
 
                 if (groupType != null) {
                     if (componentGroup.api().length > 1) {

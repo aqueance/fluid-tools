@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,21 +43,19 @@ public class RestrictedContainerTest extends Simulator {
     }
 
     private AccessGuard<ComponentContainer> guard() {
-        return new AccessGuard<ComponentContainer>("Disabled");
+        return new AccessGuard<>("Disabled");
     }
 
     @Test
     public void testComponentAccessDenied() throws Exception {
         final ObservedContainer container = container(guard());
 
-        guarantee(new Task() {
-            public void run() throws Exception {
-                try {
-                    container.getComponent(Serializable.class);
-                    assert false : "Operation should have been prevented";
-                } catch (final ComponentContainer.ResolutionException e) {
-                    // this is expected
-                }
+        guarantee(() -> {
+            try {
+                container.getComponent(Serializable.class);
+                assert false : "Operation should have been prevented";
+            } catch (final ComponentContainer.ResolutionException e) {
+                // this is expected
             }
         });
     }
@@ -72,11 +70,7 @@ public class RestrictedContainerTest extends Simulator {
         final String value = "value";
         EasyMock.expect(level1.getComponent(Serializable.class)).andReturn(value);
 
-        final Serializable component = verify(new Work<Serializable>() {
-            public Serializable run() throws Exception {
-                return container.getComponent(Serializable.class);
-            }
-        });
+        final Serializable component = verify(() -> container.getComponent(Serializable.class));
 
         assert value.equals(component);
     }
@@ -87,20 +81,14 @@ public class RestrictedContainerTest extends Simulator {
 
         EasyMock.expect(level1.makeChildContainer()).andReturn(level2);
 
-        final OpenContainer child = verify(new Work<OpenContainer>() {
-            public OpenContainer run() throws Exception {
-                return container.makeChildContainer();
-            }
-        });
+        final OpenContainer child = verify((Work<OpenContainer>) container::makeChildContainer);
 
-        guarantee(new Task() {
-            public void run() throws Exception {
-                try {
-                    child.getComponent(Serializable.class);
-                    assert false : "Operation should have been prevented";
-                } catch (final ComponentContainer.ResolutionException e) {
-                    // this is expected
-                }
+        guarantee(() -> {
+            try {
+                child.getComponent(Serializable.class);
+                assert false : "Operation should have been prevented";
+            } catch (final ComponentContainer.ResolutionException e) {
+                // this is expected
             }
         });
     }
@@ -112,22 +100,14 @@ public class RestrictedContainerTest extends Simulator {
 
         EasyMock.expect(level1.makeChildContainer()).andReturn(level2);
 
-        final OpenContainer child = verify(new Work<OpenContainer>() {
-            public OpenContainer run() throws Exception {
-                return container.makeChildContainer();
-            }
-        });
+        final OpenContainer child = verify((Work<OpenContainer>) container::makeChildContainer);
 
         guard.enable();
 
         final String value = "value";
         EasyMock.expect(level2.getComponent(Serializable.class)).andReturn(value);
 
-        final Serializable component = verify(new Work<Serializable>() {
-            public Serializable run() throws Exception {
-                return child.getComponent(Serializable.class);
-            }
-        });
+        final Serializable component = verify(() -> child.getComponent(Serializable.class));
 
         assert value.equals(component);
     }

@@ -48,6 +48,7 @@ package org.fluidity.foundation;
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("WeakerAccess")
 public final class Deferred extends Utility {
 
     private Deferred() { }
@@ -68,7 +69,7 @@ public final class Deferred extends Utility {
      * @return a deferred reference to the object created by the given factory.
      */
     public static <T> Reference<T> shared(final Factory<T> factory) {
-        return new SafeReference<T>(factory);
+        return new SafeReference<>(factory);
     }
 
     /**
@@ -87,7 +88,7 @@ public final class Deferred extends Utility {
      * @return a deferred reference to the object created by the given factory.
      */
     public static <T> Reference<T> local(final Factory<T> factory) {
-        return new BareReference<T>(factory);
+        return new BareReference<>(factory);
     }
 
     /**
@@ -135,6 +136,7 @@ public final class Deferred extends Utility {
      *
      * @author Tibor Varga
      */
+    @FunctionalInterface
     public interface Factory<T> {
 
         /**
@@ -209,7 +211,7 @@ public final class Deferred extends Utility {
 
         SafeReference(final Factory<T> factory) {
             this.factory = factory;
-            this.state = new DCL<T>(factory);
+            this.state = new DCL<>(factory);
         }
 
         public T get() {
@@ -224,7 +226,7 @@ public final class Deferred extends Utility {
             final DCL<T> reference = state;
 
             if (reference.resolved()) {
-                state = new DCL<T>(factory);
+                state = new DCL<>(factory);
                 return reference.get();
             } else {
                 return null;

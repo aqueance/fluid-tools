@@ -33,7 +33,7 @@ import static org.fluidity.foundation.Command.Function;
  *
  * @author Tibor Varga
  */
-@SuppressWarnings("UnusedDeclaration")
+@SuppressWarnings({ "UnusedDeclaration", "WeakerAccess" })
 public final class ClassLoaders extends Utility {
 
     /**
@@ -110,7 +110,7 @@ public final class ClassLoaders extends Utility {
     public static Collection<URL> findResources(final ClassLoader loader, final String format, final Object... params) throws IOException {
 
         // Some dumb class loaders load JAR files more than once; hence the linked hash set
-        return new LinkedHashSet<URL>(Collections.list(loader.getResources(absoluteResourceName(format, params))));
+        return new LinkedHashSet<>(Collections.list(loader.getResources(absoluteResourceName(format, params))));
     }
 
     /**
@@ -227,11 +227,9 @@ public final class ClassLoaders extends Utility {
      * <pre>
      * final {@linkplain ClassLoader} loader = &hellip;;
      *
-     * final boolean success = {@linkplain ClassLoaders}.<span class="hl1">context</span>(loader, new Command.Function&lt;Boolean, {@linkplain ClassLoader}, {@linkplain RuntimeException}&gt;() {
-     *   public Boolean run(final {@linkplain ClassLoader} loader) throws {@linkplain RuntimeException} {
-     *     &hellip; // call some library that uses the {@linkplain Thread#getContextClassLoader() thread context class loader}
-     *     return true;
-     *   }
+     * final boolean success = {@linkplain ClassLoaders}.<span class="hl1">context</span>(loader, _loader -&gt; {
+     *   &hellip; // call some library that uses the {@linkplain Thread#getContextClassLoader() thread context class loader}
+     *   return true;
      * });
      * </pre>
      *

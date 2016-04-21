@@ -16,19 +16,17 @@
 
 package org.fluidity.foundation;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
-
-import static org.fluidity.foundation.Command.Process;
 
 /**
  * Convenience methods on methods.
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("WeakerAccess")
 public final class Methods extends Utility {
 
     private Methods() { }
@@ -54,40 +52,36 @@ public final class Methods extends Utility {
      * @return the method object.
      */
     public static <T> Method[] get(final Class<T> type, final Invoker<T> invoker) {
-        return Exceptions.wrap(new Process<Method[], Exception>() {
-            public Method[] run() throws Exception {
-                final Collection<Method> methods = new ArrayList<Method>();
+        return Exceptions.wrap(() -> {
+            final Collection<Method> methods = new ArrayList<>();
 
-                invoker.invoke(Proxies.create(type, new InvocationHandler() {
-                    public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
-                        methods.add(method);
+            invoker.invoke(Proxies.create(type, (proxy, method, arguments) -> {
+                methods.add(method);
 
-                        final Class<?> type = method.getReturnType();
+                final Class<?> _type = method.getReturnType();
 
-                        if (type == boolean.class) {
-                            return Boolean.FALSE;
-                        } else if (type == byte.class) {
-                            return (byte) 0;
-                        } else if (type == short.class) {
-                            return (short) 0;
-                        } else if (type == int.class) {
-                            return 0;
-                        } else if (type == long.class) {
-                            return 0L;
-                        } else if (type == float.class) {
-                            return 0.0F;
-                        } else if (type == double.class) {
-                            return 0.0;
-                        } else if (type == char.class) {
-                            return '\0';
-                        } else {
-                            return null;
-                        }
-                    }
-                }));
+                if (_type == boolean.class) {
+                    return Boolean.FALSE;
+                } else if (_type == byte.class) {
+                    return (byte) 0;
+                } else if (_type == short.class) {
+                    return (short) 0;
+                } else if (_type == int.class) {
+                    return 0;
+                } else if (_type == long.class) {
+                    return 0L;
+                } else if (_type == float.class) {
+                    return 0.0F;
+                } else if (_type == double.class) {
+                    return 0.0;
+                } else if (_type == char.class) {
+                    return '\0';
+                } else {
+                    return null;
+                }
+            }));
 
-                return Lists.asArray(Method.class, methods);
-            }
+            return Lists.asArray(Method.class, methods);
         });
     }
 
@@ -107,11 +101,7 @@ public final class Methods extends Utility {
     public static Object invoke(final Method method, final Object target, final Object... arguments) throws Exceptions.Wrapper {
         assert target != null || Modifier.isStatic(method.getModifiers()) : method;
 
-        return Exceptions.wrap(new Command.Process<Object, Exception>() {
-            public Object run() throws Exception {
-                return method.invoke(target, arguments);
-            }
-        });
+        return Exceptions.wrap(() -> method.invoke(target, arguments));
     }
 
     /**
@@ -123,6 +113,7 @@ public final class Methods extends Utility {
      *
      * @author Tibor Varga
      */
+    @FunctionalInterface
     public interface Invoker<T> {
 
         /**

@@ -29,11 +29,11 @@ import org.fluidity.composition.ComponentContainer;
  * @author Tibor Varga
  * @see org.fluidity.deployment.osgi.BundleComponents
  */
-@SuppressWarnings("UnusedDeclaration")
+@SuppressWarnings({ "UnusedDeclaration", "WeakerAccess" })
 public interface BundleComponentContainer<T> {
 
     /**
-     * Starts the container. Invoked automatically when the host bundle starts.
+     * Starts the container. Invoked automatically when the host bundle starts. The implementation need not be thread safe.
      *
      * @param container the dependency injection container of the calling bundle to use.
      * @param loader    the class loader of the calling bundle.
@@ -41,7 +41,7 @@ public interface BundleComponentContainer<T> {
     void start(ComponentContainer container, ClassLoader loader);
 
     /**
-     * Stops the container. Invoked automatically when the host bundle stops.
+     * Stops the container. Invoked automatically when the host bundle stops. The implementation need not be thread safe.
      */
     void stop();
 }

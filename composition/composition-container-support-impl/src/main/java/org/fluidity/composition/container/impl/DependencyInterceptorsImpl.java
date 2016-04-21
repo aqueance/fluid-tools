@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,21 +83,19 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
         final ComponentInterceptor[] interceptors = annotations.filter(context, interceptors(container, traversal));
 
         if (interceptors.length > 0) {
-            final AtomicReference<ComponentInterceptor.Dependency> last = new AtomicReference<ComponentInterceptor.Dependency>();
+            final AtomicReference<ComponentInterceptor.Dependency> last = new AtomicReference<>();
 
-            final AtomicReference<ComponentInterceptor.Dependency> next = new AtomicReference<ComponentInterceptor.Dependency>(new ComponentInterceptor.Dependency() {
-                public Object create() {
-                    final ComponentInterceptor.Dependency dependency = last.get();
+            final AtomicReference<ComponentInterceptor.Dependency> next = new AtomicReference<>(() -> {
+                final ComponentInterceptor.Dependency dependency = last.get();
 
-                    if (dependency == null) {
-                        throw new ComponentContainer.ResolutionException("Dependency access during interception");
-                    }
-
-                    return dependency.create();
+                if (dependency == null) {
+                    throw new ComponentContainer.ResolutionException("Dependency access during interception");
                 }
+
+                return dependency.create();
             });
 
-            final List<String> applied = new ArrayList<String>();
+            final List<String> applied = new ArrayList<>();
 
             for (final ComponentInterceptor interceptor : interceptors) {
                 final Type type = Generics.typeParameter(Generics.specializedType(interceptor.getClass(), ComponentInterceptor.class), 0);
@@ -125,11 +123,7 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
                 }
 
                 public Object instance(final DependencyGraph.Traversal traversal) {
-                    last.set(new ComponentInterceptor.Dependency() {
-                        public Object create() {
-                            return node.instance(traversal);
-                        }
-                    });
+                    last.set(() -> node.instance(traversal));
 
                     return next.get().create();
                 }

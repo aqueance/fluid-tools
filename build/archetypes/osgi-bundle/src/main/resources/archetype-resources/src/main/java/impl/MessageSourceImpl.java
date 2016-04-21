@@ -30,7 +30,7 @@ import ${package}.MessageSource;
 @Component(automatic = false)
 final class MessageSourceImpl implements MessageSource, BundleComponents.Registration, BundleComponents.Registration.Listener<MessageSink> {
 
-    private final List<MessageSink> sinks = new ArrayList<MessageSink>();
+    private final List<MessageSink> sinks = new ArrayList<>();
 
     public void sendText(final String text) {
         for (final MessageSink sink : sinks) {

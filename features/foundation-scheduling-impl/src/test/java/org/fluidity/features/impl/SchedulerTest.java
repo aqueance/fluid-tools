@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,24 +51,18 @@ public class SchedulerTest extends Simulator {
     private Scheduler.Task task;
 
     @BeforeMethod
+    @SuppressWarnings("unchecked")
     public void setUp() throws Exception {
         assert stop == null;
         final ContainerTermination termination = concurrent().normal(ContainerTermination.class);
 
-        termination.add(EasyMock.<Command.Job<Exception>>notNull());
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            @SuppressWarnings("unchecked")
-            public Void answer() throws Throwable {
-                stop = (Command.Job<Exception>) EasyMock.getCurrentArguments()[0];
-                return null;
-            }
+        termination.add(EasyMock.notNull());
+        EasyMock.expectLastCall().andAnswer(() -> {
+            stop = (Command.Job<Exception>) EasyMock.getCurrentArguments()[0];
+            return null;
         });
 
-        verify(new Task() {
-            public void run() throws Exception {
-                scheduler = new SchedulerImpl(termination, configuration.get(), log);
-            }
-        });
+        verify((Task) () -> scheduler = new SchedulerImpl(termination, configuration.get(), log));
 
         assert stop != null;
 
@@ -84,11 +78,9 @@ public class SchedulerTest extends Simulator {
     }
 
     private void settings(final int errorLimit, final long errorPenalty) throws Exception {
-        configuration.expectQuery(new Command.Operation<SchedulerImpl.Settings, Exception>() {
-            public void run(final SchedulerImpl.Settings settings) throws Exception {
-                EasyMock.expect(settings.defaultErrorLimit()).andReturn(errorLimit);
-                EasyMock.expect(settings.defaultErrorPenalty()).andReturn(errorPenalty);
-            }
+        configuration.expectQuery(settings -> {
+            EasyMock.expect(settings.defaultErrorLimit()).andReturn(errorLimit);
+            EasyMock.expect(settings.defaultErrorPenalty()).andReturn(errorPenalty);
         });
     }
 
@@ -97,28 +89,18 @@ public class SchedulerTest extends Simulator {
         final CyclicBarrier barrier = new CyclicBarrier(2);
         final Threads threads = newThreads("Concurrency");
 
-        final Scheduler.Task.Control control = verify(new Work<Scheduler.Task.Control>() {
-            public Scheduler.Task.Control run() throws Exception {
-                return scheduler.invoke(threads.time(5), threads.time(10), task);
-            }
-        });
+        final Scheduler.Task.Control control = verify(() -> scheduler.invoke(threads.time(5), threads.time(10), task));
 
         settings(3, 60000);
 
         task.run();
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            public Void answer() throws Throwable {
-                threads.lineup(barrier, threads.time(5));
-                Thread.sleep(threads.time(5));
-                return null;
-            }
+        EasyMock.expectLastCall().andAnswer(() -> {
+            threads.lineup(barrier, threads.time(5));
+            Thread.sleep(threads.time(5));
+            return null;
         });
 
-        verify(new Task() {
-            public void run() throws Exception {
-                threads.lineup(barrier, threads.time(10));
-            }
-        });
+        verify((Task) () -> threads.lineup(barrier, threads.time(10)));
 
         assert !control.canceled();
         assert control.cancel();
@@ -129,26 +111,18 @@ public class SchedulerTest extends Simulator {
     public void testThreading() throws Exception {
         final Threads threads = newThreads("Timing");
 
-        test(new Task() {
-            public void run() throws Exception {
-                settings(3, 60000);
+        test(() -> {
+            settings(3, 60000);
 
-                final AtomicBoolean running = new AtomicBoolean(false);
+            final AtomicBoolean running = new AtomicBoolean(false);
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        scheduler.invoke(0, new Scheduler.Task() {
-                            public void run() {
-                                running.set(true);
-                            }
-                        });
+            verify(() -> {
+                scheduler.invoke(0, () -> running.set(true));
 
-                        Thread.sleep(threads.time(10));
-                    }
-                });
+                Thread.sleep(threads.time(10));
+            });
 
-                assert running.get();
-            }
+            assert running.get();
         });
 
         final ThreadMXBean threadControl = ManagementFactory.getThreadMXBean();
@@ -156,25 +130,21 @@ public class SchedulerTest extends Simulator {
         if (threadControl != null) {
             final String name = Scheduler.class.getName();
 
-            test(new Task() {
-                public void run() throws Exception {
-                    final ThreadInfo thread = thread(threadControl, name);
+            test(() -> {
+                final ThreadInfo thread = thread(threadControl, name);
 
-                    assert thread != null : name;
-                    assert thread.getThreadState() != Thread.State.TERMINATED : thread.getThreadState();
-                }
+                assert thread != null : name;
+                assert thread.getThreadState() != Thread.State.TERMINATED : thread.getThreadState();
             });
 
             stop.run();
 
-            test(new Task() {
-                public void run() throws Exception {
-                    Thread.sleep(threads.time(10));
+            test(() -> {
+                Thread.sleep(threads.time(10));
 
-                    final ThreadInfo thread = thread(threadControl, name);
+                final ThreadInfo thread = thread(threadControl, name);
 
-                    assert thread == null || thread.getThreadState() == Thread.State.TERMINATED : thread.getThreadState();
-                }
+                assert thread == null || thread.getThreadState() == Thread.State.TERMINATED : thread.getThreadState();
             });
         }
     }
@@ -184,29 +154,21 @@ public class SchedulerTest extends Simulator {
         final CyclicBarrier barrier = new CyclicBarrier(2);
         final Threads threads = newThreads("Concurrency");
 
-        final Scheduler.Task.Control control = verify(new Work<Scheduler.Task.Control>() {
-            public Scheduler.Task.Control run() throws Exception {
-                return scheduler.invoke(threads.time(5), threads.time(10), task);
-            }
-        });
+        final Scheduler.Task.Control control = verify(() -> scheduler.invoke(threads.time(5), threads.time(10), task));
 
         settings(3, 60000);
 
         task.run();
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            public Void answer() throws Throwable {
-                threads.lineup(barrier, threads.time(5));
-                throw new Error();
-            }
+        EasyMock.expectLastCall().andAnswer(() -> {
+            threads.lineup(barrier, threads.time(5));
+            throw new Error();
         });
 
         assert !control.canceled();
 
-        verify(new Task() {
-            public void run() throws Exception {
-                threads.lineup(barrier, threads.time(10));
-                Thread.yield();
-            }
+        verify(() -> {
+            threads.lineup(barrier, threads.time(10));
+            Thread.yield();
         });
 
         assert control.canceled();
@@ -217,29 +179,19 @@ public class SchedulerTest extends Simulator {
         final CyclicBarrier barrier = new CyclicBarrier(2);
         final Threads threads = newThreads("Concurrency");
 
-        final Scheduler.Task.Control control = verify(new Work<Scheduler.Task.Control>() {
-            public Scheduler.Task.Control run() throws Exception {
-                return scheduler.invoke(threads.time(5), threads.time(10), task);
-            }
-        });
+        final Scheduler.Task.Control control = verify(() -> scheduler.invoke(threads.time(5), threads.time(10), task));
 
         settings(3, threads.time(5));
 
         task.run();
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            public Void answer() throws Throwable {
-                threads.lineup(barrier, threads.time(5));
-                return null;
-            }
+        EasyMock.expectLastCall().andAnswer(() -> {
+            threads.lineup(barrier, threads.time(5));
+            return null;
         });
 
         assert !control.suspended();
 
-        verify(new Task() {
-            public void run() throws Exception {
-                threads.lineup(barrier, threads.time(10));
-            }
-        });
+        verify((Task) () -> threads.lineup(barrier, threads.time(10)));
 
         assert !control.canceled();
         assert !control.suspended();
@@ -248,40 +200,30 @@ public class SchedulerTest extends Simulator {
 
         assert control.suspended();
 
-        verify(new Task() {
-            public void run() throws Exception {
-                Thread.sleep(threads.time(35));   // at least 3 invocations to be ignored, each taking 10 unit times
-            }
+        verify(() -> {
+            Thread.sleep(threads.time(35));   // at least 3 invocations to be ignored, each taking 10 unit times
         });
 
         assert control.suspended();
 
         // nothing should happen, only setting some variables
-        verify(new Task() {
-            public void run() throws Exception {
-                control.resume();
-            }
-        });
+        verify(control::resume);
 
         assert !control.suspended();
 
         task.run();
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            public Void answer() throws Throwable {
-                threads.lineup(barrier, threads.time(5));
-                return null;
-            }
+        EasyMock.expectLastCall().andAnswer(() -> {
+            threads.lineup(barrier, threads.time(5));
+            return null;
         });
         task.run();
         EasyMock.expectLastCall().anyTimes();
 
-        verify(new Task() {
-            public void run() throws Exception {
-                threads.lineup(barrier, threads.time(10));
+        verify(() -> {
+            threads.lineup(barrier, threads.time(10));
 
-                assert !control.canceled();
-                assert !control.suspended();
-            }
+            assert !control.canceled();
+            assert !control.suspended();
         });
     }
 
@@ -289,12 +231,10 @@ public class SchedulerTest extends Simulator {
     public void testDelayedInvocation() throws Exception {
         final Threads threads = newThreads("Timing");
 
-        final Scheduler.Task.Control control = verify(new Work<Scheduler.Task.Control>() {
-            public Scheduler.Task.Control run() throws Exception {
-                final Scheduler.Task.Control control = scheduler.invoke(threads.time(5), task);
-                control.suspend();
-                return control;
-            }
+        final Scheduler.Task.Control control = verify(() -> {
+            final Scheduler.Task.Control control1 = scheduler.invoke(threads.time(5), task);
+            control1.suspend();
+            return control1;
         });
 
         assert control.suspended();
@@ -302,20 +242,12 @@ public class SchedulerTest extends Simulator {
         settings(3, threads.time(5));
 
         // suspended task should not be invoked, only settings should be checked
-        verify(new Task() {
-            public void run() throws Exception {
-                Thread.sleep(threads.time(10));
-            }
-        });
+        verify(() -> Thread.sleep(threads.time(10)));
 
         task.run();
 
         // task should be invoked at resume
-        verify(new Task() {
-            public void run() throws Exception {
-                control.resume();
-            }
-        });
+        verify(control::resume);
 
         assert !control.suspended();
     }
@@ -325,17 +257,11 @@ public class SchedulerTest extends Simulator {
         final CyclicBarrier barrier = new CyclicBarrier(2);
         final Threads threads = newThreads("Concurrency");
 
-        final Scheduler.Task.Control control = verify(new Work<Scheduler.Task.Control>() {
-            public Scheduler.Task.Control run() throws Exception {
-                return scheduler.invoke(threads.time(10), threads.time(10), task);
-            }
-        });
+        final Scheduler.Task.Control control = verify(() -> scheduler.invoke(threads.time(10), threads.time(10), task));
 
-        final IAnswer<Void> exception = new IAnswer<Void>() {
-            public Void answer() throws Throwable {
-                threads.lineup(barrier, threads.time(20));
-                throw new Exception();
-            }
+        final IAnswer<Void> exception = () -> {
+            threads.lineup(barrier, threads.time(20));
+            throw new Exception();
         };
 
         settings(3, threads.time(50));
@@ -347,14 +273,12 @@ public class SchedulerTest extends Simulator {
 
         assert !control.suspended();
 
-        final long timestamp = verify(new Work<Long>() {
-            public Long run() throws Exception {
-                threads.lineup(barrier, threads.time(40));
-                threads.lineup(barrier, threads.time(40));
-                threads.lineup(barrier, threads.time(40));
+        final long timestamp = verify(() -> {
+            threads.lineup(barrier, threads.time(40));
+            threads.lineup(barrier, threads.time(40));
+            threads.lineup(barrier, threads.time(40));
 
-                return System.currentTimeMillis();
-            }
+            return System.currentTimeMillis();
         });
 
         Thread.sleep(threads.time(10));
@@ -363,25 +287,21 @@ public class SchedulerTest extends Simulator {
         assert control.suspended();
 
         task.run();
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            public Void answer() throws Throwable {
-                threads.lineup(barrier, threads.time(100));
-                return null;
-            }
+        EasyMock.expectLastCall().andAnswer(() -> {
+            threads.lineup(barrier, threads.time(100));
+            return null;
         });
         task.run();
         EasyMock.expectLastCall().anyTimes();
 
-        verify(new Task() {
-            public void run() throws Exception {
-                threads.lineup(barrier, threads.time(100));
+        verify(() -> {
+            threads.lineup(barrier, threads.time(100));
 
-                final long elapsed = System.currentTimeMillis() - timestamp;
-                assert elapsed >= threads.time(50 - 10) : elapsed; // 50 units but with some allowance for variations in timing
+            final long elapsed = System.currentTimeMillis() - timestamp;
+            assert elapsed >= threads.time(50 - 10) : elapsed; // 50 units but with some allowance for variations in timing
 
-                assert !control.canceled();
-                assert !control.suspended();
-            }
+            assert !control.canceled();
+            assert !control.suspended();
         });
     }
 
@@ -390,17 +310,11 @@ public class SchedulerTest extends Simulator {
         final CyclicBarrier barrier = new CyclicBarrier(2);
         final Threads threads = newThreads("Concurrency");
 
-        final Scheduler.Task.Control control = verify(new Work<Scheduler.Task.Control>() {
-            public Scheduler.Task.Control run() throws Exception {
-                return scheduler.invoke(threads.time(10), threads.time(10), task);
-            }
-        });
+        final Scheduler.Task.Control control = verify(() -> scheduler.invoke(threads.time(10), threads.time(10), task));
 
-        final IAnswer<Void> exception = new IAnswer<Void>() {
-            public Void answer() throws Throwable {
-                threads.lineup(barrier, threads.time(20));
-                throw new Exception();
-            }
+        final IAnswer<Void> exception = () -> {
+            threads.lineup(barrier, threads.time(20));
+            throw new Exception();
         };
 
         settings(3, threads.time(50));
@@ -413,12 +327,10 @@ public class SchedulerTest extends Simulator {
         assert !control.canceled();
         assert !control.suspended();
 
-        verify(new Task() {
-            public void run() throws Exception {
-                threads.lineup(barrier, threads.time(40));
-                threads.lineup(barrier, threads.time(40));
-                threads.lineup(barrier, threads.time(40));
-            }
+        verify(() -> {
+            threads.lineup(barrier, threads.time(40));
+            threads.lineup(barrier, threads.time(40));
+            threads.lineup(barrier, threads.time(40));
         });
 
         Thread.sleep(threads.time(10));
@@ -427,31 +339,23 @@ public class SchedulerTest extends Simulator {
         assert control.suspended();
 
         // nothing else should happen, only setting some variables
-        verify(new Task() {
-            public void run() throws Exception {
-                control.resume();
-            }
-        });
+        verify(control::resume);
 
         assert !control.suspended();
 
         task.run();
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            public Void answer() throws Throwable {
-                threads.lineup(barrier, threads.time(100));
-                return null;
-            }
+        EasyMock.expectLastCall().andAnswer(() -> {
+            threads.lineup(barrier, threads.time(100));
+            return null;
         });
         task.run();
         EasyMock.expectLastCall().anyTimes();
 
-        verify(new Task() {
-            public void run() throws Exception {
-                threads.lineup(barrier, threads.time(20));
+        verify(() -> {
+            threads.lineup(barrier, threads.time(20));
 
-                assert !control.canceled();
-                assert !control.suspended();
-            }
+            assert !control.canceled();
+            assert !control.suspended();
         });
     }
 
@@ -460,17 +364,11 @@ public class SchedulerTest extends Simulator {
         final CyclicBarrier barrier = new CyclicBarrier(2);
         final Threads threads = newThreads("Concurrency");
 
-        final Scheduler.Task.Control control = verify(new Work<Scheduler.Task.Control>() {
-            public Scheduler.Task.Control run() throws Exception {
-                return scheduler.invoke(threads.time(10), threads.time(10), task);
-            }
-        });
+        final Scheduler.Task.Control control = verify(() -> scheduler.invoke(threads.time(10), threads.time(10), task));
 
-        final IAnswer<Void> exception = new IAnswer<Void>() {
-            public Void answer() throws Throwable {
-                threads.lineup(barrier, threads.time(40));
-                throw new Exception();
-            }
+        final IAnswer<Void> exception = () -> {
+            threads.lineup(barrier, threads.time(40));
+            throw new Exception();
         };
 
         settings(3, threads.time(50));
@@ -481,12 +379,10 @@ public class SchedulerTest extends Simulator {
         assert !control.canceled();
         assert !control.suspended();
 
-        verify(new Task() {
-            public void run() throws Exception {
-                threads.lineup(barrier, threads.time(40));
-                threads.lineup(barrier, threads.time(40));
-                threads.lineup(barrier, threads.time(40));
-            }
+        verify(() -> {
+            threads.lineup(barrier, threads.time(40));
+            threads.lineup(barrier, threads.time(40));
+            threads.lineup(barrier, threads.time(40));
         });
 
         Thread.sleep(threads.time(10));
@@ -497,11 +393,9 @@ public class SchedulerTest extends Simulator {
         task.run();
         EasyMock.expectLastCall().andAnswer(exception);
 
-        verify(new Task() {
-            public void run() throws Exception {
-                threads.lineup(barrier, threads.time(100));
-                Thread.yield();
-            }
+        verify(() -> {
+            threads.lineup(barrier, threads.time(100));
+            Thread.yield();
         });
 
         assert !control.canceled();

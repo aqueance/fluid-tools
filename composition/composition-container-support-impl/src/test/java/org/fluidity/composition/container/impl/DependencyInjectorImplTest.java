@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,6 @@ import org.fluidity.foundation.Lists;
 import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 import org.testng.annotations.Test;
 
 /**
@@ -84,7 +83,7 @@ public class DependencyInjectorImplTest extends Simulator {
                                                            final Object... components) throws Exception {
         assert constructor != null : String.format("%s(?)", componentType.getClass());
 
-        final List<ContextDefinition> copies = new ArrayList<ContextDefinition>();
+        final List<ContextDefinition> copies = new ArrayList<>();
 
         final Class<?>[] parameterTypes = constructor.getParameterTypes();
         final Annotation[][] annotations = constructor.getParameterAnnotations();
@@ -105,7 +104,7 @@ public class DependencyInjectorImplTest extends Simulator {
                                                       final Object... components) throws Exception {
         assert method != null : String.format("%s(?)", componentType.getClass());
 
-        final List<ContextDefinition> copies = new ArrayList<ContextDefinition>();
+        final List<ContextDefinition> copies = new ArrayList<>();
 
         final Class<?>[] parameterTypes = method.getParameterTypes();
         final Annotation[][] annotations = method.getParameterAnnotations();
@@ -200,11 +199,7 @@ public class DependencyInjectorImplTest extends Simulator {
 
         expectCallbacks();
 
-        assert component == verify(new Work<FieldInjected>() {
-            public FieldInjected run() throws Exception {
-                return injector.fields(component, traversal, resolver, contexts, context);
-            }
-        });
+        assert component == verify(() -> injector.fields(component, traversal, resolver, contexts, context));
 
         assert component.dependency == dependency : component.dependency;
 
@@ -224,11 +219,7 @@ public class DependencyInjectorImplTest extends Simulator {
 
         expectCallbacks();
 
-        verify(new Work<FieldInjected>() {
-            public FieldInjected run() throws Exception {
-                return injector.fields(component, traversal, resolver, contexts, context);
-            }
-        });
+        verify(() -> injector.fields(component, traversal, resolver, contexts, context));
     }
 
     @Test
@@ -239,11 +230,7 @@ public class DependencyInjectorImplTest extends Simulator {
 
         expectCallbacks();
 
-        assert component == verify(new Work<OptionalFieldInjected>() {
-            public OptionalFieldInjected run() throws Exception {
-                return injector.fields(component, traversal, resolver, contexts, context);
-            }
-        });
+        assert component == verify(() -> injector.fields(component, traversal, resolver, contexts, context));
 
         assert component.dependency == null : component.dependency;
     }
@@ -268,11 +255,7 @@ public class DependencyInjectorImplTest extends Simulator {
 
         expectCallbacks();
 
-        final DependencyGraph.Node found = verify(new Work<DependencyGraph.Node>() {
-            public DependencyGraph.Node run() throws Exception {
-                return injector.constructor(ConstructorInjected.class, traversal, resolver, contexts, context, constructor);
-            }
-        });
+        final DependencyGraph.Node found = verify(() -> injector.constructor(ConstructorInjected.class, traversal, resolver, contexts, context, constructor));
 
         assert found != null;
 
@@ -282,63 +265,45 @@ public class DependencyInjectorImplTest extends Simulator {
 
         final AtomicReference component = new AtomicReference();
 
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
-            public Object answer() throws Throwable {
-                component.set(EasyMock.getCurrentArguments()[1]);
-                return null;
-            }
+        EasyMock.expectLastCall().andAnswer(() -> {
+            component.set(EasyMock.getCurrentArguments()[1]);
+            return null;
         });
 
-        assert component.get() == verify(new Work<Object>() {
-            public Object run() throws Exception {
-                return found.instance(traversal);
-            }
-        });
+        assert component.get() == verify(() -> found.instance(traversal));
     }
 
     @Test
     public void handlesSpecialDependencies() throws Exception {
         final SpecialDependent component = new SpecialDependent();
 
-        test(new Task() {
-            public void run() throws Exception {
-                final ComponentContext created = arguments().normal(ComponentContext.class);
+        test(() -> {
+            final ComponentContext created = arguments().normal(ComponentContext.class);
 
-                setupCollection(null, context,
-                                setupFieldResolution(component.getClass(), "container", container, null),
-                                setupFieldResolution(component.getClass(), "context", context, created));
+            setupCollection(null, context,
+                            setupFieldResolution(component.getClass(), "container", container, null),
+                            setupFieldResolution(component.getClass(), "context", context, created));
 
-                expectCallbacks();
+            expectCallbacks();
 
-                EasyMock.expect(created.qualifier(Component.Reference.class, null)).andReturn(null);
+            EasyMock.expect(created.qualifier(Component.Reference.class, null)).andReturn(null);
 
-                final ComponentContainer.Observer observer = arguments().normal(ComponentContainer.Observer.class);
-                EasyMock.expect(traversal.observer()).andReturn(observer);
-                EasyMock.expect(container.observed(observer)).andReturn(observed);
+            final ComponentContainer.Observer observer = arguments().normal(ComponentContainer.Observer.class);
+            EasyMock.expect(traversal.observer()).andReturn(observer);
+            EasyMock.expect(container.observed(observer)).andReturn(observed);
 
-                assert component == verify(new Work<SpecialDependent>() {
-                    public SpecialDependent run() throws Exception {
-                        return injector.fields(component, traversal, resolver, contexts, context);
-                    }
-                });
+            assert component == verify(() -> injector.fields(component, traversal, resolver, contexts, context));
 
-                assert component.context == created : component.context;
-                assert component.container != null;
-            }
+            assert component.context == created : component.context;
+            assert component.container != null;
         });
 
-        test(new Task() {
-            public void run() throws Exception {
-                EasyMock.expect(observed.instantiate(ContextDefinition.class)).andReturn(context);
+        test(() -> {
+            EasyMock.expect(observed.instantiate(ContextDefinition.class)).andReturn(context);
 
-                expectCallbacks();
+            expectCallbacks();
 
-                assert context == verify(new Work<ContextDefinition>() {
-                    public ContextDefinition run() throws Exception {
-                        return component.container.instantiate(ContextDefinition.class);
-                    }
-                });
-            }
+            assert context == verify(() -> component.container.instantiate(ContextDefinition.class));
         });
     }
 
@@ -350,11 +315,7 @@ public class DependencyInjectorImplTest extends Simulator {
 
         expectCallbacks();
 
-        final DependencyGraph.Node found = verify(new Work<DependencyGraph.Node>() {
-            public DependencyGraph.Node run() throws Exception {
-                return injector.constructor(MissingGroupConsumer.class, traversal, resolver, contexts, context, constructor);
-            }
-        });
+        final DependencyGraph.Node found = verify(() -> injector.constructor(MissingGroupConsumer.class, traversal, resolver, contexts, context, constructor));
 
         assert found != null;
     }
@@ -369,11 +330,7 @@ public class DependencyInjectorImplTest extends Simulator {
 
         setupMethodResolution(MissingGroupConsumer.class, method, null, dependency, services);
 
-        final Object value = verify(new Work<Object>() {
-            public Object run() throws Exception {
-                return injector.invoke(component, method, null, traversal, resolver, contexts, context, true);
-            }
-        });
+        final Object value = verify(() -> injector.invoke(component, method, null, traversal, resolver, contexts, context, true));
 
         assert "value".equals(value);
 
@@ -388,11 +345,7 @@ public class DependencyInjectorImplTest extends Simulator {
         final Method method = MethodInjected.class.getDeclaredMethod("implicit", Dependency.class, Service[].class);
         final DependencyImpl dependency = new DependencyImpl();
 
-        final Object value = verify(new Work<Object>() {
-            public Object run() throws Exception {
-                return injector.invoke(component, method, new Object[] { dependency, null }, traversal, resolver, contexts, context, false);
-            }
-        });
+        final Object value = verify(() -> injector.invoke(component, method, new Object[] { dependency, null }, traversal, resolver, contexts, context, false));
 
         assert "value".equals(value);
 
@@ -401,9 +354,9 @@ public class DependencyInjectorImplTest extends Simulator {
     }
 
     private void expectCallbacks() {
-        traversal.descend(EasyMock.<Class<?>>notNull(), EasyMock.<Class<?>>notNull(), EasyMock.<Annotation[]>notNull(), EasyMock.<Annotation[]>notNull());
+        traversal.descend(EasyMock.notNull(), EasyMock.notNull(), EasyMock.notNull(), EasyMock.notNull());
         EasyMock.expectLastCall().anyTimes();
-        traversal.ascend(EasyMock.<Class<?>>notNull(), EasyMock.<Class<?>>notNull());
+        traversal.ascend(EasyMock.notNull(), EasyMock.notNull());
         EasyMock.expectLastCall().anyTimes();
     }
 
@@ -426,7 +379,7 @@ public class DependencyInjectorImplTest extends Simulator {
 
     private static final class ConstructorInjected {
 
-        public static int expectedGroupSize;
+        static int expectedGroupSize;
 
         @SuppressWarnings({ "UnusedParameters", "UnusedDeclaration" })
         private ConstructorInjected(final Dependency dependency, final @ComponentGroup Service[] services) {
@@ -451,16 +404,16 @@ public class DependencyInjectorImplTest extends Simulator {
 
     public interface Dependency { }
 
-    public static class DependencyImpl implements Dependency { }
+    private static class DependencyImpl implements Dependency { }
 
     @ComponentGroup
     public interface Service { }
 
-    public static class ServiceImpl1 implements Service { }
+    private static class ServiceImpl1 implements Service { }
 
-    public static class ServiceImpl2 implements Service { }
+    private static class ServiceImpl2 implements Service { }
 
-    public static class SpecialDependent {
+    private static class SpecialDependent {
 
         @Inject
         public ComponentContainer container;
@@ -470,13 +423,13 @@ public class DependencyInjectorImplTest extends Simulator {
     }
 
     @ComponentGroup
-    public interface MissingService { }
+    private interface MissingService { }
 
     @SuppressWarnings("UnusedDeclaration")
-    public static class MethodInjected {
+    private static class MethodInjected {
 
-        public Dependency dependency;
-        public Service[] services;
+        Dependency dependency;
+        Service[] services;
 
         private String explicit(final Dependency dependency, final @ComponentGroup Service[] services) {
             this.dependency = dependency;

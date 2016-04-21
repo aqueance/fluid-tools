@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,11 +36,10 @@ import org.fluidity.foundation.Streams;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.fluidity.foundation.Command.Process;
-
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("ThrowFromFinallyBlock")
 public class HandlerTest {
 
     private final ClassLoader loader = getClass().getClassLoader();
@@ -101,43 +100,39 @@ public class HandlerTest {
         assert Handler.Cache.loaded(url1, true);
         assert Handler.Cache.loaded(url1, false);
 
-        Archives.Cache.access(new Process<Void, IOException>() {
-            public Void run() throws IOException {
+        Archives.Cache.access(() -> {
+            assert Handler.Cache.loaded(url1, true);
+            assert Handler.Cache.loaded(url1, false);
+
+            Archives.Cache.access(() -> {
                 assert Handler.Cache.loaded(url1, true);
                 assert Handler.Cache.loaded(url1, false);
 
-                Archives.Cache.access(new Process<Void, IOException>() {
-                    public Void run() throws IOException {
-                        assert Handler.Cache.loaded(url1, true);
-                        assert Handler.Cache.loaded(url1, false);
-
-                        Handler.Cache.contents(url2);
-                        assert Handler.Cache.loaded(url2, true);
-                        assert !Handler.Cache.loaded(url2, false);
-
-                        Handler.Cache.unload(url1);
-                        assert !Handler.Cache.loaded(url1, true);
-                        assert Handler.Cache.loaded(url1, false);
-
-                        assert Handler.Cache.loaded(url2, true);
-                        assert !Handler.Cache.loaded(url2, false);
-                        Handler.Cache.unload(url2);
-                        assert !Handler.Cache.loaded(url2, true);
-                        assert !Handler.Cache.loaded(url2, false);
-
-                        return null;
-                    }
-                });
-
-                assert Handler.Cache.loaded(url1, true);
-                assert Handler.Cache.loaded(url1, false);
+                Handler.Cache.contents(url2);
+                assert Handler.Cache.loaded(url2, true);
+                assert !Handler.Cache.loaded(url2, false);
 
                 Handler.Cache.unload(url1);
                 assert !Handler.Cache.loaded(url1, true);
                 assert Handler.Cache.loaded(url1, false);
 
+                assert Handler.Cache.loaded(url2, true);
+                assert !Handler.Cache.loaded(url2, false);
+                Handler.Cache.unload(url2);
+                assert !Handler.Cache.loaded(url2, true);
+                assert !Handler.Cache.loaded(url2, false);
+
                 return null;
-            }
+            });
+
+            assert Handler.Cache.loaded(url1, true);
+            assert Handler.Cache.loaded(url1, false);
+
+            Handler.Cache.unload(url1);
+            assert !Handler.Cache.loaded(url1, true);
+            assert Handler.Cache.loaded(url1, false);
+
+            return null;
         });
 
         assert Handler.Cache.loaded(url1, true);
@@ -156,7 +151,7 @@ public class HandlerTest {
 
         final CyclicBarrier barrier = new CyclicBarrier(2);
         final AtomicBoolean running = new AtomicBoolean();
-        final AtomicReference<Exception> error = new AtomicReference<Exception>();
+        final AtomicReference<Exception> error = new AtomicReference<>();
 
         Handler.Cache.unload(url1);
         Handler.Cache.unload(url2);
@@ -167,42 +162,38 @@ public class HandlerTest {
                 running.set(true);
 
                 try {
-                    Archives.Cache.access(new Process<Void, Exception>() {
-                        public Void run() throws Exception {
-                            barrier.await(100, TimeUnit.MILLISECONDS);
+                    Archives.Cache.access(() -> {
+                        barrier.await(100, TimeUnit.MILLISECONDS);
 
-                            assert !Handler.Cache.loaded(url1, true);
-                            Handler.Cache.contents(url1);
-                            assert Handler.Cache.loaded(url1, true);
+                        assert !Handler.Cache.loaded(url1, true);
+                        Handler.Cache.contents(url1);
+                        assert Handler.Cache.loaded(url1, true);
 
-                            Handler.Cache.contents(url2);
-                            assert Handler.Cache.loaded(url2, true);
+                        Handler.Cache.contents(url2);
+                        assert Handler.Cache.loaded(url2, true);
 
-                            Handler.Cache.unload(url1);
-                            assert !Handler.Cache.loaded(url1, true);
+                        Handler.Cache.unload(url1);
+                        assert !Handler.Cache.loaded(url1, true);
 
-                            assert Handler.Cache.loaded(url2, true);
-                            Handler.Cache.unload(url2);
-                            assert !Handler.Cache.loaded(url2, true);
+                        assert Handler.Cache.loaded(url2, true);
+                        Handler.Cache.unload(url2);
+                        assert !Handler.Cache.loaded(url2, true);
 
-                            return null;
-                        }
+                        return null;
                     });
 
                     barrier.await(100, TimeUnit.MILLISECONDS);
 
-                    Archives.Cache.access(new Process<Void, Exception>() {
-                        public Void run() throws Exception {
-                            assert !Handler.Cache.loaded(url1, true);
+                    Archives.Cache.access(() -> {
+                        assert !Handler.Cache.loaded(url1, true);
 
-                            Handler.Cache.contents(url2);
-                            assert Handler.Cache.loaded(url2, true);
+                        Handler.Cache.contents(url2);
+                        assert Handler.Cache.loaded(url2, true);
 
-                            Handler.Cache.unload(url2);
-                            assert !Handler.Cache.loaded(url2, true);
+                        Handler.Cache.unload(url2);
+                        assert !Handler.Cache.loaded(url2, true);
 
-                            return null;
-                        }
+                        return null;
                     });
                 } catch (final Exception e) {
                     error.set(e);
@@ -211,20 +202,18 @@ public class HandlerTest {
         };
 
         try {
-            Archives.Cache.access(new Process<Void, Exception>() {
-                public Void run() throws Exception {
-                    Handler.Cache.contents(url1);
-                    assert Handler.Cache.loaded(url1, true);
+            Archives.Cache.access(() -> {
+                Handler.Cache.contents(url1);
+                assert Handler.Cache.loaded(url1, true);
 
-                    thread.start();
-                    barrier.await(100, TimeUnit.MILLISECONDS);
-                    assert running.get();
+                thread.start();
+                barrier.await(100, TimeUnit.MILLISECONDS);
+                assert running.get();
 
-                    Handler.Cache.unload(url1);
-                    assert !Handler.Cache.loaded(url1, true);
+                Handler.Cache.unload(url1);
+                assert !Handler.Cache.loaded(url1, true);
 
-                    return null;
-                }
+                return null;
             });
 
             barrier.await(100, TimeUnit.MILLISECONDS);
@@ -252,7 +241,7 @@ public class HandlerTest {
 
     @Test(dataProvider = "caching")
     public void testExploration(final boolean caching) throws Exception {
-        final List<String> files = new ArrayList<String>();
+        final List<String> files = new ArrayList<>();
 
         Archives.read(caching, container, new Archives.Entry() {
             public boolean matches(final URL url, final JarEntry entry) throws IOException {

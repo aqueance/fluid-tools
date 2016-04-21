@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,8 @@ final class ServiceComponentFactory implements ComponentFactory {
     private final Class<?>[] api;
 
     ServiceComponentFactory(final ServiceDescriptor[] services) {
-        final Map<String, ServiceDescriptor> map = new HashMap<String, ServiceDescriptor>();
-        final Set<Class<?>> types = new HashSet<Class<?>>();
+        final Map<String, ServiceDescriptor> map = new HashMap<>();
+        final Set<Class<?>> types = new HashSet<>();
 
         for (final ServiceDescriptor descriptor : services) {
             final String filter = descriptor.filter;
@@ -66,12 +66,7 @@ final class ServiceComponentFactory implements ComponentFactory {
         if (descriptor.instance() == null) {
             throw new ComponentContainer.ResolutionException(descriptor.toString());
         } else {
-            return new Instance() {
-                @SuppressWarnings("unchecked")
-                public void bind(final Registry registry) throws Exception {
-                    registry.bindInstance(descriptor.instance(), (Class) descriptor.type);
-                }
-            };
+            return registry -> registry.bindInstance(descriptor.instance(), (Class) descriptor.type);
         }
     }
 

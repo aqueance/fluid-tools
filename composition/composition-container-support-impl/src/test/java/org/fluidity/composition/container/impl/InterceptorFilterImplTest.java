@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,28 +64,20 @@ public class InterceptorFilterImplTest extends Simulator {
 
     @Test
     public void testNoDescriptors() throws Exception {
-        final ComponentInterceptor[] list = verify(new Work<ComponentInterceptor[]>() {
-            public ComponentInterceptor[] run() throws Exception {
-                return filter.filter(context, null);
-            }
-        });
+        final ComponentInterceptor[] list = verify(() -> filter.filter(context, null));
 
         assert list == null;
     }
 
     @Test
     public void testNoAnnotation() throws Exception {
-        final Map<Class<? extends Annotation>, Annotation[]> annotations = new HashMap<Class<? extends Annotation>, Annotation[]>();
+        final Map<Class<? extends Annotation>, Annotation[]> annotations = new HashMap<>();
 
         EasyMock.expect(context.defined()).andReturn(annotations);
 
         filter(annotations);
 
-        final ComponentInterceptor[] list = verify(new Work<ComponentInterceptor[]>() {
-            public ComponentInterceptor[] run() throws Exception {
-                return filter.filter(context, interceptors);
-            }
-        });
+        final ComponentInterceptor[] list = verify(() -> filter.filter(context, interceptors));
 
         assert list != null;
         assert list.length == 1 : list.length;
@@ -94,7 +86,7 @@ public class InterceptorFilterImplTest extends Simulator {
 
     @Test
     public void test1() throws Exception {
-        final Map<Class<? extends Annotation>, Annotation[]> annotations = new LinkedHashMap<Class<? extends Annotation>, Annotation[]>();
+        final Map<Class<? extends Annotation>, Annotation[]> annotations = new LinkedHashMap<>();
 
         annotations.put(Annotation1.class, new Annotation[] { annotation1 });
         annotations.put(Annotation2.class, new Annotation[] { annotation2 });
@@ -103,11 +95,7 @@ public class InterceptorFilterImplTest extends Simulator {
 
         filter(annotations);
 
-        final ComponentInterceptor[] list = verify(new Work<ComponentInterceptor[]>() {
-            public ComponentInterceptor[] run() throws Exception {
-                return filter.filter(context, interceptors);
-            }
-        });
+        final ComponentInterceptor[] list = verify(() -> filter.filter(context, interceptors));
 
         assert list != null;
         assert list.length == 2 : list.length;
@@ -117,119 +105,95 @@ public class InterceptorFilterImplTest extends Simulator {
 
     @Test
     public void test2() throws Exception {
-        test(new Task() {
-            public void run() throws Exception {
-                final Map<Class<? extends Annotation>, Annotation[]> annotations = new LinkedHashMap<Class<? extends Annotation>, Annotation[]>();
+        test(() -> {
+            final Map<Class<? extends Annotation>, Annotation[]> annotations = new LinkedHashMap<>();
 
-                annotations.put(Annotation1.class, new Annotation[] { annotation1 });
-                annotations.put(Annotation5.class, new Annotation[] { annotation5 });
-                annotations.put(Annotation2.class, new Annotation[] { annotation2 });
+            annotations.put(Annotation1.class, new Annotation[] { annotation1 });
+            annotations.put(Annotation5.class, new Annotation[] { annotation5 });
+            annotations.put(Annotation2.class, new Annotation[] { annotation2 });
 
-                EasyMock.expect(context.defined()).andReturn(annotations);
+            EasyMock.expect(context.defined()).andReturn(annotations);
 
-                filter(annotations);
+            filter(annotations);
 
-                final ComponentInterceptor[] list = verify(new Work<ComponentInterceptor[]>() {
-                    public ComponentInterceptor[] run() throws Exception {
-                        return filter.filter(context, interceptors);
-                    }
-                });
+            final ComponentInterceptor[] list = verify(() -> filter.filter(context, interceptors));
 
-                assert list != null;
-                assert list.length == 3 : list.length;
-                assert list[0] == interceptors[1] : list[0].getClass().getSimpleName(); // @Annotation2 is "closer" than the rest
-                assert list[1] == interceptors[0] : list[1].getClass().getSimpleName();
-                assert list[2] == interceptors[4] : list[2].getClass().getSimpleName(); // interceptor with missing context is always last
-            }
+            assert list != null;
+            assert list.length == 3 : list.length;
+            assert list[0] == interceptors[1] : list[0].getClass().getSimpleName(); // @Annotation2 is "closer" than the rest
+            assert list[1] == interceptors[0] : list[1].getClass().getSimpleName();
+            assert list[2] == interceptors[4] : list[2].getClass().getSimpleName(); // interceptor with missing context is always last
         });
 
-        test(new Task() {
-            public void run() throws Exception {
-                final Map<Class<? extends Annotation>, Annotation[]> annotations = new LinkedHashMap<Class<? extends Annotation>, Annotation[]>();
+        test(() -> {
+            final Map<Class<? extends Annotation>, Annotation[]> annotations = new LinkedHashMap<>();
 
-                annotations.put(Annotation2.class, new Annotation[] { annotation2 });
-                annotations.put(Annotation1.class, new Annotation[] { annotation1 });
-                annotations.put(Annotation5.class, new Annotation[] { annotation5 });
+            annotations.put(Annotation2.class, new Annotation[] { annotation2 });
+            annotations.put(Annotation1.class, new Annotation[] { annotation1 });
+            annotations.put(Annotation5.class, new Annotation[] { annotation5 });
 
-                EasyMock.expect(context.defined()).andReturn(annotations);
+            EasyMock.expect(context.defined()).andReturn(annotations);
 
-                filter(annotations);
+            filter(annotations);
 
-                final ComponentInterceptor[] list = verify(new Work<ComponentInterceptor[]>() {
-                    public ComponentInterceptor[] run() throws Exception {
-                        return filter.filter(context, interceptors);
-                    }
-                });
+            final ComponentInterceptor[] list = verify(() -> filter.filter(context, interceptors));
 
-                assert list != null;
-                assert list.length == 3 : list.length;
-                assert list[0] == interceptors[0] : list[0].getClass().getSimpleName(); // @Annotation2 is "farther" than the rest
-                assert list[1] == interceptors[1] : list[1].getClass().getSimpleName();
-                assert list[2] == interceptors[4] : list[2].getClass().getSimpleName(); // interceptor with missing context is always last
-            }
+            assert list != null;
+            assert list.length == 3 : list.length;
+            assert list[0] == interceptors[0] : list[0].getClass().getSimpleName(); // @Annotation2 is "farther" than the rest
+            assert list[1] == interceptors[1] : list[1].getClass().getSimpleName();
+            assert list[2] == interceptors[4] : list[2].getClass().getSimpleName(); // interceptor with missing context is always last
         });
     }
 
     @Test
     public void testAll() throws Exception {
-        test(new Task() {
-            public void run() throws Exception {
-                final Map<Class<? extends Annotation>, Annotation[]> annotations = new LinkedHashMap<Class<? extends Annotation>, Annotation[]>();
+        test(() -> {
+            final Map<Class<? extends Annotation>, Annotation[]> annotations = new LinkedHashMap<>();
 
-                annotations.put(Annotation1.class, new Annotation[] { annotation1 });
-                annotations.put(Annotation2.class, new Annotation[] { annotation2 });
-                annotations.put(Annotation3.class, new Annotation[] { annotation3 });
-                annotations.put(Annotation4.class, new Annotation[] { annotation4 });
-                annotations.put(Annotation5.class, new Annotation[] { annotation5 });
+            annotations.put(Annotation1.class, new Annotation[] { annotation1 });
+            annotations.put(Annotation2.class, new Annotation[] { annotation2 });
+            annotations.put(Annotation3.class, new Annotation[] { annotation3 });
+            annotations.put(Annotation4.class, new Annotation[] { annotation4 });
+            annotations.put(Annotation5.class, new Annotation[] { annotation5 });
 
-                EasyMock.expect(context.defined()).andReturn(annotations);
+            EasyMock.expect(context.defined()).andReturn(annotations);
 
-                filter(annotations);
+            filter(annotations);
 
-                final ComponentInterceptor[] list = verify(new Work<ComponentInterceptor[]>() {
-                    public ComponentInterceptor[] run() throws Exception {
-                        return filter.filter(context, interceptors);
-                    }
-                });
+            final ComponentInterceptor[] list = verify(() -> filter.filter(context, interceptors));
 
-                assert list != null;
-                assert list.length == 5 : list.length;
-                assert list[0] == interceptors[0] : list[0].getClass().getSimpleName(); // @Annotation5 is "closest"
-                assert list[1] == interceptors[3] : list[1].getClass().getSimpleName();
-                assert list[2] == interceptors[2] : list[2].getClass().getSimpleName();
-                assert list[3] == interceptors[1] : list[3].getClass().getSimpleName();
-                assert list[4] == interceptors[4] : list[4].getClass().getSimpleName();
-            }
+            assert list != null;
+            assert list.length == 5 : list.length;
+            assert list[0] == interceptors[0] : list[0].getClass().getSimpleName(); // @Annotation5 is "closest"
+            assert list[1] == interceptors[3] : list[1].getClass().getSimpleName();
+            assert list[2] == interceptors[2] : list[2].getClass().getSimpleName();
+            assert list[3] == interceptors[1] : list[3].getClass().getSimpleName();
+            assert list[4] == interceptors[4] : list[4].getClass().getSimpleName();
         });
 
-        test(new Task() {
-            public void run() throws Exception {
-                final Map<Class<? extends Annotation>, Annotation[]> annotations = new LinkedHashMap<Class<? extends Annotation>, Annotation[]>();
+        test(() -> {
+            final Map<Class<? extends Annotation>, Annotation[]> annotations = new LinkedHashMap<>();
 
-                annotations.put(Annotation1.class, new Annotation[] { annotation1 });
-                annotations.put(Annotation5.class, new Annotation[] { annotation5 });
-                annotations.put(Annotation2.class, new Annotation[] { annotation2 });
-                annotations.put(Annotation3.class, new Annotation[] { annotation3 });
-                annotations.put(Annotation4.class, new Annotation[] { annotation4 });
+            annotations.put(Annotation1.class, new Annotation[] { annotation1 });
+            annotations.put(Annotation5.class, new Annotation[] { annotation5 });
+            annotations.put(Annotation2.class, new Annotation[] { annotation2 });
+            annotations.put(Annotation3.class, new Annotation[] { annotation3 });
+            annotations.put(Annotation4.class, new Annotation[] { annotation4 });
 
-                EasyMock.expect(context.defined()).andReturn(annotations);
+            EasyMock.expect(context.defined()).andReturn(annotations);
 
-                filter(annotations);
+            filter(annotations);
 
-                final ComponentInterceptor[] list = verify(new Work<ComponentInterceptor[]>() {
-                    public ComponentInterceptor[] run() throws Exception {
-                        return filter.filter(context, interceptors);
-                    }
-                });
+            final ComponentInterceptor[] list = verify(() -> filter.filter(context, interceptors));
 
-                assert list != null;
-                assert list.length == 5 : list.length;
-                assert list[0] == interceptors[3] : list[0].getClass().getSimpleName();
-                assert list[1] == interceptors[2] : list[1].getClass().getSimpleName();
-                assert list[2] == interceptors[1] : list[2].getClass().getSimpleName();
-                assert list[3] == interceptors[0] : list[3].getClass().getSimpleName();
-                assert list[4] == interceptors[4] : list[4].getClass().getSimpleName();
-            }
+            assert list != null;
+            assert list.length == 5 : list.length;
+            assert list[0] == interceptors[3] : list[0].getClass().getSimpleName();
+            assert list[1] == interceptors[2] : list[1].getClass().getSimpleName();
+            assert list[2] == interceptors[1] : list[2].getClass().getSimpleName();
+            assert list[3] == interceptors[0] : list[3].getClass().getSimpleName();
+            assert list[4] == interceptors[4] : list[4].getClass().getSimpleName();
         });
     }
 
@@ -240,7 +204,7 @@ public class InterceptorFilterImplTest extends Simulator {
             EasyMock.expect(context.copy()).andReturn(copy);
             EasyMock.expect(copy.accept(type)).andReturn(accepted);
 
-            final Map<Class<? extends Annotation>, Annotation[]> active = new HashMap<Class<? extends Annotation>, Annotation[]>(annotations);
+            final Map<Class<? extends Annotation>, Annotation[]> active = new HashMap<>(annotations);
 
             final Component.Qualifiers specified = type.getAnnotation(Component.Qualifiers.class);
             if (specified != null) {

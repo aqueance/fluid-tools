@@ -189,13 +189,11 @@ import org.fluidity.foundation.Strings;
  * try {
  *
  *   // handle checked exceptions ...
- *   result = {@linkplain org.fluidity.foundation.Exceptions}.wrap(new Command.Process&lt;<span class="hl2">Integer</span>, Exception&gt;() {
- *     public <span class="hl2">Integer</span> run() throws Exception {
+ *   result = {@linkplain org.fluidity.foundation.Exceptions}.wrap(
  *
  *       // pass known parameters as the last parameters to this call
- *       return (<span class="hl2">Integer</span>) container.<span class="hl1">invoke</span>(helper, method, <span class="hl3">1234</span>);
- *     }
- *   });
+ *       () -&gt; (<span class="hl2">Integer</span>) container.<span class="hl1">invoke</span>(helper, method, <span class="hl3">1234</span>);
+ *   );
  * } catch (final {@linkplain org.fluidity.foundation.Exceptions.Wrapper} e) {
  *   throw e.{@linkplain org.fluidity.foundation.Exceptions.Wrapper#rethrow(Class) rethrow}(<b>SomeCheckedException</b>.class);
  * }
@@ -358,6 +356,7 @@ public interface ComponentContainer {
      * }
      * </pre>
      */
+    @FunctionalInterface
     interface Bindings {
 
         /**
@@ -492,7 +491,7 @@ public interface ComponentContainer {
          * @param types the elements of the group.
          * @param <T>   the group interface type to bind.
          */
-        <T> void bindComponentGroup(Class<T> group, Class<? extends T>[] types);
+        <T> void bindComponentGroup(Class<T> group, Class<? extends T>... types);
 
         /**
          * Binds a component factory instance to a list of component interfaces in the container behind this registry. Use this method when the list component
@@ -633,7 +632,7 @@ public interface ComponentContainer {
          * @param format the Java format specification.
          * @param data   the details to format.
          */
-        public InjectionException(final Throwable cause, final String format, final Object... data) {
+        InjectionException(final Throwable cause, final String format, final Object... data) {
             super(String.format(format, data), cause);
         }
 
@@ -643,7 +642,7 @@ public interface ComponentContainer {
          * @param format the Java format specification.
          * @param data   the details to format.
          */
-        public InjectionException(final String format, final Object... data) {
+        InjectionException(final String format, final Object... data) {
             super(String.format(format, data));
         }
 
@@ -653,14 +652,14 @@ public interface ComponentContainer {
          * @param cause   the exception that triggered this error.
          * @param message the error message.
          */
-        public InjectionException(final String message, final Throwable cause) {
+        InjectionException(final String message, final Throwable cause) {
             super(message, cause);
         }
 
         /**
          * Creates a nondescript instance to be used internally.
          */
-        public InjectionException() { }
+        InjectionException() { }
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -215,14 +215,11 @@ public final class StandaloneJarMojo extends AbstractMojo {
             }
 
             final File file = createTempFile();
-            final JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(file));
+            try (final JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(file))) {
+                final String dependencyPath = Archives.META_INF.concat("/dependencies/");
 
-            final Collection<Artifact> compileDependencies = DependenciesSupport.compileDependencies(repositorySystem, repositorySession, repositories, project, true);
-            final Collection<Artifact> runtimeDependencies = DependenciesSupport.runtimeDependencies(repositorySystem, repositorySession, repositories, project, false);
-
-            final String dependencyPath = Archives.META_INF.concat("/dependencies/");
-
-            try {
+                final Collection<Artifact> compileDependencies = DependenciesSupport.compileDependencies(repositorySystem, repositorySession, repositories, project, true);
+                final Collection<Artifact> runtimeDependencies = DependenciesSupport.runtimeDependencies(repositorySystem, repositorySession, repositories, project, false);
 
                 /*
                  * Manifest handlers use profiles to declare dependencies to include, exclude, or unpack in our standalone artifact.
@@ -254,14 +251,14 @@ public final class StandaloneJarMojo extends AbstractMojo {
                                         ? JarManifest.FRAMEWORK_ID
                                         : original.contains(JarManifest.FRAMEWORK_ID) ? original : String.format("%s, %s", JarManifest.FRAMEWORK_ID, original));
 
-                final Map<String, Inclusion> includedDependencies = new HashMap<String, Inclusion>();
-                final Collection<Artifact> unpackedDependencies = new HashSet<Artifact>();
+                final Map<String, Inclusion> includedDependencies = new HashMap<>();
+                final Collection<Artifact> unpackedDependencies = new HashSet<>();
 
                 final byte[] buffer = new byte[16384];
 
                 SecurityPolicy policy = new JavaSecurityPolicy(2, false, buffer, packageFile, log);
 
-                final AtomicReference<String> dependenciesName = new AtomicReference<String>();
+                final AtomicReference<String> dependenciesName = new AtomicReference<>();
 
                 if (!handlers.isEmpty()) {
                     final JarManifest handler = handlers.get(0);
@@ -353,7 +350,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
                     }
 
                     if (!includedClosure.isEmpty() && !inclusionNameSet.get()) {
-                        throw new MojoExecutionException(String.format("Manifest handler %s failed to specify the inclusion name",
+                        throw new MojoExecutionException(String.format("Manifest handler %s failed to specify the name to include dependencies under",
                                                                        Strings.formatObject(false, true, handler)));
                     }
                 }
@@ -363,8 +360,8 @@ public final class StandaloneJarMojo extends AbstractMojo {
                     includedDependencies.put(dependencies, new Inclusion(dependencyPath, runtimeDependencies, " "));
                 }
 
-                final Map<String, Attributes> attributesMap = new HashMap<String, Attributes>();
-                final Map<String, String[]> providerMap = new HashMap<String, String[]>();
+                final Map<String, Attributes> attributesMap = new HashMap<>();
+                final Map<String, String[]> providerMap = new HashMap<>();
 
                 ArchivesSupport.load(attributesMap, providerMap, buffer, log, new DependencyFeed(policy, unpackedDependencies));
                 ArchivesSupport.include(attributesMap, manifest);
@@ -384,7 +381,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
                 // list the various dependencies in manifest attributes
                 for (final Map.Entry<String, Inclusion> entry : includedDependencies.entrySet()) {
                     final Inclusion inclusion = entry.getValue();
-                    final List<String> dependencyList = new ArrayList<String>();
+                    final List<String> dependencyList = new ArrayList<>();
 
                     for (final Artifact artifact : inclusion.artifacts) {
                         final File dependency = artifact.getFile();
@@ -410,13 +407,11 @@ public final class StandaloneJarMojo extends AbstractMojo {
                     policy.add(artifact.getFile(), 0, null);
                 }
 
-                policy.update(new SecurityPolicy.Output() {
-                    public void save(final String name, final String content) throws IOException {
-                        if (content == null) {
-                            mainAttributes.remove(new Attributes.Name(name));
-                        } else {
-                            mainAttributes.putValue(name, content);
-                        }
+                policy.update((name, content) -> {
+                    if (content == null) {
+                        mainAttributes.remove(new Attributes.Name(name));
+                    } else {
+                        mainAttributes.putValue(name, content);
                     }
                 });
 
@@ -424,11 +419,9 @@ public final class StandaloneJarMojo extends AbstractMojo {
                 outputStream.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
                 manifest.write(outputStream);
 
-                policy.save(new SecurityPolicy.Output() {
-                    public void save(final String name, final String content) throws IOException {
-                        outputStream.putNextEntry(new JarEntry(name));
-                        Streams.store(outputStream, content, "UTF-8", buffer, false);
-                    }
+                policy.save((name, content) -> {
+                    outputStream.putNextEntry(new JarEntry(name));
+                    Streams.store(outputStream, content, "UTF-8", buffer, false);
                 });
 
                 ArchivesSupport.expand(outputStream, buffer, providerMap, new DependencyFeed(policy, unpackedDependencies));
@@ -472,12 +465,6 @@ public final class StandaloneJarMojo extends AbstractMojo {
                         Streams.copy(new FileInputStream(dependency), outputStream, buffer, true, false);
                     }
                 }
-            } finally {
-                try {
-                    outputStream.close();
-                } catch (final IOException ignored) {
-                    // ignored
-                }
             }
 
             DependenciesSupport.saveArtifact(project, file, String.format("%s/%s", outputDirectory, finalName), classifier, DependenciesSupport.JAR_TYPE, log);
@@ -495,7 +482,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
     }
 
     private <V> Map<String, V> clean(final Map<String, V> properties) {
-        final Map<String, V> copy = new HashMap<String, V>(properties);
+        final Map<String, V> copy = new HashMap<>(properties);
 
         for (final JarManifest.Packaging packaging : JarManifest.Packaging.values()) {
             copy.remove(packaging.profile);
@@ -505,7 +492,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
     }
 
     private Map<String, String> include(final JarManifest.Packaging enabled, final Map<String, String> properties) {
-        final Map<String, String> copy = new HashMap<String, String>(properties);
+        final Map<String, String> copy = new HashMap<>(properties);
 
         for (final JarManifest.Packaging packaging : JarManifest.Packaging.values()) {
             if (packaging != enabled) {
@@ -534,9 +521,9 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
     private static class Inclusion {
 
-        public final String folder;
-        public final Collection<Artifact> artifacts;
-        public final String delimiter;
+        final String folder;
+        final Collection<Artifact> artifacts;
+        final String delimiter;
 
         private Inclusion(final String folder, final Collection<Artifact> artifacts, final String delimiter) {
             this.folder = folder;
@@ -552,7 +539,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
         private final SecurityPolicy policy;
         private final Iterator<Artifact> iterator;
-        private final Collection<String> excluded = new HashSet<String>();
+        private final Collection<String> excluded = new HashSet<>();
 
         DependencyFeed(final SecurityPolicy policy, final Collection<Artifact> unpackedDependencies) throws IOException {
             this.policy = policy;

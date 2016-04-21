@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,13 +36,11 @@ final class LogComponentFactory implements ComponentFactory {
         this.factory = factory;
     }
 
+    @SuppressWarnings("unchecked")
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-        return new Instance() {
-            @SuppressWarnings("unchecked")
-            public void bind(final Registry registry) throws Exception {
-                final Component.Reference reference = context.qualifier(Component.Reference.class, Log.class);
-                registry.bindInstance(factory.createLog(reference.parameter(0)), Log.class);
-            }
+        return registry -> {
+            final Component.Reference reference = context.qualifier(Component.Reference.class, Log.class);
+            registry.bindInstance(factory.createLog(reference.parameter(0)), Log.class);
         };
     }
 }

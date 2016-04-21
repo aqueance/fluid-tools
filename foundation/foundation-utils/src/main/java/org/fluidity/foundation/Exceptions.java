@@ -64,6 +64,7 @@ import static org.fluidity.foundation.Command.Process;
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("WeakerAccess")
 public final class Exceptions extends Utility {
 
     @SuppressWarnings("unchecked")
@@ -139,6 +140,7 @@ public final class Exceptions extends Utility {
      *
      * @return an {@link Tunnel} that can unwrap the given exceptions in addition to those it already {@linkplain Tunnel#unwrap(Exception) knows} about.
      */
+    @SafeVarargs
     public static Tunnel checked(final Class<? extends Exception>... wrappers) {
         return wrappers == null || wrappers.length == 0 ? tunnel : new Tunnel(wrappers);
     }
@@ -158,7 +160,7 @@ public final class Exceptions extends Utility {
 
         @SuppressWarnings("unchecked")
         Tunnel(final Class<? extends Exception>... wrappers) {
-            final Collection<Class<? extends Exception>> list = new HashSet<Class<? extends Exception>>();
+            final Collection<Class<? extends Exception>> list = new HashSet<>();
 
             list.add(UndeclaredThrowableException.class);
             list.add(InvocationTargetException.class);
@@ -312,12 +314,14 @@ public final class Exceptions extends Utility {
 
         private <T extends Exception> Constructor<T> constructor(final Class<T> type, final Class<?>... parameters) throws Exception {
             try {
-                final PrivilegedExceptionAction<Constructor<T>> action = new PrivilegedExceptionAction<Constructor<T>>() {
-                    public Constructor<T> run() throws Exception {
-                        final Constructor<T> constructor = type.getDeclaredConstructor(parameters);
+                final PrivilegedExceptionAction<Constructor<T>> action = () -> {
+                    final Constructor<T> constructor = type.getDeclaredConstructor(parameters);
+
+                    if (!constructor.isAccessible()) {
                         constructor.setAccessible(true);
-                        return constructor;
                     }
+
+                    return constructor;
                 };
 
                 // we cannot wrap this call because we are in the scope of the wrapping method
@@ -342,6 +346,7 @@ public final class Exceptions extends Utility {
          *
          * @return the first non-wrapper exception in the chain.
          */
+        @SuppressWarnings("StatementWithEmptyBody")
         public Throwable unwrap(final Exception error) {
             Throwable cause = error;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,6 @@ import org.fluidity.deployment.osgi.isolated.ServiceConsumerImpl;
 import org.fluidity.deployment.osgi.isolated.ServiceProviderImpl;
 
 import org.testng.annotations.Test;
-
-import static org.fluidity.foundation.Command.Process;
 
 /**
  * @author Tibor Varga
@@ -92,11 +90,7 @@ public class BundleBoundaryImplTest {
 
         final ServiceConsumer consumer = (ServiceConsumer) constructor.newInstance(customs(bundle2).imported(ServiceProvider.class, provider));
 
-        checkClassLoader(bundle2, customs(bundle1).invoke(consumer, provider, new Process<String, Exception>() {
-            public String run() throws Exception {
-                return provider.callback(ServiceConsumerImpl.CallbackImpl.class.getName());
-            }
-        }));
+        checkClassLoader(bundle2, customs(bundle1).invoke(consumer, provider, () -> provider.callback(ServiceConsumerImpl.CallbackImpl.class.getName())));
     }
 
     private void checkClassLoader(final IsolatedClassLoader expected, final ServiceConsumer consumer) throws Exception {

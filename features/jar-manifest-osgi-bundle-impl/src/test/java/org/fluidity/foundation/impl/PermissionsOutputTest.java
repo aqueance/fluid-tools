@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.fluidity.foundation.Lists;
 import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 import org.osgi.framework.PackagePermission;
 import org.testng.annotations.Test;
 
@@ -83,15 +82,13 @@ public class PermissionsOutputTest extends Simulator {
     }
 
     private void expect(final String expected) throws IOException {
-        delegate.save(EasyMock.eq(OsgiLocalPermissions.SECURITY_POLICY_FILE), EasyMock.<String>notNull());
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
-            public Object answer() throws Throwable {
-                final String actual = (String) EasyMock.getCurrentArguments()[1];
-                assert expected.equals(actual) : String.format("%nExpected: %s%nActual  : %s\n",
-                                                               expected.replaceAll("[\\r]", "r").replaceAll("[\\n]", "n").replaceAll("[\\s]", "_"),
-                                                               actual.replaceAll("[\\r]", "r").replaceAll("[\\n]", "n").replaceAll("[\\s]", "_"));
-                return null;
-            }
+        delegate.save(EasyMock.eq(OsgiLocalPermissions.SECURITY_POLICY_FILE), EasyMock.notNull());
+        EasyMock.expectLastCall().andAnswer(() -> {
+            final String actual = (String) EasyMock.getCurrentArguments()[1];
+            assert expected.equals(actual) : String.format("%nExpected: %s%nActual  : %s\n",
+                                                           expected.replaceAll("[\\r]", "r").replaceAll("[\\n]", "n").replaceAll("[\\s]", "_"),
+                                                           actual.replaceAll("[\\r]", "r").replaceAll("[\\n]", "n").replaceAll("[\\s]", "_"));
+            return null;
         });
     }
 
@@ -99,11 +96,7 @@ public class PermissionsOutputTest extends Simulator {
     public void testNoTrigger() throws Exception {
         setup(NO_TRIGGER, null, null, null);
 
-        verify(new Task() {
-            public void run() throws Exception {
-                output.save(null, SECURITY_POLICY);
-            }
-        });
+        verify(() -> output.save(null, SECURITY_POLICY));
     }
 
     @Test
@@ -112,22 +105,14 @@ public class PermissionsOutputTest extends Simulator {
 
         expect(LOCAL_PERMISSIONS);
 
-        verify(new Task() {
-            public void run() throws Exception {
-                output.save(null, SECURITY_POLICY);
-            }
-        });
+        verify(() -> output.save(null, SECURITY_POLICY));
     }
 
     @Test
     public void testGarbageSecurity() throws Exception {
         setup(TRIGGER, null, null, null);
 
-        verify(new Task() {
-            public void run() throws Exception {
-                output.save(null, "grant some { garbage }");
-            }
-        });
+        verify(() -> output.save(null, "grant some { garbage }"));
     }
 
     @Test
@@ -152,11 +137,7 @@ public class PermissionsOutputTest extends Simulator {
                              staticExport,
                              NL));
 
-        verify(new Task() {
-            public void run() throws Exception {
-                output.save(null, null);
-            }
-        });
+        verify(() -> output.save(null, null));
     }
 
     @Test
@@ -184,11 +165,7 @@ public class PermissionsOutputTest extends Simulator {
                              staticExport,
                              NL));
 
-        verify(new Task() {
-            public void run() throws Exception {
-                output.save(null, null);
-            }
-        });
+        verify(() -> output.save(null, null));
     }
 
     @Test
@@ -232,10 +209,6 @@ public class PermissionsOutputTest extends Simulator {
                              staticExport2,
                              NL));
 
-        verify(new Task() {
-            public void run() throws Exception {
-                output.save(null, null);
-            }
-        });
+        verify(() -> output.save(null, null));
     }
 }

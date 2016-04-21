@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({ "unchecked", "WeakerAccess" })
 public final class ComponentInterceptorTests extends AbstractContainerTests {
 
     @BeforeMethod
@@ -59,7 +59,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
         return (container == null ? this.container : container).makeDomainContainer(bindings);
     }
 
-    public ComponentInterceptorTests(final ArtifactFactory artifacts) {
+    ComponentInterceptorTests(final ArtifactFactory artifacts) {
         super(artifacts);
     }
 
@@ -72,47 +72,37 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
             assert list != null : String.format("No interceptors applied to %s", type);
 
             final List<Class<? extends ComponentInterceptor>> expected = Arrays.asList(interceptors);
-            assert new ArrayList<Class<?>>(list).equals(expected) : String.format("For %s%nexpected %s%n     got %s", type, expected, list);
+            assert new ArrayList<>(list).equals(expected) : String.format("For %s%nexpected %s%n     got %s", type, expected, list);
         }
     }
 
     @Test
     public void testSingleContainer() throws Exception {
-        final ComponentContainer.Bindings interceptors = new ComponentContainer.Bindings() {
-            @SuppressWarnings("unchecked")
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindInstance(ComponentInterceptorTests.this);
-                registry.bindComponent(InterceptorDependency.class);
-                registry.bindComponent(Interceptor0.class);
-                registry.bindComponent(Interceptor1.class);
-                registry.bindComponent(Interceptor2.class);
-                registry.bindComponent(Interceptor3.class);
-                registry.bindInstance(new Interceptor4());
-                registry.bindComponent(Interceptor5.class);
-                registry.bindComponent(Interceptor6.class);
-            }
+        final ComponentContainer.Bindings interceptors = registry -> {
+            registry.bindInstance(ComponentInterceptorTests.this);
+            registry.bindComponent(InterceptorDependency.class);
+            registry.bindComponent(Interceptor0.class);
+            registry.bindComponent(Interceptor1.class);
+            registry.bindComponent(Interceptor2.class);
+            registry.bindComponent(Interceptor3.class);
+            registry.bindInstance(new Interceptor4());
+            registry.bindComponent(Interceptor5.class);
+            registry.bindComponent(Interceptor6.class);
         };
 
-        final OpenContainer container = child(null, interceptors, new ComponentContainer.Bindings() {
-            @SuppressWarnings("unchecked")
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(RootComponent.class);
-                registry.bindComponent(Dependency1.class);
-                registry.bindComponent(Dependency2.class);
-                registry.bindComponent(Dependency11.class);
-                registry.bindComponent(Dependency12.class);
-                registry.bindComponent(Dependency13.class);
-                registry.bindComponent(Dependency21.class);
-            }
+        final OpenContainer container = child(null, interceptors, registry -> {
+            registry.bindComponent(RootComponent.class);
+            registry.bindComponent(Dependency1.class);
+            registry.bindComponent(Dependency2.class);
+            registry.bindComponent(Dependency11.class);
+            registry.bindComponent(Dependency12.class);
+            registry.bindComponent(Dependency13.class);
+            registry.bindComponent(Dependency21.class);
         });
 
         Interceptor.list.clear();
 
-        verify(new Task() {
-            public void run() throws Exception {
-                container.getComponent(RootComponent.class);
-            }
-        });
+        verify((Task) () -> container.getComponent(RootComponent.class));
 
         check(InterceptorDependency.class);
         check(RootComponent.class);
@@ -129,53 +119,37 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
 
     @Test
     public void testContainerHierarchy() throws Exception {
-        final ComponentContainer.Bindings rootInterceptors = new ComponentContainer.Bindings() {
-            @SuppressWarnings("unchecked")
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindInstance(ComponentInterceptorTests.this);
-                registry.bindComponent(InterceptorDependency.class);
-                registry.bindComponent(Interceptor0.class);
-                registry.bindComponent(Interceptor1.class);
-                registry.bindComponent(Interceptor2.class);
-            }
+        final ComponentContainer.Bindings rootInterceptors = registry -> {
+            registry.bindInstance(ComponentInterceptorTests.this);
+            registry.bindComponent(InterceptorDependency.class);
+            registry.bindComponent(Interceptor0.class);
+            registry.bindComponent(Interceptor1.class);
+            registry.bindComponent(Interceptor2.class);
         };
 
-        final ComponentContainer.Bindings parentInterceptors = new ComponentContainer.Bindings() {
-            @SuppressWarnings("unchecked")
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(Interceptor5.class);
-                registry.bindComponent(Interceptor6.class);
-            }
+        final ComponentContainer.Bindings parentInterceptors = registry -> {
+            registry.bindComponent(Interceptor5.class);
+            registry.bindComponent(Interceptor6.class);
         };
 
-        final ComponentContainer.Bindings childInterceptors = new ComponentContainer.Bindings() {
-            @SuppressWarnings("unchecked")
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(Interceptor3.class);
-                registry.bindInstance(new Interceptor4());
-            }
+        final ComponentContainer.Bindings childInterceptors = registry -> {
+            registry.bindComponent(Interceptor3.class);
+            registry.bindInstance(new Interceptor4());
         };
 
-        final OpenContainer container = child(child(child(null, rootInterceptors), parentInterceptors), childInterceptors, new ComponentContainer.Bindings() {
-            @SuppressWarnings("unchecked")
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(RootComponent.class);
-                registry.bindComponent(Dependency1.class);
-                registry.bindComponent(Dependency2.class);
-                registry.bindComponent(Dependency11.class);
-                registry.bindComponent(Dependency12.class);
-                registry.bindComponent(Dependency13.class);
-                registry.bindComponent(Dependency21.class);
-            }
+        final OpenContainer container = child(child(child(null, rootInterceptors), parentInterceptors), childInterceptors, registry -> {
+            registry.bindComponent(RootComponent.class);
+            registry.bindComponent(Dependency1.class);
+            registry.bindComponent(Dependency2.class);
+            registry.bindComponent(Dependency11.class);
+            registry.bindComponent(Dependency12.class);
+            registry.bindComponent(Dependency13.class);
+            registry.bindComponent(Dependency21.class);
         });
 
         Interceptor.list.clear();
 
-        verify(new Task() {
-            public void run() throws Exception {
-                container.getComponent(RootComponent.class);
-            }
-        });
+        verify((Task) () -> container.getComponent(RootComponent.class));
 
         check(InterceptorDependency.class);
         check(RootComponent.class);
@@ -192,18 +166,15 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
 
     @Test
     public void testConvenience() throws Exception {
-        final ComponentContainer.Bindings bindings = new ComponentContainer.Bindings() {
-            @SuppressWarnings("unchecked")
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindInstance(ComponentInterceptorTests.this);
-                registry.bindComponent(RootComponent.class);
-                registry.bindComponent(Dependency1.class);
-                registry.bindComponent(Dependency2.class);
-                registry.bindComponent(Dependency11.class);
-                registry.bindComponent(Dependency12.class);
-                registry.bindComponent(Dependency13.class);
-                registry.bindComponent(Dependency21.class);
-            }
+        final ComponentContainer.Bindings bindings = registry -> {
+            registry.bindInstance(ComponentInterceptorTests.this);
+            registry.bindComponent(RootComponent.class);
+            registry.bindComponent(Dependency1.class);
+            registry.bindComponent(Dependency2.class);
+            registry.bindComponent(Dependency11.class);
+            registry.bindComponent(Dependency12.class);
+            registry.bindComponent(Dependency13.class);
+            registry.bindComponent(Dependency21.class);
         };
 
         final OpenContainer container = child(this.container
@@ -214,11 +185,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
 
         Interceptor.list.clear();
 
-        verify(new Task() {
-            public void run() throws Exception {
-                container.getComponent(RootComponent.class);
-            }
-        });
+        verify((Task) () -> container.getComponent(RootComponent.class));
 
         check(InterceptorDependency.class);
         check(RootComponent.class);
@@ -235,39 +202,29 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
 
     @Test
     public void testMissingDependency() throws Exception {
-        final ComponentContainer.Bindings interceptors = new ComponentContainer.Bindings() {
-            @SuppressWarnings("unchecked")
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindInstance(ComponentInterceptorTests.this);
-                registry.bindComponent(InterceptorDependency.class);
-                registry.bindComponent(Interceptor0.class);
-                registry.bindComponent(Interceptor1.class);
-                registry.bindComponent(Interceptor2.class);
-                registry.bindComponent(Interceptor3.class);
-                registry.bindInstance(new Interceptor4());
-                registry.bindComponent(Interceptor5.class);
-                registry.bindComponent(Interceptor6.class);
-                registry.bindComponent(RemovingInterceptor.class);
-            }
+        final ComponentContainer.Bindings interceptors = registry -> {
+            registry.bindInstance(ComponentInterceptorTests.this);
+            registry.bindComponent(InterceptorDependency.class);
+            registry.bindComponent(Interceptor0.class);
+            registry.bindComponent(Interceptor1.class);
+            registry.bindComponent(Interceptor2.class);
+            registry.bindComponent(Interceptor3.class);
+            registry.bindInstance(new Interceptor4());
+            registry.bindComponent(Interceptor5.class);
+            registry.bindComponent(Interceptor6.class);
+            registry.bindComponent(RemovingInterceptor.class);
         };
 
-        final OpenContainer container = child(null, interceptors, new ComponentContainer.Bindings() {
-            @SuppressWarnings("unchecked")
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(RootComponent.class);
-                registry.bindComponent(Dependency1.class);
-                registry.bindComponent(Dependency2.class);
-                registry.bindComponent(Dependency21.class);
-            }
+        final OpenContainer container = child(null, interceptors, registry -> {
+            registry.bindComponent(RootComponent.class);
+            registry.bindComponent(Dependency1.class);
+            registry.bindComponent(Dependency2.class);
+            registry.bindComponent(Dependency21.class);
         });
 
         Interceptor.list.clear();
 
-        verify(new Task() {
-            public void run() throws Exception {
-                container.getComponent(RootComponent.class);
-            }
-        });
+        verify((Task) () -> container.getComponent(RootComponent.class));
 
         check(InterceptorDependency.class);
         check(RootComponent.class);
@@ -325,14 +282,14 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
 
     private static abstract class Interceptor implements ComponentInterceptor {
 
-        public static Map<Class<?>, Collection<Class<?>>> list = new HashMap<Class<?>, Collection<Class<?>>>();
+        public static Map<Class<?>, Collection<Class<?>>> list = new HashMap<>();
 
         public Dependency intercept(final Type reference, final ComponentContext context, final Dependency dependency) {
             final Class<?> type = Generics.rawType(reference);
 
             Collection<Class<?>> list = Interceptor.list.get(type);
             if (list == null) {
-                Interceptor.list.put(type, list = new ArrayList<Class<?>>());
+                Interceptor.list.put(type, list = new ArrayList<>());
             }
 
             list.add(getClass());

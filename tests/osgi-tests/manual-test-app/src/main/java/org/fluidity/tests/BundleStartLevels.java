@@ -36,14 +36,14 @@ final class BundleStartLevels implements Initialization {
         // Start levels cannot be less than 1
         final int systemLevel = 1;
 
-        // Allows easing the application bundles in one by one
+        // We'll ease the application bundles in one by one
         int applicationLevel = systemLevel;
 
         final URL engine = Archives.containing(framework.getClass());
         final URL packaged = Archives.containing(engine);
 
         // "system" is the build profile that lists the included system bundles
-        final Collection<URL> system = new HashSet<URL>(Archives.Nested.dependencies(false, packaged, "system"));
+        final Collection<URL> system = new HashSet<>(Archives.Nested.dependencies(false, packaged, "system"));
 
         framework.adapt(FrameworkStartLevel.class).setStartLevel(systemLevel);
 

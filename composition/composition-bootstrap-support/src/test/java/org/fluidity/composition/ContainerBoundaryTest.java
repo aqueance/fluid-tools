@@ -30,7 +30,6 @@ import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 import org.testng.annotations.Test;
 
 /**
@@ -51,12 +50,12 @@ public class ContainerBoundaryTest extends Simulator {
     private final ContainerServices services = dependencies.normal(ContainerServices.class);
 
     private void setupDependencies(final ClassLoader classLoader, final boolean assign) {
-        EasyMock.expect(providers.<ContainerBootstrap>findInstance(ContainerBootstrap.class, classLoader)).andReturn(assign ? bootstrap : null);
-        EasyMock.expect(providers.<ContainerProvider>findInstance(ContainerProvider.class, classLoader)).andReturn(assign ? provider : null);
+        EasyMock.expect(providers.findInstance(ContainerBootstrap.class, classLoader)).andReturn(assign ? bootstrap : null);
+        EasyMock.expect(providers.findInstance(ContainerProvider.class, classLoader)).andReturn(assign ? provider : null);
 
         if (assign) {
-            EasyMock.expect(providers.<ContainerServicesFactory>findInstance(ContainerServicesFactory.class, classLoader)).andReturn(servicesFactory);
-            EasyMock.expect(providers.<LogFactory>findInstance(LogFactory.class, classLoader)).andReturn(logs);
+            EasyMock.expect(providers.findInstance(ContainerServicesFactory.class, classLoader)).andReturn(servicesFactory);
+            EasyMock.expect(providers.findInstance(LogFactory.class, classLoader)).andReturn(logs);
             EasyMock.expect(servicesFactory.containerServices(logs)).andReturn(services);
         }
     }
@@ -69,7 +68,7 @@ public class ContainerBoundaryTest extends Simulator {
 
     @Test
     public void populatesTopLevelContainer() throws Exception {
-        final Map<String, String> properties = new HashMap<String, String>();
+        final Map<String, String> properties = new HashMap<>();
         properties.put("key1", "value1");
         properties.put("key2", "value2");
 
@@ -92,27 +91,23 @@ public class ContainerBoundaryTest extends Simulator {
         EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
                                                     EasyMock.same(provider),
                                                     EasyMock.<Properties>notNull(),
-                                                    EasyMock.<MutableContainer>same(null), EasyMock.same(classLoader),
-                                                    EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<MutableContainer>() {
-            public MutableContainer answer() throws Throwable {
+                                                    EasyMock.same(null), EasyMock.same(classLoader),
+                                                    EasyMock.notNull())).andAnswer(() -> {
 
-                // check that the properties received by bootstrap is contains exactly what we set up above
-                assert properties.equals(EasyMock.getCurrentArguments()[2]);
-                callback[0] = ((ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[5]);
+            // check that the properties received by bootstrap is contains exactly what we set up above
+            assert properties.equals(EasyMock.getCurrentArguments()[2]);
+            callback[0] = ((ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[5]);
 
-                return container;
-            }
+            return container;
         });
 
         bootstrap.initializeContainer(container, services);
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
-            public Object answer() throws Throwable {
-                callback[0].containerInitialized();
-                return null;
-            }
+        EasyMock.expectLastCall().andAnswer(() -> {
+            callback[0].containerInitialized();
+            return null;
         });
 
-        final Work<ComponentContainer> loading = loading(boundary);
+        final Work<ComponentContainer> loading = boundary::loadedContainer;
 
         // first access goes through the above interaction
         assert verify(loading) == container;
@@ -123,7 +118,7 @@ public class ContainerBoundaryTest extends Simulator {
 
     @Test
     public void populatesStandaloneContainer() throws Exception {
-        final Map<String, String> properties = new HashMap<String, String>();
+        final Map<String, String> properties = new HashMap<>();
         properties.put("key1", "value1");
         properties.put("key2", "value2");
 
@@ -134,7 +129,7 @@ public class ContainerBoundaryTest extends Simulator {
         }
 
         // find all class loaders on the ancestry except ours
-        List<ClassLoader> classLoaders = new ArrayList<ClassLoader>();
+        final List<ClassLoader> classLoaders = new ArrayList<>();
         for (ClassLoader cl = getClass().getClassLoader().getParent(); cl != null; cl = cl.getParent()) {
             classLoaders.add(cl);
         }
@@ -157,28 +152,23 @@ public class ContainerBoundaryTest extends Simulator {
         EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
                                                     EasyMock.same(provider),
                                                     EasyMock.<Properties>notNull(),
-                                                    EasyMock.<MutableContainer>same(null), EasyMock.same(getClass().getClassLoader()),
-                                                    EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<MutableContainer>() {
-            public MutableContainer answer() throws Throwable {
+                                                    EasyMock.same(null), EasyMock.same(getClass().getClassLoader()),
+                                                    EasyMock.notNull())).andAnswer(() -> {
 
-                // check that the properties received by bootstrap is contains exactly what we set up above
-                assert properties.equals(EasyMock.getCurrentArguments()[2]);
-                callback[0] = ((ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[5]);
+            // check that the properties received by bootstrap is contains exactly what we set up above
+            assert properties.equals(EasyMock.getCurrentArguments()[2]);
+            callback[0] = ((ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[5]);
 
-                return container;
-            }
+            return container;
         });
 
         bootstrap.initializeContainer(container, services);
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
-            public Object answer() throws Throwable {
-                callback[0].containerInitialized();
-                return null;
-            }
+        EasyMock.expectLastCall().andAnswer(() -> {
+            callback[0].containerInitialized();
+            return null;
         });
 
-
-        final Work<ComponentContainer> loading = loading(boundary);
+        final Work<ComponentContainer> loading = boundary::loadedContainer;
 
         // first access goes through the above interaction
         assert verify(loading) == container;
@@ -191,10 +181,10 @@ public class ContainerBoundaryTest extends Simulator {
     public void populatesConnectedContainer() throws Exception {
         final ContainerBoundary boundary = boundary(null);
 
-        final Map<ClassLoader, MutableContainer> containers = new HashMap<ClassLoader, MutableContainer>();
+        final Map<ClassLoader, MutableContainer> containers = new HashMap<>();
 
         // find all class loaders on the ancestry
-        final List<ClassLoader> classLoaders = new ArrayList<ClassLoader>();
+        final List<ClassLoader> classLoaders = new ArrayList<>();
         final ClassLoader ourClassLoader = getClass().getClassLoader();
         assert ourClassLoader != null;
 
@@ -222,27 +212,23 @@ public class ContainerBoundaryTest extends Simulator {
                                                         EasyMock.same(provider),
                                                         EasyMock.<Properties>notNull(),
                                                         EasyMock.same(containers.get(cl.getParent())), EasyMock.same(cl),
-                                                        EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<MutableContainer>() {
-                public MutableContainer answer() throws Throwable {
-                    callback[0] = ((ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[5]);
-                    return container;
-                }
+                                                        EasyMock.notNull())).andAnswer(() -> {
+                callback[0] = ((ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[5]);
+                return container;
             });
 
             // the container must also be initialized at some point
             bootstrap.initializeContainer(container, services);
-            EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
-                public Object answer() throws Throwable {
-                    callback[0].containerInitialized();
-                    return null;
-                }
+            EasyMock.expectLastCall().andAnswer(() -> {
+                callback[0].containerInitialized();
+                return null;
             });
         }
 
         final MutableContainer local = containers.get(ourClassLoader);
         assert local != null;
 
-        final Work<ComponentContainer> loading = loading(boundary);
+        final Work<ComponentContainer> loading = boundary::loadedContainer;
 
         // first access goes through the above interaction
         assert verify(loading) == local;
@@ -253,7 +239,7 @@ public class ContainerBoundaryTest extends Simulator {
         if (ourClassLoader.getParent() != null) {
 
             // access to higher level container should simply return the cached container
-            final ComponentContainer created = verify(loading(new ContainerBoundary(ourClassLoader.getParent())));
+            final ComponentContainer created = verify(new ContainerBoundary(ourClassLoader.getParent())::loadedContainer);
 
             assert created == containers.get(ourClassLoader.getParent());
         }
@@ -266,41 +252,29 @@ public class ContainerBoundaryTest extends Simulator {
         final ClassLoader classLoader = getClass().getClassLoader();
         final ContainerBoundary boundary = boundary(classLoader);
 
-        test(new Task() {
-            public void run() throws Exception {
-                EasyMock.expect(providers.<ContainerProvider>findInstance(ContainerProvider.class, classLoader)).andReturn(provider);
-                EasyMock.expect(providers.<ContainerServicesFactory>findInstance(ContainerServicesFactory.class, classLoader)).andReturn(servicesFactory);
-                EasyMock.expect(providers.<LogFactory>findInstance(LogFactory.class, classLoader)).andReturn(logs);
-                EasyMock.expect(servicesFactory.containerServices(logs)).andReturn(services);
+        test(() -> {
+            EasyMock.expect(providers.findInstance(ContainerProvider.class, classLoader)).andReturn(provider);
+            EasyMock.expect(providers.findInstance(ContainerServicesFactory.class, classLoader)).andReturn(servicesFactory);
+            EasyMock.expect(providers.findInstance(LogFactory.class, classLoader)).andReturn(logs);
+            EasyMock.expect(servicesFactory.containerServices(logs)).andReturn(services);
 
-                final MutableContainer local = arguments.normal(MutableContainer.class);
+            final MutableContainer local = arguments.normal(MutableContainer.class);
 
-                EasyMock.expect(provider.newContainer(services, false)).andReturn(local);
+            EasyMock.expect(provider.newContainer(services, false)).andReturn(local);
 
-                final MutableContainer created = verify(new Work<MutableContainer>() {
-                    public MutableContainer run() throws Exception {
-                        return boundary.create(false);
-                    }
-                });
+            final MutableContainer created = verify(() -> boundary.create(false));
 
-                assert  created == local;
-            }
+            assert  created == local;
         });
 
-        test(new Task() {
-            public void run() throws Exception {
-                final MutableContainer local = arguments.normal(MutableContainer.class);
+        test(() -> {
+            final MutableContainer local = arguments.normal(MutableContainer.class);
 
-                EasyMock.expect(provider.newContainer(services, false)).andReturn(local);
+            EasyMock.expect(provider.newContainer(services, false)).andReturn(local);
 
-                final MutableContainer created = verify(new Work<MutableContainer>() {
-                    public MutableContainer run() throws Exception {
-                        return boundary.create(false);
-                    }
-                });
+            final MutableContainer created = verify(() -> boundary.create(false));
 
-                assert created == local;
-            }
+            assert created == local;
         });
     }
 
@@ -310,77 +284,60 @@ public class ContainerBoundaryTest extends Simulator {
         final ClassLoader classLoader = root();
         final ContainerBoundary boundary = boundary(classLoader);
 
-        test(new Task() {
-            public void run() throws Exception {
+        test(() -> {
 
-                // make subject receive its dependencies from the top-level class loader
-                setupDependencies(classLoader, true);
+            // make subject receive its dependencies from the top-level class loader
+            setupDependencies(classLoader, true);
 
-                final ContainerBootstrap.Callback callback[] = new ContainerBootstrap.Callback[1];
+            final ContainerBootstrap.Callback callback[] = new ContainerBootstrap.Callback[1];
 
-                // give subject a container for that class loader
-                EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
-                                                            EasyMock.same(provider),
-                                                            EasyMock.<Properties>notNull(),
-                                                            EasyMock.<MutableContainer>same(null), EasyMock.same(classLoader),
-                                                            EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<MutableContainer>() {
-                    public MutableContainer answer() throws Throwable {
-                        callback[0] = (ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[5];
-                        return container;
-                    }
-                });
+            // give subject a container for that class loader
+            EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
+                                                        EasyMock.same(provider),
+                                                        EasyMock.<Properties>notNull(),
+                                                        EasyMock.same(null), EasyMock.same(classLoader),
+                                                        EasyMock.notNull())).andAnswer(() -> {
+                callback[0] = (ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[5];
+                return container;
+            });
 
-                final BootComponent1 component1 = new BootComponent1();
-                final BootComponent2 component2 = new BootComponent2();
+            final BootComponent1 component1 = new BootComponent1();
+            final BootComponent2 component2 = new BootComponent2();
 
-                EasyMock.expect(container.getRegistry()).andReturn(registry);
-                registry.bindInstance(component1);
+            EasyMock.expect(container.getRegistry()).andReturn(registry);
+            registry.bindInstance(component1);
 
-                EasyMock.expect(container.getRegistry()).andReturn(registry);
-                registry.bindInstance(component2);
+            EasyMock.expect(container.getRegistry()).andReturn(registry);
+            registry.bindInstance(component2);
 
-                // container is initialized
-                bootstrap.initializeContainer(container, services);
-                EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
-                    public Object answer() throws Throwable {
-                        callback[0].containerInitialized();
-                        return null;
-                    }
-                });
+            // container is initialized
+            bootstrap.initializeContainer(container, services);
+            EasyMock.expectLastCall().andAnswer(() -> {
+                callback[0].containerInitialized();
+                return null;
+            });
 
-                // first access goes through the above interaction
-                final ComponentContainer created = verify(new Work<ComponentContainer>() {
-                    public ComponentContainer run() throws Exception {
-                        boundary.bindBootComponent(component1);
-                        boundary.bindBootComponent(component2);
+            // first access goes through the above interaction
+            final ComponentContainer created = verify(() -> {
+                boundary.bindBootComponent(component1);
+                boundary.bindBootComponent(component2);
 
-                        return boundary.loadedContainer();
-                    }
-                });
-
-                assert created == container;
-            }
-        });
-
-        verify(new Task() {
-            public void run() throws Exception {
-                try {
-                    boundary.bindBootComponent(new BootComponent3());
-                } catch (final IllegalStateException e) {
-                    // ignore
-                }
-            }
-        });
-    }
-
-    private Work<ComponentContainer> loading(final ContainerBoundary boundary) {
-        return new Work<ComponentContainer>() {
-            public ComponentContainer run() throws Exception {
                 return boundary.loadedContainer();
+            });
+
+            assert created == container;
+        });
+
+        verify(() -> {
+            try {
+                boundary.bindBootComponent(new BootComponent3());
+            } catch (final IllegalStateException e) {
+                // ignore
             }
-        };
+        });
     }
 
+    @SuppressWarnings("StatementWithEmptyBody")
     private ClassLoader root() {
         ClassLoader classLoader;
 

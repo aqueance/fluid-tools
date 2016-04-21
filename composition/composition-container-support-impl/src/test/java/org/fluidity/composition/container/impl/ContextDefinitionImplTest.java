@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,9 +108,8 @@ public class ContextDefinitionImplTest {
     }
 
     @SuppressWarnings("ConstantConditions")
-    private void check(final Class<? extends Annotation> type, final Map<Class<? extends Annotation>, Annotation[]> map, final String... values)
-            throws Exception {
-        assert values.length > 0 ? map.containsKey(type) : !map.containsKey(type) : AnnotationMaps.descriptor(map);
+    private void check(final Class<? extends Annotation> type, final Map<Class<? extends Annotation>, Annotation[]> map, final String... values) throws Exception {
+        assert values.length > 0 == map.containsKey(type) : AnnotationMaps.descriptor(map);
         final Annotation[] list = map.get(type);
         assert values.length > 0 ? list.length == values.length : list == null;
 
@@ -123,13 +122,13 @@ public class ContextDefinitionImplTest {
     public void testAnnotationOrder() throws Exception {
         final Map<Class<? extends Annotation>, Annotation[]> map1 = new ContextDefinitionImpl()
                 .expand(Definition4.class.getAnnotations())
-                .expand(Definition4.class.getField("field").getAnnotations())
-                .expand(Definition5.class.getField("field").getAnnotations())
-                .expand(Definition6.class.getField("field").getAnnotations())
+                .expand(Definition4.class.getDeclaredField("field").getAnnotations())
+                .expand(Definition5.class.getDeclaredField("field").getAnnotations())
+                .expand(Definition6.class.getDeclaredField("field").getAnnotations())
                 .expand(Definition7.class.getAnnotations())
-                .expand(Definition7.class.getField("field").getAnnotations())
-                .expand(Definition8.class.getField("field").getAnnotations())
-                .expand(Definition9.class.getField("field").getAnnotations())
+                .expand(Definition7.class.getDeclaredField("field").getAnnotations())
+                .expand(Definition8.class.getDeclaredField("field").getAnnotations())
+                .expand(Definition9.class.getDeclaredField("field").getAnnotations())
                 .defined();
 
         assert new ArrayList<Class>(map1.keySet()).equals(Arrays.asList((Class) Annotation5.class,
@@ -141,51 +140,51 @@ public class ContextDefinitionImplTest {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Qualifier(Qualifier.Composition.ALL)
-    public @interface Accumulated {
+    @interface Accumulated {
 
         String value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Qualifier(Qualifier.Composition.LAST)
-    public @interface Inherited {
+    @interface Inherited {
 
         String value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Qualifier(Qualifier.Composition.IMMEDIATE)
-    public @interface Immediate {
+    @interface Immediate {
 
         String value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Qualifier(Qualifier.Composition.NONE)
-    public @interface None {
+    @interface None {
 
         String value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Qualifier(Qualifier.Composition.ALL)
-    public @interface Annotation1 { }
+    @interface Annotation1 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Qualifier(Qualifier.Composition.ALL)
-    public @interface Annotation2 { }
+    private @interface Annotation2 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Qualifier(Qualifier.Composition.ALL)
-    public @interface Annotation3 { }
+    private @interface Annotation3 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Qualifier(Qualifier.Composition.ALL)
-    public @interface Annotation4 { }
+    @interface Annotation4 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Qualifier(Qualifier.Composition.ALL)
-    public @interface Annotation5 { }
+    private @interface Annotation5 { }
 
     @Component.Qualifiers(value = Accumulated.class)
     private static class Consumer1 { }
@@ -220,33 +219,33 @@ public class ContextDefinitionImplTest {
 
     @Annotation1
     private static class Definition4 {
-        @Annotation5
-        public Void field;
+
+        @Annotation5 Void field;
     }
 
     private static class Definition5 {
-        @Annotation2
-        public Void field;
+
+        @Annotation2 Void field;
     }
 
     private static class Definition6 {
-        @Annotation1
-        public Void field;
+
+        @Annotation1 Void field;
     }
 
     @Annotation4
     private static class Definition7 {
-        @Annotation3
-        public Void field;
+
+        @Annotation3 Void field;
     }
 
     private static class Definition8 {
-        @Annotation2
-        public Void field;
+
+        @Annotation2 Void field;
     }
 
     private static class Definition9 {
-        @Annotation1
-        public Void field;
+
+        @Annotation1 Void field;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,7 +104,7 @@ public final class ClassReaders extends Utility implements Opcodes {
         final String[] interfaces = classData.getInterfaces();
 
         if (interfaces.length > 0) {
-            final Set<String> names = new HashSet<String>();
+            final Set<String> names = new HashSet<>();
 
             for (final String type : interfaces) {
                 names.add(ClassReaders.externalName(type));
@@ -117,7 +117,7 @@ public final class ClassReaders extends Utility implements Opcodes {
     }
 
     public static Set<String> findInterfaces(final ClassReader classData, final ClassRepository repository) throws IOException {
-        return findInterfaces(classData, repository, new HashSet<String>());
+        return findInterfaces(classData, repository, new HashSet<>());
     }
 
     private static Set<String> findInterfaces(final ClassReader classData, final ClassRepository repository, final Set<String> list) throws IOException {

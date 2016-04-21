@@ -34,7 +34,7 @@ import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.ClassLoaders;
-import org.fluidity.foundation.Command.Function;
+import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Security;
 import org.fluidity.foundation.spi.LogFactory;
@@ -72,12 +72,12 @@ import static org.fluidity.foundation.Command.Process;
  *
  * @author Tibor Varga
  */
-@SuppressWarnings("UnusedDeclaration")
+@SuppressWarnings({ "UnusedDeclaration", "WeakerAccess" })
 public final class ContainerBoundary implements ComponentContainer {
 
-    private static final Map<ClassLoader, MutableContainer> populatedContainers = new WeakHashMap<ClassLoader, MutableContainer>();
-    private static final Map<ClassLoader, Map> propertiesMap = new WeakHashMap<ClassLoader, Map>();
-    private static final Set<ComponentContainer> lockedContainers = new HashSet<ComponentContainer>();
+    private static final Map<ClassLoader, MutableContainer> populatedContainers = new WeakHashMap<>();
+    private static final Map<ClassLoader, Map> propertiesMap = new WeakHashMap<>();
+    private static final Set<ComponentContainer> lockedContainers = new HashSet<>();
     private static final Object stateLock = new Object();
 
     /**
@@ -115,11 +115,9 @@ public final class ContainerBoundary implements ComponentContainer {
      * Creates a container boundary for the current class loader.
      */
     /* package */ ContainerBoundary() {
-        final PrivilegedAction<ClassLoader> action = new PrivilegedAction<ClassLoader>() {
-            public ClassLoader run() {
-                final ClassLoader cl = Thread.currentThread().getContextClassLoader();
-                return cl != null ? cl : ContainerBoundary.class.getClassLoader();
-            }
+        final PrivilegedAction<ClassLoader> action = () -> {
+            final ClassLoader cl = Thread.currentThread().getContextClassLoader();
+            return cl != null ? cl : ContainerBoundary.class.getClassLoader();
         };
 
         this.classLoader = Security.CONTROLLED ? AccessController.doPrivileged(action) : action.run();
@@ -301,16 +299,14 @@ public final class ContainerBoundary implements ComponentContainer {
         initFinder();
 
         // list of class loaders from current one up the hierarchy
-        final List<ClassLoader> classLoaders = new ArrayList<ClassLoader>();
+        final List<ClassLoader> classLoaders = new ArrayList<>();
 
-        final PrivilegedAction<Void> ancestry = new PrivilegedAction<Void>() {
-            public Void run() {
-                for (ClassLoader loader = classLoader; loader != rootClassLoader; loader = loader.getParent()) {
-                    classLoaders.add(loader);
-                }
-
-                return null;
+        final PrivilegedAction<Void> ancestry = () -> {
+            for (ClassLoader loader = classLoader; loader != rootClassLoader; loader = loader.getParent()) {
+                classLoaders.add(loader);
             }
+
+            return null;
         };
 
         if (Security.CONTROLLED) {
@@ -333,13 +329,9 @@ public final class ContainerBoundary implements ComponentContainer {
                     }
 
                     final Map map = propertiesMap.get(loader);
-                    final MutableContainer parent = populatedContainers.get(!Security.CONTROLLED ? loader.getParent() : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-                        public ClassLoader run() {
-                            return loader.getParent();
-                        }
-                    }));
+                    final MutableContainer parent = populatedContainers.get(!Security.CONTROLLED ? loader.getParent() : AccessController.doPrivileged((PrivilegedAction<ClassLoader>) loader::getParent));
 
-                    final AtomicReference<MutableContainer> container = new AtomicReference<MutableContainer>();
+                    final AtomicReference<MutableContainer> container = new AtomicReference<>();
 
                     final ContainerBootstrap.Callback callback = new ContainerBootstrap.Callback() {
                         public void containerInitialized() {
@@ -357,18 +349,10 @@ public final class ContainerBoundary implements ComponentContainer {
                         }
                     };
 
-                    final PrivilegedAction<MutableContainer> populate = new PrivilegedAction<MutableContainer>() {
-                        public MutableContainer run() {
-                            return ClassLoaders.context(loader, new Function<MutableContainer, ClassLoader, RuntimeException>() {
-                                public MutableContainer run(final ClassLoader loader) {
-                                    return containerBootstrap.populateContainer(findServices(loader),
-                                                                                containerProvider,
-                                                                                map == null ? new HashMap() : map,
-                                                                                parent, loader,
-                                                                                callback);
-                                }
-                            });
-                        }
+                    final PrivilegedAction<MutableContainer> populate = () -> {
+                        final Command.Function<MutableContainer, ClassLoader, RuntimeException> command
+                                = _loader -> containerBootstrap.populateContainer(findServices(_loader), containerProvider, map == null ? new HashMap() : map, parent, _loader, callback);
+                        return ClassLoaders.context(loader, command);
                     };
 
                     container.set(Security.CONTROLLED ? AccessController.doPrivileged(populate) : populate.run());
@@ -382,22 +366,20 @@ public final class ContainerBoundary implements ComponentContainer {
 
         assert populatedContainers.containsKey(classLoader) : classLoader;
 
-        final PrivilegedAction<List<MutableContainer>> list = new PrivilegedAction<List<MutableContainer>>() {
-            public List<MutableContainer> run() {
+        final PrivilegedAction<List<MutableContainer>> list = () -> {
 
-                // bottom up: list of containers at and above current class loader
-                final List<MutableContainer> containers = new ArrayList<MutableContainer>();
+            // bottom up: list of containers at and above current class loader
+            final List<MutableContainer> containers = new ArrayList<>();
 
-                for (ClassLoader loader = classLoader; loader != null; loader = loader.getParent()) {
-                    final MutableContainer container = populatedContainers.get(loader);
+            for (ClassLoader loader = classLoader; loader != null; loader = loader.getParent()) {
+                final MutableContainer container = populatedContainers.get(loader);
 
-                    if (container != null) {
-                        containers.add(container);
-                    }
+                if (container != null) {
+                    containers.add(container);
                 }
-
-                return containers;
             }
+
+            return containers;
         };
 
         return Security.CONTROLLED ? AccessController.doPrivileged(list) : list.run();
@@ -461,11 +443,9 @@ public final class ContainerBoundary implements ComponentContainer {
                 for (final ListIterator<MutableContainer> iterator = containers.listIterator(containers.size()); iterator.hasPrevious(); ) {
                     final MutableContainer container = iterator.previous();
 
-                    Exceptions.wrap(new Process<Void, Exception>() {
-                        public Void run() throws Exception {
-                            containerBootstrap.initializeContainer(container, containerServices);
-                            return null;
-                        }
+                    Exceptions.wrap(() -> {
+                        containerBootstrap.initializeContainer(container, containerServices);
+                        return null;
                     });
 
                     if (container == initialized) {

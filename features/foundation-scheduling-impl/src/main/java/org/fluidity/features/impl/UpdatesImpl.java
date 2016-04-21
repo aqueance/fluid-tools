@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,11 +37,7 @@ final class UpdatesImpl implements Updates {
         delay = configuration.settings().period();
 
         if (delay > 0) {
-            scheduler.invoke(delay, delay, new Scheduler.Task() {
-                public void run() {
-                    timestamp = System.currentTimeMillis();
-                }
-            });
+            scheduler.invoke(delay, delay, () -> timestamp = System.currentTimeMillis());
         }
     }
 
@@ -51,11 +47,7 @@ final class UpdatesImpl implements Updates {
         if (interval < 0) {
 
             // transparent snapshot
-            return new Snapshot<T>() {
-                public T get() {
-                    return loader.get();
-                }
-            };
+            return loader::get;
         } else if (interval == 0) {
 
             // static snapshot

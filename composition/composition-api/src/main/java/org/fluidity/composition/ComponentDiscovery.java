@@ -18,7 +18,7 @@ package org.fluidity.composition;
 
 /**
  * Partially implements the <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#service-providers">service provider</a> discovery
- * mechanism described in the <a href="http://docs.oracle.com/javase/8/docs/technotes/guides/jar/jar.html#Service_Provider">JAR File Specification</a>. The
+ * mechanism described in the <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/jar/jar.html#Service_Provider">JAR File Specification</a>. The
  * implementation is partial because this component does not instantiate the service provider classes, it only finds them.
  * <p>
  * The goal of this component is to find and return the list of <em>classes</em> that implement a given interface or extend a given class. To find <em>and

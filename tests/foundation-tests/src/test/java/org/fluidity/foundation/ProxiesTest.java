@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,26 +27,22 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("EqualsWithItself")
 public class ProxiesTest extends Simulator {
 
     private final TestObject mock = dependencies().normal(TestObject.class);
+    private final InvocationHandler invocations = (proxy, method, arguments) -> method.invoke(mock, arguments);
 
-    interface TestObject {
+    private interface TestObject {
 
         int id();
     }
 
     @Test
     public void testIntrospection() throws Exception {
-        final InvocationHandler handler = new InvocationHandler() {
-            public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
-                return method.invoke(mock, arguments);
-            }
-        };
+        final TestObject proxy = Proxies.create(TestObject.class, invocations);
 
-        final TestObject proxy = Proxies.create(TestObject.class, handler);
-
-        assert Proxies.handler(proxy) == handler;
+        assert Proxies.handler(proxy) == invocations;
 
         final Class<?>[] types = proxy.getClass().getInterfaces();
         assert types != null;
@@ -56,25 +52,14 @@ public class ProxiesTest extends Simulator {
 
     @Test
     public void testDefaultIdentity() throws Exception {
-        final TestObject instance1 = Proxies.create(TestObject.class, new InvocationHandler() {
-            public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
-                return method.invoke(mock, arguments);
-            }
-        });
+        final TestObject instance1 = Proxies.create(TestObject.class, invocations);
+        final TestObject instance2 = Proxies.create(TestObject.class, invocations);
 
-        final TestObject instance2 = Proxies.create(TestObject.class, new InvocationHandler() {
-            public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
-                return method.invoke(mock, arguments);
-            }
-        });
-
-        verify(new Task() {
-            public void run() throws Exception {
-                assert instance1.equals(instance1);
-                assert instance2.equals(instance2);
-                assert !instance1.equals(instance2);
-                assert !instance2.equals(instance1);
-            }
+        verify(() -> {
+            assert instance1.equals(instance1);
+            assert instance2.equals(instance2);
+            assert !instance1.equals(instance2);
+            assert !instance2.equals(instance1);
         });
     }
 
@@ -100,29 +85,18 @@ public class ProxiesTest extends Simulator {
             }
         };
 
-        final TestObject instance1 = Proxies.create(TestObject.class, identity, new InvocationHandler() {
-            public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
-                return method.invoke(mock, arguments);
-            }
-        });
-
-        final TestObject instance2 = Proxies.create(TestObject.class, identity, new InvocationHandler() {
-            public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
-                return method.invoke(mock, arguments);
-            }
-        });
+        final TestObject instance1 = Proxies.create(TestObject.class, identity, invocations);
+        final TestObject instance2 = Proxies.create(TestObject.class, identity, invocations);
 
         EasyMock.expect(mock.id()).andReturn(1234).anyTimes();
 
-        verify(new Task() {
-            public void run() throws Exception {
-                assert instance1.id() == 1234;
-                assert instance2.id() == 1234;
-                assert instance1.equals(instance1);
-                assert instance2.equals(instance2);
-                assert instance1.equals(instance2);
-                assert instance2.equals(instance1);
-            }
+        verify(() -> {
+            assert instance1.id() == 1234;
+            assert instance2.id() == 1234;
+            assert instance1.equals(instance1);
+            assert instance2.equals(instance2);
+            assert instance1.equals(instance2);
+            assert instance2.equals(instance1);
         });
     }
 }

@@ -166,7 +166,7 @@ public interface DependencyInjector {
      *
      * @author Tibor Varga
      */
-    public interface Resolution {
+    interface Resolution {
 
         /**
          * Resolves a {@link org.fluidity.composition.ComponentContext}.

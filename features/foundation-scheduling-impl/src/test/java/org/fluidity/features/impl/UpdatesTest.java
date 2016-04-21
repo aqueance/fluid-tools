@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.features.Scheduler;
 import org.fluidity.features.Updates;
-import org.fluidity.foundation.Command;
 import org.fluidity.foundation.testing.MockConfiguration;
 import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
@@ -44,33 +42,23 @@ public class UpdatesTest extends Simulator {
 
     private Updates updates;
 
-    public Scheduler.Task setPeriod(final boolean schedule) throws Exception {
+    private Scheduler.Task setPeriod(final boolean schedule) throws Exception {
         assert updates == null;
         final long period = schedule ? 10 : 0;
 
-        configuration.expectSettings(new Command.Operation<UpdatesImpl.Settings, Exception>() {
-            public void run(final UpdatesImpl.Settings settings) throws Exception {
-                EasyMock.expect(settings.period()).andReturn(period);
-            }
-        });
+        configuration.expectSettings(settings -> EasyMock.expect(settings.period()).andReturn(period));
 
-        final AtomicReference<Scheduler.Task> task = new AtomicReference<Scheduler.Task>();
+        final AtomicReference<Scheduler.Task> task = new AtomicReference<>();
 
         if (period > 0) {
-            EasyMock.expect(scheduler.invoke(EasyMock.eq(period), EasyMock.eq(period), EasyMock.<Scheduler.Task>anyObject()))
-                    .andAnswer(new IAnswer<Scheduler.Task.Control>() {
-                        public Scheduler.Task.Control answer() throws Throwable {
-                            task.set((Scheduler.Task) EasyMock.getCurrentArguments()[2]);
-                            return control;
-                        }
+            EasyMock.expect(scheduler.invoke(EasyMock.eq(period), EasyMock.eq(period), EasyMock.anyObject()))
+                    .andAnswer(() -> {
+                        task.set((Scheduler.Task) EasyMock.getCurrentArguments()[2]);
+                        return control;
                     });
         }
 
-        updates = verify(new Work<Updates>() {
-            public Updates run() throws Exception {
-                return new UpdatesImpl(scheduler, configuration.get());
-            }
-        });
+        updates = verify((Work<Updates>) () -> new UpdatesImpl(scheduler, configuration.get()));
 
         return task.get();
     }
@@ -88,38 +76,24 @@ public class UpdatesTest extends Simulator {
         final Object context = new Object();
 
         // initialization
-        final Updates.Snapshot<Object> snapshot = test(new Work<Updates.Snapshot<Object>>() {
-            public Updates.Snapshot<Object> run() throws Exception {
-                EasyMock.expect(loader.get()).andReturn(context);
+        final Updates.Snapshot<Object> snapshot = test(() -> {
+            EasyMock.expect(loader.get()).andReturn(context);
 
-                return verify(new Work<Updates.Snapshot<Object>>() {
-                    public Updates.Snapshot<Object> run() throws Exception {
-                        return updates.snapshot(100, loader);
-                    }
-                });
-            }
+            return verify(() -> updates.snapshot(100, loader));
         });
 
-        verify(new Task() {
-            public void run() throws Exception {
-                assert context == snapshot.get();
-                assert context == snapshot.get();
-            }
+        verify(() -> {
+            assert context == snapshot.get();
+            assert context == snapshot.get();
         });
 
         Thread.sleep(150);
         timer.run();
 
-        test(new Task() {
-            public void run() throws Exception {
-                EasyMock.expect(loader.get()).andReturn(new Object());
+        test(() -> {
+            EasyMock.expect(loader.get()).andReturn(new Object());
 
-                assert context != verify(new Work<Object>() {
-                    public Object run() throws Exception {
-                        return snapshot.get();
-                    }
-                });
-            }
+            assert context != verify(snapshot::get);
         });
     }
 
@@ -131,32 +105,20 @@ public class UpdatesTest extends Simulator {
         final Object context = new Object();
 
         // initialization
-        final Updates.Snapshot<Object> snapshot = test(new Work<Updates.Snapshot<Object>>() {
-            public Updates.Snapshot<Object> run() throws Exception {
-                EasyMock.expect(loader.get()).andReturn(context);
+        final Updates.Snapshot<Object> snapshot = test(() -> {
+            EasyMock.expect(loader.get()).andReturn(context);
 
-                return verify(new Work<Updates.Snapshot<Object>>() {
-                    public Updates.Snapshot<Object> run() throws Exception {
-                        return updates.snapshot(100, loader);
-                    }
-                });
-            }
+            return verify(() -> updates.snapshot(100, loader));
         });
 
-        verify(new Task() {
-            public void run() throws Exception {
-                assert context == snapshot.get();
-                assert context == snapshot.get();
-            }
+        verify(() -> {
+            assert context == snapshot.get();
+            assert context == snapshot.get();
         });
 
         Thread.sleep(150);
 
-        assert context == verify(new Work<Object>() {
-            public Object run() throws Exception {
-                return snapshot.get();
-            }
-        });
+        assert context == verify(snapshot::get);
     }
 
     @Test
@@ -167,32 +129,20 @@ public class UpdatesTest extends Simulator {
         final Object context = new Object();
 
         // initialization
-        final Updates.Snapshot<Object> snapshot = test(new Work<Updates.Snapshot<Object>>() {
-            public Updates.Snapshot<Object> run() throws Exception {
-                EasyMock.expect(loader.get()).andReturn(context);
+        final Updates.Snapshot<Object> snapshot = test(() -> {
+            EasyMock.expect(loader.get()).andReturn(context);
 
-                return verify(new Work<Updates.Snapshot<Object>>() {
-                    public Updates.Snapshot<Object> run() throws Exception {
-                        return updates.snapshot(0, loader);
-                    }
-                });
-            }
+            return verify(() -> updates.snapshot(0, loader));
         });
 
-        verify(new Task() {
-            public void run() throws Exception {
-                assert context == snapshot.get();
-                assert context == snapshot.get();
-            }
+        verify(() -> {
+            assert context == snapshot.get();
+            assert context == snapshot.get();
         });
 
         Thread.sleep(150);
 
-        assert context == verify(new Work<Object>() {
-            public Object run() throws Exception {
-                return snapshot.get();
-            }
-        });
+        assert context == verify(snapshot::get);
     }
 
     @Test
@@ -203,34 +153,18 @@ public class UpdatesTest extends Simulator {
         final Object context1 = new Object();
         final Object context2 = new Object();
 
-        final Updates.Snapshot<Object> snapshot = verify(new Work<Updates.Snapshot<Object>>() {
-            public Updates.Snapshot<Object> run() throws Exception {
-                return updates.snapshot(-1, loader);
-            }
+        final Updates.Snapshot<Object> snapshot = verify(() -> updates.snapshot(-1, loader));
+
+        test(() -> {
+            EasyMock.expect(loader.get()).andReturn(context1);
+
+            assert context1 == verify(snapshot::get);
         });
 
-        test(new Task() {
-            public void run() throws Exception {
-                EasyMock.expect(loader.get()).andReturn(context1);
+        test(() -> {
+            EasyMock.expect(loader.get()).andReturn(context2);
 
-                assert context1 == verify(new Work<Object>() {
-                    public Object run() throws Exception {
-                        return snapshot.get();
-                    }
-                });
-            }
-        });
-
-        test(new Task() {
-            public void run() throws Exception {
-                EasyMock.expect(loader.get()).andReturn(context2);
-
-                assert context2 == verify(new Work<Object>() {
-                    public Object run() throws Exception {
-                        return snapshot.get();
-                    }
-                });
-            }
+            assert context2 == verify(snapshot::get);
         });
     }
 }

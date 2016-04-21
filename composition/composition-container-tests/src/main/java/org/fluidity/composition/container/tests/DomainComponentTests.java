@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class DomainComponentTests extends AbstractContainerTests {
 
-    public DomainComponentTests(final ArtifactFactory factory) {
+    DomainComponentTests(final ArtifactFactory factory) {
         super(factory);
     }
 
@@ -38,11 +38,7 @@ public final class DomainComponentTests extends AbstractContainerTests {
     public void testComponentResolution() throws Exception {
         registry.bindComponent(Component.class);
 
-        final OpenContainer domain = container.makeDomainContainer(new ComponentContainer.Bindings() {
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(Dependency.class);
-            }
-        });
+        final OpenContainer domain = container.makeDomainContainer(registry -> registry.bindComponent(Dependency.class));
 
         try {
             container.getComponent(Component.class);
@@ -58,17 +54,9 @@ public final class DomainComponentTests extends AbstractContainerTests {
     public void testDomainIsolation() throws Exception {
         registry.bindComponent(Component.class);
 
-        final OpenContainer domain1 = container.makeDomainContainer(new ComponentContainer.Bindings() {
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(Dependency.class);
-            }
-        });
+        final OpenContainer domain1 = container.makeDomainContainer(registry -> registry.bindComponent(Dependency.class));
 
-        final OpenContainer domain2 = container.makeDomainContainer(new ComponentContainer.Bindings() {
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(Dependency.class);
-            }
-        });
+        final OpenContainer domain2 = container.makeDomainContainer(registry -> registry.bindComponent(Dependency.class));
 
         try {
             container.getComponent(Component.class);
@@ -94,11 +82,7 @@ public final class DomainComponentTests extends AbstractContainerTests {
         registry.bindComponent(Component.class);
         registry.bindComponent(Dependency.class);
 
-        final OpenContainer domain = container.makeDomainContainer(new ComponentContainer.Bindings() {
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(Dependency.class);
-            }
-        });
+        final OpenContainer domain = container.makeDomainContainer(registry -> registry.bindComponent(Dependency.class));
 
         final Root component = domain.getComponent(Root.class);
         assert component != null;
@@ -118,11 +102,7 @@ public final class DomainComponentTests extends AbstractContainerTests {
         registry.bindComponent(Component.class);
         registry.bindComponent(Dependency.class);
 
-        final OpenContainer domain = container.makeDomainContainer(new ComponentContainer.Bindings() {
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(Component.class);
-            }
-        });
+        final OpenContainer domain = container.makeDomainContainer(registry -> registry.bindComponent(Component.class));
 
         final Root component = domain.getComponent(Root.class);
         assert component != null;
@@ -144,11 +124,7 @@ public final class DomainComponentTests extends AbstractContainerTests {
 
         final Component fallback = container.getComponent(Component.class);     // acquire this and its dependency before the domain container can say a word
 
-        final OpenContainer domain = container.makeDomainContainer(new ComponentContainer.Bindings() {
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(Component.class);
-            }
-        });
+        final OpenContainer domain = container.makeDomainContainer(registry -> registry.bindComponent(Component.class));
 
         final Root component = domain.getComponent(Root.class);
         assert component != null;
@@ -179,18 +155,14 @@ public final class DomainComponentTests extends AbstractContainerTests {
     public void testComponentGroups() throws Exception {
         registry.bindComponent(GroupMember1.class);
 
-        final OpenContainer domain1 = container.makeDomainContainer(new ComponentContainer.Bindings() {
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(Dependency.class);
-                registry.bindComponent(GroupMember2.class);
-            }
+        final OpenContainer domain1 = container.makeDomainContainer(registry -> {
+            registry.bindComponent(Dependency.class);
+            registry.bindComponent(GroupMember2.class);
         });
 
-        final OpenContainer domain2 = container.makeDomainContainer(new ComponentContainer.Bindings() {
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(Dependency.class);
-                registry.bindComponent(GroupMember3.class);
-            }
+        final OpenContainer domain2 = container.makeDomainContainer(registry -> {
+            registry.bindComponent(Dependency.class);
+            registry.bindComponent(GroupMember3.class);
         });
 
         try {
@@ -236,23 +208,23 @@ public final class DomainComponentTests extends AbstractContainerTests {
     private static class Dependency { }
 
     @ComponentGroup
-    public interface GroupApi { }
+    interface GroupApi { }
 
-    public static class GroupMember1 implements GroupApi {
+    private static class GroupMember1 implements GroupApi {
 
         public GroupMember1(final Dependency dependency) {
             assert dependency != null;
         }
     }
 
-    public static class GroupMember2 implements GroupApi {
+    private static class GroupMember2 implements GroupApi {
 
         public GroupMember2(final Dependency dependency) {
             assert dependency != null;
         }
     }
 
-    public static class GroupMember3 implements GroupApi {
+    private static class GroupMember3 implements GroupApi {
 
         public GroupMember3(final Dependency dependency) {
             assert dependency != null;

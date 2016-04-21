@@ -37,10 +37,9 @@ package org.fluidity.features;
  *   private final <span class="hl1">Updates.Snapshot</span>&lt;<span class="hl3">Data</span>&gt; data;
  *
  *   <span class="hl2">MyComponent</span>(final <span class="hl1">Updates</span> updates) {
- *     data = updates.<span class="hl1">snapshot</span>(period, new <span class="hl1">Updates.Snapshot</span>&lt;<span class="hl3">Data</span>&gt;() {
- *       public <span class="hl3">Data</span> get() {
- *         return &hellip;;  // update the data
- *       }
+ *     data = updates.<span class="hl1">snapshot</span>(period, () -&gt; {
+ *       &hellip;
+ *       return new <span class="hl3">Data</span>(&hellip;);    // create or update the data
  *     });
  *   }
  *
@@ -97,6 +96,7 @@ public interface Updates {
      *
      * @author Tibor Varga
      */
+    @FunctionalInterface
     interface Snapshot<T> {
 
         /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,41 +49,25 @@ public class EmptyRegistryTest extends Simulator {
         EasyMock.expect(delegate.makeChildContainer(Components.inspect(MarkedGroupComponent.class))).andReturn(container);
         EasyMock.expect(container.getRegistry()).andReturn(registry);
 
-        final ComponentContainer.Registry registry = verify(new Work<ComponentContainer.Registry>() {
-            public ComponentContainer.Registry run() throws Exception {
-                return EmptyRegistryTest.this.registry.isolateComponent(MarkedGroupComponent.class);
-            }
-        });
+        final ComponentContainer.Registry registry = verify(() -> EmptyRegistryTest.this.registry.isolateComponent(MarkedGroupComponent.class));
 
         assert registry == this.registry;
     }
 
     @Test
     public void subclassWithComponentAnnotation() throws Exception {
-        test(new Task() {
-            public void run() throws Exception {
-                delegate.bindComponent(Components.inspect(UnmarkedComponent.class));
+        test(() -> {
+            delegate.bindComponent(Components.inspect(UnmarkedComponent.class));
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        registry.bindComponent(UnmarkedComponent.class);
-                    }
-                });
-            }
+            verify(() -> registry.bindComponent(UnmarkedComponent.class));
         });
 
-        test(new Task() {
-            public void run() throws Exception {
-                final Object component = new UnmarkedComponent();
+        test(() -> {
+            final Object component = new UnmarkedComponent();
 
-                delegate.bindInstance(component, Components.inspect(UnmarkedComponent.class));
+            delegate.bindInstance(component, Components.inspect(UnmarkedComponent.class));
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        registry.bindInstance(component);
-                    }
-                });
-            }
+            verify(() -> registry.bindInstance(component));
         });
     }
 
@@ -135,25 +119,21 @@ public class EmptyRegistryTest extends Simulator {
     public void bindsComponentGroup() throws Exception {
         final Class<?>[] elements = { GroupComponent1.class, GroupComponent2.class, GroupComponent3.class };
 
-        final Collection<Class<?>> groups = Collections.<Class<?>>singletonList(GroupComponent.class);
+        final Collection<Class<?>> groups = Collections.singletonList(GroupComponent.class);
         for (final Class type : elements) {
             delegate.bindComponent(new Components.Interfaces(type, new Components.Specification[] {
                     new Components.Specification(type, groups)
             }));
         }
 
-        verify(new Task() {
-            public void run() throws Exception {
-                registry.bindComponentGroup(GroupComponent.class, (Class<GroupComponent>[]) elements);
-            }
-        });
+        verify(() -> registry.bindComponentGroup(GroupComponent.class, (Class<GroupComponent>[]) elements));
     }
 
     interface GroupComponent { }
 
-    public static class GroupComponent1 implements GroupComponent { }
+    private static class GroupComponent1 implements GroupComponent { }
 
-    public static class GroupComponent2 implements GroupComponent { }
+    private static class GroupComponent2 implements GroupComponent { }
 
-    public static class GroupComponent3 implements GroupComponent { }
+    private static class GroupComponent3 implements GroupComponent { }
 }

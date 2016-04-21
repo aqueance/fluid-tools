@@ -196,6 +196,7 @@ public interface Configuration<T> {
      * @param <P> the settings interface type passed to the {@link #run(Object) run()} method.
      * @param <R> the return type of the {@link #run(Object) run()} method.
      */
+    @FunctionalInterface
     interface Query<R, P> {
 
         /**

@@ -16,8 +16,6 @@
 
 package org.fluidity.testing;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -119,15 +117,15 @@ import org.testng.annotations.AfterMethod;
  *
  * @author Tibor Varga
  */
-@SuppressWarnings("UnusedDeclaration")
+@SuppressWarnings({ "UnusedDeclaration", "WeakerAccess" })
 public class Simulator {
 
     private final MockControl dependencies = new ControlGroup();
-    private final Collection<MockControl> transients = new ArrayList<MockControl>();
+    private final Collection<MockControl> transients = new ArrayList<>();
 
     private MockControl arguments = newLocalObjects();    // must be defined after groups have been initialized
 
-    final AtomicReference<CompositeFactory> locals = new AtomicReference<CompositeFactory>();
+    private final AtomicReference<CompositeFactory> locals = new AtomicReference<>();
 
     /**
      * Default constructor; does nothing.
@@ -183,6 +181,7 @@ public class Simulator {
      *
      * @author Tibor Varga
      */
+    @FunctionalInterface
     public interface Work<T> extends Command.Process<T, Exception> { }
 
     /**
@@ -192,6 +191,7 @@ public class Simulator {
      *
      * @author Tibor Varga
      */
+    @FunctionalInterface
     public interface Task extends Command.Job<Exception> {
 
         /**
@@ -199,6 +199,7 @@ public class Simulator {
          *
          * @author Tibor Varga
          */
+        @FunctionalInterface
         interface Concurrent extends Command.Function<Task, MockObjects, Exception> {
 
             /**
@@ -312,23 +313,17 @@ public class Simulator {
 
     private synchronized void replay() {
         dependencies.replay();
-        for (final MockControl control : transients) {
-            control.replay();
-        }
+        transients.forEach(MockControl::replay);
     }
 
     private synchronized void verify() {
         dependencies.verify();
-        for (final MockControl control : transients) {
-            control.verify();
-        }
+        transients.forEach(MockControl::verify);
     }
 
     private synchronized void reset() {
         dependencies.reset();
-        for (final MockControl control : transients) {
-            control.reset();
-        }
+        transients.forEach(MockControl::reset);
     }
 
     /**
@@ -340,6 +335,7 @@ public class Simulator {
      *
      * @return the method parameter.
      */
+    @SafeVarargs
     public final <T> T[] varEq(final T... expected) {
         for (final T value : expected) {
             EasyMock.reportMatcher(new Equals(value));
@@ -357,6 +353,7 @@ public class Simulator {
      *
      * @return the method parameter.
      */
+    @SafeVarargs
     public final <T> T[] varSame(final T... expected) {
         for (final T value : expected) {
             EasyMock.reportMatcher(new Same(value));
@@ -374,6 +371,7 @@ public class Simulator {
      *
      * @return the method parameter.
      */
+    @SafeVarargs
     public final <T> T[] varNotNull(final T... expected) {
         for (final T value : expected) {
             EasyMock.reportMatcher(NotNull.NOT_NULL);
@@ -405,20 +403,18 @@ public class Simulator {
      * @return a composite mock object suitable for multi-threaded access.
      */
     public final <T> Composite<T> composite(final Class<T> type, final T mock) {
-        final ThreadLocal<T> local = new ThreadLocal<T>();
+        final ThreadLocal<T> local = new ThreadLocal<>();
 
         local.set(mock);
 
-        final T proxy = Proxies.create(type, new InvocationHandler() {
-            public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
-                final T delegate = local.get();
+        final T proxy = Proxies.create(type, (_proxy, method, arguments) -> {
+            final T delegate = local.get();
 
-                if (delegate == null) {
-                    throw new IllegalStateException(String.format("No concurrent mock created for %1$s; call Composite<%1$s>.use(%1$s) on the mock object returned from Simulator.composite()",
-                                                                  Strings.formatClass(false, false, type)));
-                } else {
-                    return method.invoke(delegate, arguments);
-                }
+            if (delegate == null) {
+                throw new IllegalStateException(String.format("No concurrent mock created for %1$s; call Composite<%1$s>.use(%1$s) on the mock object returned from Simulator.composite()",
+                                                              Strings.formatClass(false, false, type)));
+            } else {
+                return method.invoke(delegate, arguments);
             }
         });
 
@@ -798,12 +794,13 @@ public class Simulator {
     /**
      * @author Tibor Varga
      */
+    @SuppressWarnings("ThrowFromFinallyBlock")
     private final class ThreadsImpl implements Threads {
 
         private final int TIMING_BASE_MS = Integer.getInteger(TIMING_BASE, 10);
 
-        private final List<Thread> threads = new ArrayList<Thread>();
-        private final List<Exception> errors = new ArrayList<Exception>();
+        private final List<Thread> threads = new ArrayList<>();
+        private final List<Exception> errors = new ArrayList<>();
         private CountDownLatch latch;
 
         private final String name;
@@ -831,7 +828,7 @@ public class Simulator {
             }
             checkNesting(method);
 
-            final List<Task> composites = new ArrayList<Task>();
+            final List<Task> composites = new ArrayList<>();
             final ConcurrentFactory factory = new ConcurrentFactory(composites, Simulator.this.concurrent());
 
             final Task task;
@@ -872,9 +869,7 @@ public class Simulator {
             errors.clear();
 
             try {
-                for (final Thread thread : threads) {
-                    thread.start();
-                }
+                threads.forEach(Thread::start);
             } finally {
                 threads.clear();
             }
@@ -897,9 +892,7 @@ public class Simulator {
                         throw new TimeoutException("Thread completion");
                     }
                 } else {
-                    for (final Exception error : errors) {
-                        error.printStackTrace();
-                    }
+                    errors.forEach(Exception::printStackTrace);
                 }
 
                 assert errors.isEmpty();
@@ -911,17 +904,15 @@ public class Simulator {
         public final void verify(final long timeout, final Task task) throws Exception {
             checkNesting("verify");
 
-            Simulator.this.verify(new Task() {
-                public void run() throws Exception {
-                    release();
+            Simulator.this.verify(() -> {
+                release();
 
-                    try {
-                        if (task != null) {
-                            task.run();
-                        }
-                    } finally {
-                        join(timeout);
+                try {
+                    if (task != null) {
+                        task.run();
                     }
+                } finally {
+                    join(timeout);
                 }
             });
         }
@@ -929,17 +920,15 @@ public class Simulator {
         public final void guarantee(final long timeout, final Task task) throws Exception {
             checkNesting("guarantee");
 
-            Simulator.this.guarantee(new Task() {
-                public void run() throws Exception {
-                    release();
+            Simulator.this.guarantee(() -> {
+                release();
 
-                    try {
-                        if (task != null) {
-                            task.run();
-                        }
-                    } finally {
-                        join(timeout);
+                try {
+                    if (task != null) {
+                        task.run();
                     }
+                } finally {
+                    join(timeout);
                 }
             });
         }
@@ -948,15 +937,13 @@ public class Simulator {
             assert block != null;
             checkNesting("verify");
 
-            return Simulator.this.verify(new Work<T>() {
-                public T run() throws Exception {
-                    release();
+            return Simulator.this.verify(() -> {
+                release();
 
-                    try {
-                        return block.run();
-                    } finally {
-                        join(timeout);
-                    }
+                try {
+                    return block.run();
+                } finally {
+                    join(timeout);
                 }
             });
         }
@@ -965,15 +952,13 @@ public class Simulator {
             assert block != null;
             checkNesting("guarantee");
 
-            return Simulator.this.guarantee(new Work<T>() {
-                public T run() throws Exception {
-                    release();
+            return Simulator.this.guarantee(() -> {
+                release();
 
-                    try {
-                        return block.run();
-                    } finally {
-                        join(timeout);
-                    }
+                try {
+                    return block.run();
+                } finally {
+                    join(timeout);
                 }
             });
         }
@@ -988,17 +973,13 @@ public class Simulator {
         private final List<Task> composites;
         private final MockObjects factory;
 
-        public ConcurrentFactory(final List<Task> composites, final MockObjects factory) {
+        ConcurrentFactory(final List<Task> composites, final MockObjects factory) {
             this.composites = composites;
             this.factory = factory;
         }
 
         private <T> T init(final Composite<T> composite, final T mock) {
-            composites.add(new Task() {
-                public void run() throws Exception {
-                    composite.use(mock);
-                }
-            });
+            composites.add(() -> composite.use(mock));
 
             return mock;
         }
@@ -1059,11 +1040,11 @@ public class Simulator {
      */
     private static class ControlGroup implements MockControl {
 
-        public final IMocksControl strictGroup = EasyMock.createStrictControl();
-        public final IMocksControl normalGroup = EasyMock.createControl();
-        public final IMocksControl niceGroup = EasyMock.createNiceControl();
+        final IMocksControl strictGroup = EasyMock.createStrictControl();
+        final IMocksControl normalGroup = EasyMock.createControl();
+        final IMocksControl niceGroup = EasyMock.createNiceControl();
 
-        public final IMocksControl[] groups = { strictGroup, normalGroup, niceGroup };
+        final IMocksControl[] groups = { strictGroup, normalGroup, niceGroup };
 
         ControlGroup() {
             for (final IMocksControl control : groups) {

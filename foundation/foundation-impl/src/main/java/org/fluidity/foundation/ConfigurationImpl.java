@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
 
         @SuppressWarnings("unchecked")
         final Class<T> api = (Class<T>) context.qualifier(Component.Reference.class, Configuration.class).parameter(0);
-        this.settings = Proxies.create(api, new PropertyLoader<T>(api, propertyContexts(context.qualifiers(Prefix.class)), defaults, provider));
+        this.settings = Proxies.create(api, new PropertyLoader<>(api, propertyContexts(context.qualifiers(Prefix.class)), defaults, provider));
     }
 
     public T settings() {
@@ -72,17 +72,11 @@ final class ConfigurationImpl<T> implements Configuration<T> {
     }
 
     public <R> R query(final Query<R, T> query) {
-        return Exceptions.wrap(new Process<R, Exception>() {
-            public R run() throws Exception {
-                if (provider == null) {
-                    return query.run(settings);
-                } else {
-                    return provider.properties(new PropertyProvider.Query<R>() {
-                        public R run() throws Exception {
-                            return query.run(settings);
-                        }
-                    });
-                }
+        return Exceptions.wrap(() -> {
+            if (provider == null) {
+                return query.run(settings);
+            } else {
+                return provider.properties(() -> query.run(settings));
             }
         });
     }
@@ -106,7 +100,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
      *  - (empty prefix)
      */
     private String[] propertyContexts(final Prefix[] annotations) {
-        final List<String> contexts = new ArrayList<String>();
+        final List<String> contexts = new ArrayList<>();
 
         if (annotations != null) {
             for (final Prefix context : annotations) {
@@ -114,7 +108,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
             }
         }
 
-        final List<String> list = new ArrayList<String>(contexts.size() << 1);
+        final List<String> list = new ArrayList<>(contexts.size() << 1);
 
         final StringBuilder prefix = new StringBuilder();
 
@@ -153,11 +147,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
             this.defaults = defaults;
             this.provider = provider;
 
-            this.loader = !Security.CONTROLLED ? api.getClassLoader() : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-                public ClassLoader run() {
-                    return api.getClassLoader();
-                }
-            });
+            this.loader = !Security.CONTROLLED ? api.getClassLoader() : AccessController.doPrivileged((PrivilegedAction<ClassLoader>) api::getClassLoader);
         }
 
         public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
@@ -169,31 +159,27 @@ final class ConfigurationImpl<T> implements Configuration<T> {
             final Class<?> type = method.getReturnType();
             final Type genericType = method.getGenericReturnType();
 
-            return Exceptions.wrap(method.toGenericString(), PropertyException.class, new Process<Object, Exception>() {
-                public Object run() throws Exception {
-                    final PrivilegedAction<Object> action = new PrivilegedAction<Object>() {
-                        public Object run() {
-                            if (!method.isAccessible()) {
-                                method.setAccessible(true);
-                            }
+            return Exceptions.wrap(method.toGenericString(), PropertyException.class, () -> {
+                final PrivilegedAction<Object> action = () -> {
+                    if (!method.isAccessible()) {
+                        method.setAccessible(true);
+                    }
 
-                            return property(setting.split(),
-                                            setting.grouping(),
-                                            String.format(setting.ids(), arguments),
-                                            String.format(setting.list(), arguments),
-                                            String.format(setting.undefined(), arguments),
-                                            type,
-                                            genericType,
-                                            prefixes,
-                                            String.format(setting.key(), arguments),
-                                            defaults,
-                                            method,
-                                            arguments);
-                        }
-                    };
+                    return property(setting.split(),
+                                    setting.grouping(),
+                                    String.format(setting.ids(), arguments),
+                                    String.format(setting.list(), arguments),
+                                    String.format(setting.undefined(), arguments),
+                                    type,
+                                    genericType,
+                                    prefixes,
+                                    String.format(setting.key(), arguments),
+                                    defaults,
+                                    method,
+                                    arguments);
+                };
 
-                    return Security.CONTROLLED ? AccessController.doPrivileged(action) : action.run();
-                }
+                return Security.CONTROLLED ? AccessController.doPrivileged(action) : action.run();
             });
         }
 
@@ -247,7 +233,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                                                                  null);
 
                 if (identifiers != null) {
-                    final Map<String, Object> instances = new LinkedHashMap<String, Object>();
+                    final Map<String, Object> instances = new LinkedHashMap<>();
                     final String format = list == null || list.isEmpty() ? suffix.concat(".%s") : list;
                     final Type itemType;
 
@@ -281,11 +267,11 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                     }
 
                     if (List.class.isAssignableFrom(type)) {
-                        return new ArrayList<Object>(instances.values());
+                        return new ArrayList<>(instances.values());
                     } else if (Set.class.isAssignableFrom(type)) {
-                        return new HashSet<Object>(instances.values());
+                        return new HashSet<>(instances.values());
                     } else if (Map.class.isAssignableFrom(type)) {
-                        final Map<Object, Object> map = new LinkedHashMap<Object, Object>();
+                        final Map<Object, Object> map = new LinkedHashMap<>();
 
                         final Type keyType = Generics.typeParameter(genericType, 0);
                         for (final Map.Entry<String, Object> entry : instances.entrySet()) {
@@ -318,27 +304,25 @@ final class ConfigurationImpl<T> implements Configuration<T> {
 
         private Object composite(final Class<?> type, final String suffix) throws IllegalAccessException, InstantiationException {
             if (type.isInterface()) {
-                return Proxies.create(type, new InvocationHandler() {
-                    public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
-                        final Property setting = method.getAnnotation(Property.class);
+                return Proxies.create(type, (proxy, method, arguments) -> {
+                    final Property setting = method.getAnnotation(Property.class);
 
-                        if (setting == null) {
-                            throw new IllegalArgumentException(String.format("Method %s is not @%s annotated", method, Property.class));
-                        }
-
-                        return property(setting.split(),
-                                        setting.grouping(),
-                                        String.format(setting.ids(), arguments),
-                                        String.format(setting.list(), arguments),
-                                        String.format(setting.undefined(), arguments),
-                                        method.getReturnType(),
-                                        method.getGenericReturnType(),
-                                        prefixes,
-                                        String.format("%s.%s", suffix, String.format(setting.key(), arguments)),
-                                        null,
-                                        null,
-                                        null);
+                    if (setting == null) {
+                        throw new IllegalArgumentException(String.format("Method %s is not @%s annotated", method, Property.class));
                     }
+
+                    return property(setting.split(),
+                                    setting.grouping(),
+                                    String.format(setting.ids(), arguments),
+                                    String.format(setting.list(), arguments),
+                                    String.format(setting.undefined(), arguments),
+                                    method.getReturnType(),
+                                    method.getGenericReturnType(),
+                                    prefixes,
+                                    String.format("%s.%s", suffix, String.format(setting.key(), arguments)),
+                                    null,
+                                    null,
+                                    null);
                 });
             } else {
                 final Object instance = type.newInstance();
@@ -432,7 +416,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
         }
 
         @SuppressWarnings("unchecked")
-        <T extends Collection> T collectionValue(final T collection, final Object value, final Class<?> componentType, final Type generic, final String delimiter, final String groupers, final String suffix, final ClassLoader loader) {
+        <C extends Collection> C collectionValue(final C collection, final Object value, final Class<?> componentType, final Type generic, final String delimiter, final String groupers, final String suffix, final ClassLoader loader) {
             if (value instanceof String) {
                 for (final String item : split((String) value, delimiter, groupers)) {
                     collection.add(convert(item, componentType, generic, delimiter, groupers, suffix, loader));
@@ -509,7 +493,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                     throw new IllegalArgumentException(String.format("Missing a value for one of the keys in %s", value));
                 }
 
-                final AtomicReference<String> key = new AtomicReference<String>();
+                final AtomicReference<String> key = new AtomicReference<>();
 
                 for (final String item : pairs) {
                     if (!key.compareAndSet(null, item)) {
@@ -535,7 +519,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
             boolean escaped = false;
             PropertyLoader.SplitState state = PropertyLoader.SplitState.REGULAR;
 
-            final List<String> list = new ArrayList<String>();
+            final List<String> list = new ArrayList<>();
             final StringBuilder collected = new StringBuilder();
 
             for (int i = 0, limit = text.length(); i < limit; ++i) {
@@ -701,7 +685,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
         }
     }
 
-    private static Map<Class<?>, PrimitiveType> PRIMITIVE_TYPES = new HashMap<Class<?>, PrimitiveType>();
+    private static Map<Class<?>, PrimitiveType> PRIMITIVE_TYPES = new HashMap<>();
 
     static {
         @SuppressWarnings({ "MismatchedReadAndWriteOfArray", "UnusedDeclaration" })
@@ -718,7 +702,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
         DOUBLE(Double.class),
         BOOLEAN(Boolean.class);
 
-        private PrimitiveType(final Class<?> boxing) {
+        PrimitiveType(final Class<?> boxing) {
             try {
                 PRIMITIVE_TYPES.put(boxing, this);
                 PRIMITIVE_TYPES.put((Class<?>) boxing.getField("TYPE").get(null), this);

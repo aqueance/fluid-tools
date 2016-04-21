@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import java.util.regex.Pattern;
 
 import org.fluidity.deployment.plugin.spi.ServerBootstrap;
 import org.fluidity.foundation.Archives;
-import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Exceptions;
 
@@ -52,7 +51,7 @@ final class JettyBootstrap implements ServerBootstrap {
 
     public void bootstrap(final int httpPort, final boolean extract, final File bootApp, final List<File> managedApps, final String arguments[]) throws IOException {
         final WebAppContext defaultContext = deployWar(bootApp, true, extract);
-        final List<WebAppContext> contextList = new ArrayList<WebAppContext>();
+        final List<WebAppContext> contextList = new ArrayList<>();
 
         for (final File app : managedApps) {
             contextList.add(deployWar(app, false, extract));
@@ -125,7 +124,7 @@ final class JettyBootstrap implements ServerBootstrap {
 
         private final MetaData delegate;
 
-        public NestedMetaData(final MetaData delegate) {
+        NestedMetaData(final MetaData delegate) {
             assert delegate != null;
             this.delegate = delegate;
         }
@@ -135,11 +134,7 @@ final class JettyBootstrap implements ServerBootstrap {
         }
 
         private Resource nested(final Resource resource) {
-            return Exceptions.wrap(new Command.Process<Resource, IOException>() {
-                public Resource run() throws IOException {
-                    return replace(resource);
-                }
-            });
+            return Exceptions.wrap(() -> replace(resource));
         }
 
         @Override
@@ -321,11 +316,7 @@ final class JettyBootstrap implements ServerBootstrap {
     @SuppressWarnings("unchecked")
     private static class NestedWebAppContext extends WebAppContext {
 
-        private Deferred.Reference<NestedMetaData> metaData = Deferred.shared(new Deferred.Factory<NestedMetaData>() {
-            public NestedMetaData create() {
-                return new NestedMetaData(NestedWebAppContext.super.getMetaData());
-            }
-        });
+        private Deferred.Reference<NestedMetaData> metaData = Deferred.shared(() -> new NestedMetaData(NestedWebAppContext.super.getMetaData()));
 
         @Override
         public MetaData getMetaData() {

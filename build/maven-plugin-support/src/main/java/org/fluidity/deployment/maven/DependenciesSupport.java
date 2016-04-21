@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package org.fluidity.deployment.maven;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -55,7 +53,6 @@ import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.collection.DependencyCollectionContext;
 import org.eclipse.aether.collection.DependencyCollectionException;
 import org.eclipse.aether.collection.DependencySelector;
-import org.eclipse.aether.graph.DependencyFilter;
 import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.aether.graph.DependencyVisitor;
 import org.eclipse.aether.repository.RemoteRepository;
@@ -70,7 +67,7 @@ import org.eclipse.aether.util.graph.selector.StaticDependencySelector;
  *
  * @author Tibor Vara
  */
-@SuppressWarnings("UnusedDeclaration")
+@SuppressWarnings({ "UnusedDeclaration", "WeakerAccess" })
 public final class DependenciesSupport extends Utility {
 
     private static final StaticDependencySelector NO_SELECTOR = new StaticDependencySelector(false);
@@ -187,7 +184,7 @@ public final class DependenciesSupport extends Utility {
          * http://git.eclipse.org/c/aether/aether-demo.git/tree/aether-demo-snippets/src/main/java/org/eclipse/aether/examples
          */
 
-        final CollectRequest collectRequest = new CollectRequest(root, new ArrayList<RemoteRepository>(repositories));
+        final CollectRequest collectRequest = new CollectRequest(root, new ArrayList<>(repositories));
         final DependencyFilterSession filter = new DependencyFilterSession(patch(session), new DependencySelector() {
             public boolean selectDependency(final org.eclipse.aether.graph.Dependency dependency) {
                 return true;  // always accept the root artifact
@@ -201,18 +198,12 @@ public final class DependenciesSupport extends Utility {
         final DependencyNode node;
         try {
             node = system.collectDependencies(filter, collectRequest).getRoot();
-            system.resolveDependencies(filter, new DependencyRequest(node, new DependencyFilter() {
-                public boolean accept(final DependencyNode dependency, final List<DependencyNode> path) {
-                    return true;
-                }
-            }));
-        } catch (final DependencyCollectionException e) {
-            throw new MojoExecutionException(String.format("Finding transitive dependencies of %s", root), e);
-        } catch (final DependencyResolutionException e) {
+            system.resolveDependencies(filter, new DependencyRequest(node, (dependency, path) -> true));
+        } catch (final DependencyCollectionException | DependencyResolutionException e) {
             throw new MojoExecutionException(String.format("Finding transitive dependencies of %s", root), e);
         }
 
-        final Collection<Artifact> dependencies = new HashSet<Artifact>();
+        final Collection<Artifact> dependencies = new HashSet<>();
 
         for (final org.eclipse.aether.artifact.Artifact artifact : new ArtifactCollector(runtime, node).artifacts()) {
             final Artifact mavenArtifact = mavenArtifact(artifact);
@@ -341,7 +332,7 @@ public final class DependenciesSupport extends Utility {
      * @return the Maven dependency.
      */
     public static org.eclipse.aether.graph.Dependency aetherDependency(final Artifact original, final Collection<Exclusion> exclusions) {
-        final List<org.eclipse.aether.graph.Exclusion> exclusionList = new ArrayList<org.eclipse.aether.graph.Exclusion>();
+        final List<org.eclipse.aether.graph.Exclusion> exclusionList = new ArrayList<>();
 
         if (exclusions != null) {
             for (final Exclusion exclusion : exclusions) {
@@ -478,7 +469,7 @@ public final class DependenciesSupport extends Utility {
                                                final List<RemoteRepository> repositories,
                                                final List<Dependency> dependencies) throws MojoExecutionException {
         final DependencySelector selector = new TransitiveDependencySelector(false, false);
-        final Collection<Artifact> artifacts = new LinkedHashSet<Artifact>();
+        final Collection<Artifact> artifacts = new LinkedHashSet<>();
 
         for (final Dependency dependency : dependencies) {
             artifacts.addAll(closure(system, session, repositories, selector, false, aetherDependency(dependencyArtifact(dependency), dependency.getExclusions())));
@@ -507,13 +498,7 @@ public final class DependenciesSupport extends Utility {
         // thereby allowing property changes to affect profile activations.
 
         final WorkspaceReader reader = session.getWorkspaceReader();
-
-        session.setWorkspaceReader(Proxies.create(WorkspaceReader.class, new InvocationHandler() {
-            @Override
-            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                return method.invoke(reader, args);
-            }
-        }));
+        session.setWorkspaceReader(Proxies.create(WorkspaceReader.class, (proxy, method, args) -> method.invoke(reader, args)));
 
         return session;
     }
@@ -547,8 +532,8 @@ public final class DependenciesSupport extends Utility {
      */
     private static class TransitiveDependencySelector implements DependencySelector {
 
-        private static final Set<String> RUNTIME_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.PROVIDED, JavaScopes.RUNTIME, JavaScopes.SYSTEM));
-        private static final Set<String> COMPILE_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.PROVIDED, JavaScopes.SYSTEM));
+        private static final Set<String> RUNTIME_SCOPES = new HashSet<>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.PROVIDED, JavaScopes.RUNTIME, JavaScopes.SYSTEM));
+        private static final Set<String> COMPILE_SCOPES = new HashSet<>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.PROVIDED, JavaScopes.SYSTEM));
 
         private final boolean compile;
         private final boolean optionals;
@@ -559,7 +544,7 @@ public final class DependenciesSupport extends Utility {
         TransitiveDependencySelector(final boolean compile, boolean optionals, final String... exclusions) {
             this.compile = compile;
             this.optionals = optionals;
-            this.excludedArtifacts = new HashSet<String>(Arrays.asList(exclusions));
+            this.excludedArtifacts = new HashSet<>(Arrays.asList(exclusions));
             this.acceptedScopes = compile ? COMPILE_SCOPES : RUNTIME_SCOPES;
         }
 
@@ -579,7 +564,7 @@ public final class DependenciesSupport extends Utility {
                 final Collection<org.eclipse.aether.graph.Exclusion> exclusions = dependency.getExclusions();
 
                 if (optionals || !exclusions.isEmpty()) {
-                    final Set<String> excluded = new HashSet<String>(exclusions.size() + excludedArtifacts.size());
+                    final Set<String> excluded = new HashSet<>(exclusions.size() + excludedArtifacts.size());
 
                     excluded.addAll(excludedArtifacts);
 
@@ -603,13 +588,13 @@ public final class DependenciesSupport extends Utility {
      */
     private static class ArtifactCollector implements DependencyVisitor {
 
-        private final Set<String> ignored = new HashSet<String>();
-        private final Set<String> visited = new HashSet<String>();
-        private final List<org.eclipse.aether.artifact.Artifact> collected = new ArrayList<org.eclipse.aether.artifact.Artifact>();
+        private final Set<String> ignored = new HashSet<>();
+        private final Set<String> visited = new HashSet<>();
+        private final List<org.eclipse.aether.artifact.Artifact> collected = new ArrayList<>();
 
         private final boolean runtime;
 
-        public ArtifactCollector(final boolean runtime, final DependencyNode node) {
+        ArtifactCollector(final boolean runtime, final DependencyNode node) {
             this.runtime = runtime;
             node.accept(this);
         }
@@ -640,7 +625,7 @@ public final class DependenciesSupport extends Utility {
             return true;
         }
 
-        public Collection<org.eclipse.aether.artifact.Artifact> artifacts() {
+        private Collection<org.eclipse.aether.artifact.Artifact> artifacts() {
             return collected;
         }
 

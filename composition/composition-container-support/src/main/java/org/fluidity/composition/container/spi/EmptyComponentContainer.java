@@ -57,7 +57,7 @@ import static org.fluidity.foundation.Command.Function;
 public abstract class EmptyComponentContainer<C extends DependencyGraph> implements MutableContainer, ObservedContainer, ComponentRegistry {
 
     // allows traversal path and observers to propagate between containers
-    private static final ThreadLocal<DependencyGraph.Traversal> traversal = new InheritableThreadLocal<DependencyGraph.Traversal>();
+    private static final ThreadLocal<DependencyGraph.Traversal> traversal = new InheritableThreadLocal<>();
 
     /**
      * The container services supplied in the constructor.
@@ -144,11 +144,9 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
      */
     @SuppressWarnings("unchecked")
     public final <T> T getComponent(final Class<T> api) {
-        return traverse(services, new Function<T, DependencyGraph.Traversal, RuntimeException>() {
-            public T run(final DependencyGraph.Traversal traversal) {
-                final DependencyGraph.Node node = container.resolveComponent(api, context.advance(api, false), traversal, api);
-                return node == null ? null : (T) node.instance(traversal);
-            }
+        return traverse(services, traversal -> {
+            final DependencyGraph.Node node = container.resolveComponent(api, context.advance(api, false), traversal, api);
+            return node == null ? null : (T) node.instance(traversal);
         });
     }
 
@@ -157,11 +155,9 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
      */
     @SuppressWarnings("unchecked")
     public final <T> T[] getComponentGroup(final Class<T> api) {
-        return traverse(services, new Function<T[], DependencyGraph.Traversal, RuntimeException>() {
-            public T[] run(final DependencyGraph.Traversal traversal) {
-                final DependencyGraph.Node node = container.resolveGroup(api, context.advance(Array.newInstance(api, 0).getClass(), false).expand(null), traversal, api);
-                return node == null ? null : (T[]) node.instance(traversal);
-            }
+        return traverse(services, traversal -> {
+            final DependencyGraph.Node node = container.resolveGroup(api, context.advance(Array.newInstance(api, 0).getClass(), false).expand(null), traversal, api);
+            return node == null ? null : (T[]) node.instance(traversal);
         });
     }
 
@@ -169,11 +165,9 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
      * {@inheritDoc}
      */
     public final void resolveComponent(final Class<?> api) {
-        traverse(services, new Function<Void, DependencyGraph.Traversal, RuntimeException>() {
-            public Void run(final DependencyGraph.Traversal traversal) {
-                container.resolveComponent(api, context.advance(api, false), traversal, api);
-                return null;
-            }
+        traverse(services, traversal -> {
+            container.resolveComponent(api, context.advance(api, false), traversal, api);
+            return null;
         });
     }
 
@@ -181,11 +175,9 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
      * {@inheritDoc}
      */
     public final void resolveGroup(final Class<?> api) {
-        traverse(services, new Function<Void, DependencyGraph.Traversal, RuntimeException>() {
-            public Void run(final DependencyGraph.Traversal traversal) {
-                container.resolveGroup(api, context.advance(Array.newInstance(api, 0).getClass(), false).expand(null), traversal, api);
-                return null;
-            }
+        traverse(services, traversal -> {
+            container.resolveGroup(api, context.advance(Array.newInstance(api, 0).getClass(), false).expand(null), traversal, api);
+            return null;
         });
     }
 
@@ -228,15 +220,13 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
     /**
      * {@inheritDoc}
      */
+    @SuppressWarnings("unchecked")
     public final <T> T instantiate(final Class<T> componentClass, final Bindings... bindings) throws ResolutionException {
-        final OpenContainer container = makeChildContainer(new Bindings() {
-            @SuppressWarnings("unchecked")
-            public void bindComponents(final Registry registry) {
-                registry.bindComponent(componentClass, componentClass);
+        final OpenContainer container = makeChildContainer(registry -> {
+            registry.bindComponent(componentClass, componentClass);
 
-                for (final Bindings binding : bindings) {
-                    binding.bindComponents(registry);
-                }
+            for (final Bindings binding : bindings) {
+                binding.bindComponents(registry);
             }
         });
 
@@ -246,10 +236,11 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
     /**
      * {@inheritDoc}
      */
+    @SafeVarargs
     @SuppressWarnings("unchecked")
     public final <T> T complete(final T component, final Class<? super T>... api) throws ResolutionException {
         final Class<T> type = (Class<T>) component.getClass();
-        final List<Class<?>> interfaces = new ArrayList<Class<?>>();
+        final List<Class<?>> interfaces = new ArrayList<>();
 
         for (final Components.Specification specification : Components.inspect(type, api).api) {
             if (specification.api.isInterface()) {
@@ -259,15 +250,11 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
             }
         }
 
-        final ClassLoader loader = !Security.CONTROLLED ? type.getClassLoader() : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-            public ClassLoader run() {
-                return type.getClassLoader();
-            }
-        });
+        final ClassLoader loader = !Security.CONTROLLED ? type.getClassLoader() : AccessController.doPrivileged((PrivilegedAction<ClassLoader>) type::getClassLoader);
 
         return (T) Proxies.create(loader, Lists.asArray(Class.class, interfaces), new InvocationHandler() {
 
-            private final Map<Method, Boolean> injectMap = new ConcurrentHashMap<Method, Boolean>();
+            private final Map<Method, Boolean> injectMap = new ConcurrentHashMap<>();
 
             public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
                 Boolean inject = injectMap.get(method);
@@ -302,13 +289,11 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
     /**
      * {@inheritDoc}
      */
+    @SuppressWarnings("unchecked")
     public final ComponentContainer intercepting(final ComponentInterceptor... interceptors) {
-        return makeChildContainer(new Bindings() {
-            @SuppressWarnings("unchecked")
-            public void bindComponents(final Registry registry) {
-                for (final ComponentInterceptor interceptor : interceptors) {
-                    registry.bindInstance(interceptor);
-                }
+        return makeChildContainer(registry -> {
+            for (final ComponentInterceptor interceptor : interceptors) {
+                registry.bindInstance(interceptor);
             }
         });
     }

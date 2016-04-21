@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
 
     static final String SECURITY_POLICY_FILE = String.format("%s/permissions.perm", Archives.OSGI_INF);
 
-    private final List<Dependency> dependencies = new ArrayList<Dependency>();
+    private final List<Dependency> dependencies = new ArrayList<>();
     private final SecurityPolicy delegate;
     private final File[] classpath;
     private final String dynamicImports;
@@ -122,11 +122,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
     }
 
     public void update(final Output metadata) throws IOException {
-        delegate.update(new Output() {
-            public void save(final String name, final String content) throws IOException {
-                metadata.save(name, null);
-            }
-        });
+        delegate.update((name, content) -> metadata.save(name, null));
     }
 
     public void save(final Output output) throws IOException {
@@ -159,11 +155,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
 
         private final String serviceType;
 
-        private static final String REGISTRATION_TYPE_PARAM = Methods.get(Service.Type.class, new Methods.Invoker<Service.Type>() {
-            public void invoke(final Service.Type capture) throws Exception {
-                capture.value();
-            }
-        })[0].getName();
+        private static final String REGISTRATION_TYPE_PARAM = Methods.get(Service.Type.class, Service.Type::value)[0].getName();
 
         private final File archive;
         private final Output output;
@@ -174,14 +166,14 @@ final class OsgiLocalPermissions implements SecurityPolicy {
         private final File[] runtime;
         private final Dependency[] dependencies;
 
-        public PermissionsOutput(final File archive,
-                                 final Output output,
-                                 final byte[] buffer,
-                                 final String dynamicImports,
-                                 final String staticImports,
-                                 final String staticExports,
-                                 final File[] runtime,
-                                 final Dependency... dependencies) {
+        PermissionsOutput(final File archive,
+                          final Output output,
+                          final byte[] buffer,
+                          final String dynamicImports,
+                          final String staticImports,
+                          final String staticExports,
+                          final File[] runtime,
+                          final Dependency... dependencies) {
             this.archive = archive;
             this.output = output;
             this.buffer = buffer;
@@ -191,17 +183,9 @@ final class OsgiLocalPermissions implements SecurityPolicy {
             this.runtime = runtime;
             this.dependencies = dependencies;
 
-            final Method method = Methods.get(ServiceProvider.class, new Methods.Invoker<ServiceProvider>() {
-                public void invoke(final ServiceProvider capture) throws Exception {
-                    capture.type();
-                }
-            })[0];
+            final Method method = Methods.get(ServiceProvider.class, ServiceProvider::type)[0];
 
-            final String type = Exceptions.wrap(new Command.Process<String, Exception>() {
-                public String run() throws Exception {
-                    return (String) method.invoke(BundleComponents.Managed.class.getAnnotation(ServiceProvider.class));
-                }
-            });
+            final String type = Exceptions.wrap(() -> (String) method.invoke(BundleComponents.Managed.class.getAnnotation(ServiceProvider.class)));
 
             serviceType = type == null ? (String) method.getDefaultValue() : type;
         }
@@ -214,7 +198,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
             final String supplied = permissions(archive);
 
             if (supplied != null) {
-                final Map<String, Collection<String>> permissions = new LinkedHashMap<String, Collection<String>>();
+                final Map<String, Collection<String>> permissions = new LinkedHashMap<>();
 
                 if (!supplied.isEmpty()) {
                     permissions("source entries", permissions).addAll(Arrays.asList(supplied.split("\"\\r?\\n|\\r")));
@@ -231,7 +215,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
                 }
 
                 if (!permissions.isEmpty()) {
-                    final Set<String> duplicates = new HashSet<String>();
+                    final Set<String> duplicates = new HashSet<>();
                     final Lists.Delimited delimited = Lists.delimited(NL);
 
                     for (final Map.Entry<String, Collection<String>> entry : permissions.entrySet()) {
@@ -277,7 +261,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
         private static final Collection<String> IGNORED_TYPES_EXTERNAL = externalNames(IGNORED_TYPES);
 
         private static Collection<String> internalNames(final Collection<Class<?>> types) {
-            final List<String> list = new ArrayList<String>();
+            final List<String> list = new ArrayList<>();
 
             for (final Class<?> type : types) {
                 list.add(Type.getInternalName(type));
@@ -287,7 +271,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
         }
 
         private static Collection<String> externalNames(final Collection<Class<?>> types) {
-            final List<String> list = new ArrayList<String>();
+            final List<String> list = new ArrayList<>();
 
             for (final Class<?> type : types) {
                 list.add(type.getName());
@@ -296,8 +280,9 @@ final class OsgiLocalPermissions implements SecurityPolicy {
             return list;
         }
 
+        @SuppressWarnings("ThrowFromFinallyBlock")
         private void components(final Map<String, Collection<String>> permissions, final Dependency... dependencies) throws IOException {
-            final Collection<URL> classpath = new LinkedHashSet<URL>();
+            final Collection<URL> classpath = new LinkedHashSet<>();
 
             for (final Dependency dependency : dependencies) {
                 classpath.add(dependency.file().toURI().toURL());
@@ -317,9 +302,8 @@ final class OsgiLocalPermissions implements SecurityPolicy {
                 for (final Dependency dependency : dependencies) {
                     final URL file = dependency.file().toURI().toURL();
 
-                    final InputStream provider = provider(file);
-                    if (provider != null) {
-                        try {
+                    try (final InputStream provider = provider(file)) {
+                        if (provider != null) {
                             final BufferedReader metadata = new BufferedReader(new InputStreamReader(provider, "UTF-8"));
                             String content;
 
@@ -334,7 +318,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
                                     if (interfaces.contains(BundleComponents.Registration.class.getName())) {
                                         interfaces.removeAll(IGNORED_TYPES_EXTERNAL);
 
-                                        final List<String> types = new ArrayList<String>();
+                                        final List<String> types = new ArrayList<>();
 
                                         final RegistrationTypes visitor = new RegistrationTypes(registration, types);
                                         final int configuration = ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES | ClassReader.SKIP_CODE;
@@ -363,8 +347,6 @@ final class OsgiLocalPermissions implements SecurityPolicy {
                                     }
                                 }
                             }
-                        } finally {
-                            provider.close();
                         }
                     }
                 }
@@ -375,7 +357,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
             final Collection<String> list;
 
             if (!permissions.containsKey(key)) {
-                permissions.put(key, list = new ArrayList<String>());
+                permissions.put(key, list = new ArrayList<>());
             } else {
                 list = permissions.get(key);
             }
@@ -384,7 +366,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
         }
 
         private void services(final ClassReader reader, final List<String> types, final ClassRepository repository) throws IOException {
-            final Collection<String> interfaces = new ArrayList<String>(Arrays.asList(reader.getInterfaces()));
+            final Collection<String> interfaces = new ArrayList<>(Arrays.asList(reader.getInterfaces()));
             interfaces.removeAll(IGNORED_TYPES_INTERNAL);
 
             if (interfaces.isEmpty()) {
@@ -411,7 +393,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
         }
 
         private void policy(final Map<String, Collection<String>> permissions, final String original) throws IOException {
-            final List<String> texts = new ArrayList<String>();
+            final List<String> texts = new ArrayList<>();
             final Lists.Delimited sequence = reduce(" ", original, texts);
 
             // pattern for a non-reserved word

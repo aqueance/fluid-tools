@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,57 +31,43 @@ public class LogAdapterTest extends Simulator {
 
     @Test
     public void testDynamic() throws Exception {
-        final Adapter log = verify(new Work<Adapter>() {
-            public Adapter run() throws Exception {
-                return new Adapter(logger);
-            }
-        });
+        final Adapter log = verify(() -> new Adapter(logger));
 
-        test(new Task() {
-            public void run() throws Exception {
-                EasyMock.expect(levels.trace()).andReturn(false);
-                EasyMock.expect(levels.debug()).andReturn(true);
-                EasyMock.expect(levels.info()).andReturn(false);
-                EasyMock.expect(levels.warning()).andReturn(true);
+        test(() -> {
+            EasyMock.expect(levels.trace()).andReturn(false);
+            EasyMock.expect(levels.debug()).andReturn(true);
+            EasyMock.expect(levels.info()).andReturn(false);
+            EasyMock.expect(levels.warning()).andReturn(true);
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        assert !log.isTraceEnabled();
-                        assert log.isDebugEnabled();
-                        assert !log.isInfoEnabled();
-                        assert log.isWarningEnabled();
-                    }
-                });
+            verify(() -> {
+                assert !log.isTraceEnabled();
+                assert log.isDebugEnabled();
+                assert !log.isInfoEnabled();
+                assert log.isWarningEnabled();
+            });
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        assert !log.isTraceEnabled();
-                        assert log.isDebugEnabled();
-                        assert !log.isInfoEnabled();
-                        assert log.isWarningEnabled();
-                    }
-                });
-            }
+            verify(() -> {
+                assert !log.isTraceEnabled();
+                assert log.isDebugEnabled();
+                assert !log.isInfoEnabled();
+                assert log.isWarningEnabled();
+            });
         });
 
         LogLevels.updated();
 
-        test(new Task() {
-            public void run() throws Exception {
-                EasyMock.expect(levels.trace()).andReturn(true);
-                EasyMock.expect(levels.debug()).andReturn(false);
-                EasyMock.expect(levels.info()).andReturn(true);
-                EasyMock.expect(levels.warning()).andReturn(false);
+        test(() -> {
+            EasyMock.expect(levels.trace()).andReturn(true);
+            EasyMock.expect(levels.debug()).andReturn(false);
+            EasyMock.expect(levels.info()).andReturn(true);
+            EasyMock.expect(levels.warning()).andReturn(false);
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        assert log.isTraceEnabled();
-                        assert !log.isDebugEnabled();
-                        assert log.isInfoEnabled();
-                        assert !log.isWarningEnabled();
-                    }
-                });
-            }
+            verify(() -> {
+                assert log.isTraceEnabled();
+                assert !log.isDebugEnabled();
+                assert log.isInfoEnabled();
+                assert !log.isWarningEnabled();
+            });
         });
     }
 

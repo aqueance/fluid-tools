@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,34 +60,22 @@ public class CompositeObserverTest extends Simulator {
     }
 
     private void allThree(final ComponentContainer.Observer observer) throws Exception {
-        test(new Task() {
-            public void run() throws Exception {
-                observer1.resolved(path, Serializable.class);
-                observer2.resolved(path, Serializable.class);
-                observer3.resolved(path, Serializable.class);
+        test(() -> {
+            observer1.resolved(path, Serializable.class);
+            observer2.resolved(path, Serializable.class);
+            observer3.resolved(path, Serializable.class);
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        observer.resolved(path, Serializable.class);
-                    }
-                });
-            }
+            verify(() -> observer.resolved(path, Serializable.class));
         });
 
-        test(new Task() {
-            public void run() throws Exception {
-                final AtomicReference<Object> reference = new AtomicReference<Object>(component);
+        test(() -> {
+            final AtomicReference<Object> reference = new AtomicReference<>(component);
 
-                observer1.instantiated(path, reference);
-                observer2.instantiated(path, reference);
-                observer3.instantiated(path, reference);
+            observer1.instantiated(path, reference);
+            observer2.instantiated(path, reference);
+            observer3.instantiated(path, reference);
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        observer.instantiated(path, reference);
-                    }
-                });
-            }
+            verify(() -> observer.instantiated(path, reference));
         });
     }
 }

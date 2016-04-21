@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,48 +119,44 @@ public class URLClassLoader extends SecureClassLoader {
             }
         }
 
-        final Collection<URL> locations = new ArrayList<URL>(urls);
+        final Collection<URL> locations = new ArrayList<>(urls);
 
         this.cache = Archives.Cache.capture(false);
-        this.entries = new LinkedHashMap<String, Archive>(locations.size(), 1.0f);
+        this.entries = new LinkedHashMap<>(locations.size(), 1.0f);
 
-        this.keys = Deferred.shared(new Deferred.Factory<String[]>() {
-            public String[] create() {
-                final List<String> collected = new ArrayList<String>();
+        this.keys = Deferred.shared(() -> {
+            final List<String> collected = new ArrayList<>();
 
-                // collects all processed URLs, may be recursive when an archive refers to others as its class path
-                final Operation<URL, IOException> collect = new Operation<URL, IOException>() {
-                    public void run(final URL dependency) throws IOException {
-                        final String location = dependency.toExternalForm();
+            // collects all processed URLs, may be recursive when an archive refers to others as its class path
+            final Operation<URL, IOException> collect = new Operation<URL, IOException>() {
+                public void run(final URL dependency) throws IOException {
+                    final String location = dependency.toExternalForm();
 
-                        if (!entries.containsKey(location)) {
-                            final Handler.Cache.Entry archive = Handler.Cache.archive(dependency);
+                    if (!entries.containsKey(location)) {
+                        final Handler.Cache.Entry archive = Handler.Cache.archive(dependency);
 
-                            if (archive == null) {
-                                throw new IllegalArgumentException(String.format("Not an archive: %s", dependency));
-                            }
-
-                            collected.add(dependency.toExternalForm());
-                            entries.put(location,
-                                        archive.dynamic()
-                                        ? new LazyLoadedArchive(dependency, archive, factory, this)
-                                        : new PackagedArchive(dependency, archive, factory, this));
-                        }
-                    }
-                };
-
-                cache = Exceptions.wrap(new Process<Object, IOException>() {
-                    public Object run() throws IOException {
-                        for (final URL url : locations) {
-                            collect.run(url);
+                        if (archive == null) {
+                            throw new IllegalArgumentException(String.format("Not an archive: %s", dependency));
                         }
 
-                        return Archives.Cache.capture(true);
+                        collected.add(dependency.toExternalForm());
+                        entries.put(location,
+                                    archive.dynamic()
+                                    ? new LazyLoadedArchive(dependency, archive, factory, this)
+                                    : new PackagedArchive(dependency, archive, factory, this));
                     }
-                });
+                }
+            };
 
-                return Lists.asArray(String.class, collected);
-            }
+            cache = Exceptions.wrap(() -> {
+                for (final URL url : locations) {
+                    collect.run(url);
+                }
+
+                return Archives.Cache.capture(true);
+            });
+
+            return Lists.asArray(String.class, collected);
         });
     }
 
@@ -169,93 +165,72 @@ public class URLClassLoader extends SecureClassLoader {
         return entry == Archive.Entry.NOT_FOUND ? null : entry;
     }
 
+    @SuppressWarnings("RedundantCast")  // won't compile without the cast
     private <R, T extends Exception, E extends Exception> R access(final Object label, final Class<T> wrapper, final Process<R, E> action) throws T {
-        return Exceptions.wrap(label, wrapper, new Process<R, E>() {
-            public R run() throws E {
-                return Archives.Cache.access(cache, action);
-            }
-        });
+        return Exceptions.wrap(label, wrapper, (Process<R, E>) () -> Archives.Cache.access(cache, action));
     }
 
     @Override
     protected Class<?> findClass(final String name) throws ClassNotFoundException {
-        final PrivilegedExceptionAction<Class<?>> action = new PrivilegedExceptionAction<Class<?>>() {
-            public Class<?> run() throws Exception {
-                final String resource = ClassLoaders.classResourceName(name);
+        final PrivilegedExceptionAction<Class<?>> action = () -> {
+            final String resource = ClassLoaders.classResourceName(name);
 
-                for (final String key : keys.get()) {
-                    final Archive.Entry entry = entry(key, resource);
+            for (final String key : keys.get()) {
+                final Archive.Entry entry = entry(key, resource);
 
-                    if (entry != null) {
-                        return entry.define(name);
-                    }
+                if (entry != null) {
+                    return entry.define(name);
                 }
-
-                throw new ClassNotFoundException(name);
             }
+
+            throw new ClassNotFoundException(name);
         };
 
-        return access(name, ClassNotFoundException.class, new Process<Class<?>, Exception>() {
-            public Class<?> run() throws Exception {
-                return context == null ? action.run() : AccessController.doPrivileged(action, context);
-            }
-        });
+        return access(name, ClassNotFoundException.class, () -> context == null ? action.run() : AccessController.doPrivileged(action, context));
     }
 
     @Override
     protected URL findResource(final String name) {
-        final PrivilegedAction<URL> action = new PrivilegedAction<URL>() {
-            public URL run() {
-                for (final String key : keys.get()) {
-                    try {
-                        final Archive.Entry entry = entry(key, name);
+        final PrivilegedAction<URL> action = () -> {
+            for (final String key : keys.get()) {
+                try {
+                    final Archive.Entry entry = entry(key, name);
 
-                        if (entry != null) {
-                            return entry.url();
-                        }
-                    } catch (final IOException e) {
-                        // ignored
+                    if (entry != null) {
+                        return entry.url();
                     }
+                } catch (final IOException e) {
+                    // ignored
                 }
-
-                return null;
             }
+
+            return null;
         };
 
-        return access(null, Exceptions.Wrapper.class, new Process<URL, RuntimeException>() {
-            public URL run() throws RuntimeException {
-                return context == null ? action.run() : AccessController.doPrivileged(action, context);
-            }
-        });
+        return access(null, Exceptions.Wrapper.class, () -> context == null ? action.run() : AccessController.doPrivileged(action, context));
     }
 
     @Override
     protected Enumeration<URL> findResources(final String name) throws IOException {
-        final PrivilegedAction<Enumeration<URL>> action = new PrivilegedAction<Enumeration<URL>>() {
-            public Enumeration<URL> run() {
-                final List<URL> list = new ArrayList<URL>();
+        final PrivilegedAction<Enumeration<URL>> action = () -> {
+            final List<URL> list = new ArrayList<>();
 
-                for (final String key : keys.get()) {
-                    try {
-                        final Archive.Entry entry = entry(key, name);
+            for (final String key : keys.get()) {
+                try {
+                    final Archive.Entry entry = entry(key, name);
 
-                        if (entry != null) {
-                            list.add(entry.url());
-                        }
-                    } catch (final IOException e) {
-                        // ignored
+                    if (entry != null) {
+                        list.add(entry.url());
                     }
+                } catch (final IOException e) {
+                    // ignored
                 }
-
-                return Collections.enumeration(list);
             }
+
+            return Collections.enumeration(list);
         };
 
-        return access(null, Exceptions.Wrapper.class, new Process<Enumeration<URL>, RuntimeException>() {
-            public Enumeration<URL> run() throws RuntimeException {
-                return context == null ? action.run() : AccessController.doPrivileged(action, context);
-            }
-        });
+        return access(null, Exceptions.Wrapper.class, () -> context == null ? action.run() : AccessController.doPrivileged(action, context));
     }
 
     @Override
@@ -309,17 +284,20 @@ public class URLClassLoader extends SecureClassLoader {
     private Permission checkPermission(final Permission permission) {
         assert context != null;
 
-        return AccessController.doPrivileged(new PrivilegedAction<Permission>() {
-            public Permission run() throws SecurityException {
-                final SecurityManager security = System.getSecurityManager();
-                assert security != null;
-                security.checkPermission(permission);
-                return permission;
-            }
+        return AccessController.doPrivileged((PrivilegedAction<Permission>) () -> {
+            final SecurityManager security = System.getSecurityManager();
+            assert security != null;
+            security.checkPermission(permission);
+            return permission;
         }, context);
     }
 
-    Class defineClass(final String name, final byte[] bytes, final int offset, final int length, final CodeSigner[] signers, final Archive.Entry resource) throws IOException {
+    private Class defineClass(final String name,
+                              final byte[] bytes,
+                              final int offset,
+                              final int length,
+                              final CodeSigner[] signers,
+                              final Archive.Entry resource) throws IOException {
         final URL url = resource.url();
 
         int i = name.lastIndexOf('.');
@@ -362,7 +340,7 @@ public class URLClassLoader extends SecureClassLoader {
     }
 
     private static URL[] classpath(final URL url, final Manifest manifest, final URLStreamHandlerFactory factory) throws IOException {
-        final Collection<URL> list = new LinkedHashSet<URL>();
+        final Collection<URL> list = new LinkedHashSet<>();
 
         final String classpath = manifest == null ? null : manifest.getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
         if (classpath != null) {
@@ -443,16 +421,16 @@ public class URLClassLoader extends SecureClassLoader {
      */
     private class LazyLoadedArchive implements Archive {
 
-        private final Map<String, Entry> map = new ConcurrentHashMap<String, Entry>(INITIAL_CAPACITY, 0.75f, CONCURRENCY);
+        private final Map<String, Entry> map = new ConcurrentHashMap<>(INITIAL_CAPACITY, 0.75f, CONCURRENCY);
         private final Manifest manifest;
 
         private final URL root;
         private final Handler.Cache.Entry archive;
 
-        public LazyLoadedArchive(final URL url,
-                                 final Handler.Cache.Entry archive,
-                                 final URLStreamHandlerFactory factory,
-                                 final Operation<URL, IOException> collect) throws IOException {
+        LazyLoadedArchive(final URL url,
+                          final Handler.Cache.Entry archive,
+                          final URLStreamHandlerFactory factory,
+                          final Operation<URL, IOException> collect) throws IOException {
             this.root = url;
             this.archive = archive;
 
@@ -529,7 +507,7 @@ public class URLClassLoader extends SecureClassLoader {
      */
     private class PackagedArchive implements Archive {
 
-        private final Map<String, Archive.Entry> map = new HashMap<String, Entry>(INITIAL_CAPACITY);
+        private final Map<String, Archive.Entry> map = new HashMap<>(INITIAL_CAPACITY);
 
         PackagedArchive(final URL url,
                         final Handler.Cache.Entry archive,

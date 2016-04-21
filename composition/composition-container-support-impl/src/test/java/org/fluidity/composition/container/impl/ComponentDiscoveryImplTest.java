@@ -49,7 +49,7 @@ public class ComponentDiscoveryImplTest {
     @Test
     public void findsClassesInAnyClassLoader() throws Exception {
 
-        // we need to create a new service provider (http://java.sun.com/j2se/1.4.2/docs/guide/jar/jar.html#Service%20Provider)
+        // we need to create a new service provider (https://docs.oracle.com/javase/8/docs/technotes/guides/jar/jar.html#Service_Provider)
         final File classDir = File.createTempFile("classes", ".dir", new File(System.getProperty("java.io.tmpdir")));
         classDir.delete();
         classDir.mkdir();
@@ -57,14 +57,14 @@ public class ComponentDiscoveryImplTest {
         final File servicesFile = new File(classDir, SERVICES.concat(Interface.class.getName()));
         servicesFile.getParentFile().mkdirs();
 
-        final List<File> fileList = new ArrayList<File>();
+        final List<File> fileList = new ArrayList<>();
         fileList.add(servicesFile);
 
-        final PrintWriter pw = new PrintWriter(new FileWriter(servicesFile, false));
-        pw.println(Impl1.class.getName());
-        pw.println(Impl2.class.getName());
-        pw.println(Impl3.class.getName());
-        pw.close();
+        try (final PrintWriter pw = new PrintWriter(new FileWriter(servicesFile, false))) {
+            pw.println(Impl1.class.getName());
+            pw.println(Impl2.class.getName());
+            pw.println(Impl3.class.getName());
+        }
 
         assert servicesFile.exists();
 
@@ -72,7 +72,7 @@ public class ComponentDiscoveryImplTest {
             final ClassLoader loader = ClassLoaders.create(Collections.singleton(classDir.toURI().toURL()), getClass().getClassLoader(), null);
             final Class[] classes = new ComponentDiscoveryImpl(log).findComponentClasses(Interface.class, loader, false);
 
-            assert new ArrayList<Class>(Arrays.asList(Impl1.class, Impl2.class, Impl3.class)).equals(new ArrayList<Class>(Arrays.asList(classes)));
+            assert new ArrayList<Class>(Arrays.asList(Impl1.class, Impl2.class, Impl3.class)).equals(new ArrayList<>(Arrays.asList(classes)));
         } finally {
             deleteDirectory(classDir, fileList);
         }
@@ -81,7 +81,7 @@ public class ComponentDiscoveryImplTest {
     @Test
     public void findsClassesOnlyByGivenClassLoader() throws Exception {
 
-        // we need to create a new service provider (http://java.sun.com/j2se/1.4.2/docs/guide/jar/jar.html#Service%20Provider)
+        // we need to create a new service provider (https://docs.oracle.com/javase/8/docs/technotes/guides/jar/jar.html#Service_Provider)
         final File classDir1 = File.createTempFile("classes1", ".dir", new File(System.getProperty("java.io.tmpdir")));
         classDir1.delete();
         classDir1.mkdir();
@@ -93,19 +93,19 @@ public class ComponentDiscoveryImplTest {
         final File servicesFile = new File(classDir2, SERVICES.concat(Interface.class.getName()));
         servicesFile.getParentFile().mkdirs();
 
-        final List<File> fileList = new ArrayList<File>();
+        final List<File> fileList = new ArrayList<>();
         fileList.add(servicesFile);
 
-        final PrintWriter pw = new PrintWriter(new FileWriter(servicesFile, false));
-        pw.println(Impl1.class.getName());
+        try (final PrintWriter pw = new PrintWriter(new FileWriter(servicesFile, false))) {
+            pw.println(Impl1.class.getName());
 
-        // superclass and interfaces in parent class loader
-        copyClassFile(Interface.class, classDir1, fileList);
-        copyClassFile(AbstractInterfaceImpl.class, classDir1, fileList);
+            // superclass and interfaces in parent class loader
+            copyClassFile(Interface.class, classDir1, fileList);
+            copyClassFile(AbstractInterfaceImpl.class, classDir1, fileList);
 
-        // actual class in child class loader
-        copyClassFile(Impl1.class, classDir2, fileList);
-        pw.close();
+            // actual class in child class loader
+            copyClassFile(Impl1.class, classDir2, fileList);
+        }
 
         assert servicesFile.exists();
 

@@ -17,6 +17,7 @@
 package org.fluidity.deployment.osgi.impl;
 
 import java.lang.annotation.Annotation;
+import java.util.Objects;
 
 import org.fluidity.deployment.osgi.Service;
 import org.fluidity.foundation.Strings;
@@ -68,13 +69,7 @@ public final class ServiceImpl implements Service {
 
     @Override
     public int hashCode() {
-        int result = type.hashCode();
-
-        if (filter != null) {
-            result = 31 * result + filter.hashCode();
-        }
-
-        return result;
+        return Objects.hash(type, filter);
     }
 
     @Override

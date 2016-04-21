@@ -64,6 +64,7 @@ import static org.fluidity.foundation.Command.Process;
  *
  * @author Tibor Varga
  */
+@SuppressWarnings({ "WeakerAccess", "ThrowFromFinallyBlock" })
 public final class Archives extends Utility {
 
     /**
@@ -101,6 +102,7 @@ public final class Archives extends Utility {
      * The JAR resource URL protocol.
      */
     public static final String PROTOCOL = "jar";
+
     /**
      * The JAR resource URL path component delimiter in a valid URL.
      */
@@ -718,7 +720,7 @@ public final class Archives extends Utility {
          */
         public static Collection<URL> dependencies(final boolean cached, final URL archive, final String name) throws IOException {
             final String dependencies = Archives.attributes(cached, archive, Nested.attribute(name))[0];
-            final Collection<URL> urls = new ArrayList<URL>();
+            final Collection<URL> urls = new ArrayList<>();
 
             if (dependencies != null) {
                 for (final String dependency : dependencies.split(" ")) {
@@ -769,7 +771,7 @@ public final class Archives extends Utility {
          * @return a possibly empty list of nested dependencies; never <code>null</code>.
          */
         public static String[] list(final Manifest manifest) {
-            final List<String> list = new ArrayList<String>();
+            final List<String> list = new ArrayList<>();
 
             final String prefix = DEPENDENCIES.concat("-");
             final int length = prefix.length();

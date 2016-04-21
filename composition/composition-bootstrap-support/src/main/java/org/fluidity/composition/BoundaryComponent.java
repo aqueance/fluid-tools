@@ -43,11 +43,9 @@ public abstract class BoundaryComponent {
     protected BoundaryComponent() {
 
         // 'this' can only be used after super() has been invoked (done automatically here)
-        this.container = Containers.global(!Security.CONTROLLED ? this.getClass().getClassLoader() : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-            public ClassLoader run() {
-                return BoundaryComponent.this.getClass().getClassLoader();
-            }
-        }));
+        this.container = Containers.global(!Security.CONTROLLED
+           ? this.getClass().getClassLoader()
+           : AccessController.doPrivileged((PrivilegedAction<ClassLoader>) () -> BoundaryComponent.this.getClass().getClassLoader()));
 
         this.container.initialize(this);
     }

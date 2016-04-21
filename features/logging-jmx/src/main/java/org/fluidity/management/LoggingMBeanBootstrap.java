@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import javax.management.ObjectName;
 import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.composition.spi.EmptyPackageBindings;
-import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Strings;
 
 /**
@@ -44,11 +43,7 @@ final class LoggingMBeanBootstrap extends EmptyPackageBindings {
 
             server.registerMBean(container.instantiate(LoggingMBeanImpl.class), name);
 
-            shutdown.add(new Command.Job<Exception>() {
-                public void run() throws Exception {
-                    server.unregisterMBean(name);
-                }
-            });
+            shutdown.add(() -> server.unregisterMBean(name));
         }
     }
 }

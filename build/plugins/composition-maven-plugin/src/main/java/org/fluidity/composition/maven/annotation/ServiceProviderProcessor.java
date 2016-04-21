@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public final class ServiceProviderProcessor extends AnnotationVisitor {
     private final ClassRepository repository;
 
     private final ClassReader classData;
-    private final Set<String> apiSet = new HashSet<String>();
+    private final Set<String> apiSet = new HashSet<>();
     private String type;
 
     public ServiceProviderProcessor(final ClassRepository repository, final ClassReader classData, final ProcessorCallback<ServiceProviderProcessor> callback) {
@@ -89,32 +89,30 @@ public final class ServiceProviderProcessor extends AnnotationVisitor {
 
     @Override
     public void visitEnd() {
-        Exceptions.wrap(new Process<Void, Exception>() {
-            public Void run() throws Exception {
-                final String className = ClassReaders.externalName(classData);
+        Exceptions.wrap(() -> {
+            final String className = ClassReaders.externalName(classData);
 
-                if (apiSet.isEmpty()) {
-                    if (ClassReaders.isInterface(classData)) {
-                        apiSet.add(className);
-                    }
-                }
-
-                if (apiSet.isEmpty()) {
-                    apiSet.addAll(ClassReaders.findDirectInterfaces(classData, repository));
-                }
-
-                if (apiSet.isEmpty() && !ClassReaders.isFinal(classData)) {
+            if (apiSet.isEmpty()) {
+                if (ClassReaders.isInterface(classData)) {
                     apiSet.add(className);
                 }
-
-                if (apiSet.isEmpty()) {
-                    throw new MojoExecutionException(String.format("No service provider interface could be identified for %s", className));
-                }
-
-                callback.complete(ServiceProviderProcessor.this);
-
-                return null;
             }
+
+            if (apiSet.isEmpty()) {
+                apiSet.addAll(ClassReaders.findDirectInterfaces(classData, repository));
+            }
+
+            if (apiSet.isEmpty() && !ClassReaders.isFinal(classData)) {
+                apiSet.add(className);
+            }
+
+            if (apiSet.isEmpty()) {
+                throw new MojoExecutionException(String.format("No service provider interface could be identified for %s", className));
+            }
+
+            callback.complete(ServiceProviderProcessor.this);
+
+            return null;
         });
     }
 }

@@ -49,11 +49,7 @@ import org.fluidity.foundation.Command;
  *   private volatile long <span class="hl3">timestamp</span>;
  *
  *   <span class="hl2">MyComponent</span>(final <span class="hl1">Scheduler</span> scheduler) {
- *     scheduler.<span class="hl1">invoke</span>(period, period, new {@linkplain Scheduler.Task}() {
- *       public void run() {
- *         <span class="hl3">timestamp</span> = {@linkplain System#currentTimeMillis()};
- *       }
- *     });
+ *     scheduler.<span class="hl1">invoke</span>(period, period, () -&gt; <span class="hl3">timestamp</span> = {@linkplain System#currentTimeMillis()});
  *   }
  *
  *   &hellip;
@@ -103,6 +99,7 @@ public interface Scheduler {
      *
      * @author Tibor Varga
      */
+    @FunctionalInterface
     interface Task extends Command.Job<Exception> {
 
         /**

@@ -40,7 +40,6 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ServiceProvider;
 import org.fluidity.composition.maven.annotation.ComponentProcessor;
-import org.fluidity.composition.maven.annotation.ProcessorCallback;
 import org.fluidity.composition.maven.annotation.ServiceProviderProcessor;
 import org.fluidity.composition.spi.EmptyPackageBindings;
 import org.fluidity.composition.spi.PackageBindings;
@@ -75,6 +74,7 @@ import org.objectweb.asm.Type;
  * Subclasses should call {@link AbstractAnnotationProcessorMojo#processDirectory(java.io.File, java.io.File...)} with the directory containing the classes to
  * process. The Maven build object can be obtained by calling {@link AbstractAnnotationProcessorMojo#build()}.
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo implements Opcodes {
 
     private static final String OBJECT_CLASS_NAME = Type.getInternalName(Object.class);
@@ -86,23 +86,15 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     private final Method implementedMethod;
     private final Method invokedMethod;
 
+    @SuppressWarnings("unchecked")
     protected AbstractAnnotationProcessorMojo() {
-        implementedMethod = Methods.get(PackageBindings.class, new Methods.Invoker<PackageBindings>() {
-            public void invoke(final PackageBindings capture) {
-                capture.bindComponents(null);
-            }
-        })[0];
+        implementedMethod = Methods.get(PackageBindings.class, capture -> capture.bindComponents(null))[0];
 
         final Class<?>[] implementedParameters = implementedMethod.getParameterTypes();
         assert implementedParameters.length == 1 : implementedMethod;
         assert implementedParameters[0] == ComponentContainer.Registry.class : implementedMethod;
 
-        invokedMethod = Methods.get(ComponentContainer.Registry.class, new Methods.Invoker<ComponentContainer.Registry>() {
-            @SuppressWarnings("unchecked")
-            public void invoke(final ComponentContainer.Registry capture) {
-                capture.bindComponent(null);
-            }
-        })[0];
+        invokedMethod = Methods.get(ComponentContainer.Registry.class, capture -> capture.bindComponent(null))[0];
 
         final Class<?>[] invokedParameter = invokedMethod.getParameterTypes();
         assert invokedParameter.length == 2 : invokedMethod;
@@ -141,11 +133,11 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             return;
         }
 
-        final Map<String, Map<String, Collection<String>>> serviceProviderMap = new HashMap<String, Map<String, Collection<String>>>();
-        final Map<String, Collection<String>> componentMap = new HashMap<String, Collection<String>>();
-        final Map<String, Collection<String>> componentGroupMap = new HashMap<String, Collection<String>>();
+        final Map<String, Map<String, Collection<String>>> serviceProviderMap = new HashMap<>();
+        final Map<String, Collection<String>> componentMap = new HashMap<>();
+        final Map<String, Collection<String>> componentGroupMap = new HashMap<>();
 
-        final List<URL> urls = new ArrayList<URL>();
+        final List<URL> urls = new ArrayList<>();
 
         try {
             urls.add(classesDirectory.toURI().toURL());
@@ -201,16 +193,10 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                     final File serviceProviderFile = new File(servicesDirectory, providerEntry.getKey());
                     serviceProviderFile.delete();
 
-                    try {
-                        final PrintWriter writer = new PrintWriter(new FileWriter(serviceProviderFile));
-
-                        try {
-                            for (final String className : providerEntry.getValue()) {
-                                writer.println(className);
-                                log.detail("  %s%s", className, componentMap.containsKey(className) ? " (generated)" : "");
-                            }
-                        } finally {
-                            writer.close();
+                    try (final PrintWriter writer = new PrintWriter(new FileWriter(serviceProviderFile))) {
+                        for (final String className : providerEntry.getValue()) {
+                            writer.println(className);
+                            log.detail("  %s%s", className, componentMap.containsKey(className) ? " (generated)" : "");
                         }
                     } catch (final IOException e) {
                         throw new MojoExecutionException(String.format("Error opening file %s", serviceProviderFile), e);
@@ -351,8 +337,8 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
         final ClassRepository repository = new ClassRepository(loader);
 
-        final Set<String> publicApis = new HashSet<String>();
-        final Map<String, Collection<String>> serviceProviders = new HashMap<String, Collection<String>>();
+        final Set<String> publicApis = new HashSet<>();
+        final Map<String, Collection<String>> serviceProviders = new HashMap<>();
 
         for (final String fileName : scanner.getIncludedFiles()) {
             final String className = fileName.substring(0, fileName.length() - ClassLoaders.CLASS_SUFFIX.length()).replace(File.separatorChar, '.');
@@ -365,14 +351,14 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                 final ClassReader classData = repository.reader(className);
                 assert classData != null : className;
 
-                final Map<String, Set<String>> serviceProviderApis = new HashMap<String, Set<String>>();
+                final Map<String, Set<String>> serviceProviderApis = new HashMap<>();
 
                 class ClassFlags {
-                    public boolean ignored;
-                    public boolean component;
-                    public boolean group;
-                    public boolean dependent;
-                    public Type scope;
+                    boolean ignored;
+                    boolean component;
+                    boolean group;
+                    boolean dependent;
+                    Type scope;
                 }
 
                 final ClassFlags flags = new ClassFlags();
@@ -412,39 +398,31 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                                 final Type type = Type.getType(desc);
 
                                 if (serviceProviderType.equals(type)) {
-                                    return new ServiceProviderProcessor(repository, reader, new ProcessorCallback<ServiceProviderProcessor>() {
-                                        public void complete(final ServiceProviderProcessor processor) {
-                                            final String type = processor.type();
+                                    return new ServiceProviderProcessor(repository, reader, processor -> {
+                                        final String _type = processor.type();
 
-                                            Set<String> list = serviceProviderApis.get(type);
-                                            if (list == null) {
-                                                serviceProviderApis.put(type, list = new HashSet<String>());
-                                            }
+                                        Set<String> list = serviceProviderApis.get(_type);
+                                        if (list == null) {
+                                            serviceProviderApis.put(_type, list = new HashSet<>());
+                                        }
 
-                                            list.addAll(processor.apiSet());
+                                        list.addAll(processor.apiSet());
 
-                                            if (type.equals(ServiceProviders.TYPE)) {
-                                                publicApis.addAll(list);
-                                            }
+                                        if (_type.equals(ServiceProviders.TYPE)) {
+                                            publicApis.addAll(list);
                                         }
                                     });
                                 } else if (componentType.equals(type)) {
-                                    return new ComponentProcessor(new ProcessorCallback<ComponentProcessor>() {
-                                        public void complete(final ComponentProcessor processor) {
-                                            if (original) {
-                                                flags.ignored = !processor.isAutomatic();
-                                                flags.scope = processor.scope();
-                                            }
-
-                                            flags.component = !ClassReaders.isAbstract(classData) && !ClassReaders.isInterface(classData);
+                                    return new ComponentProcessor(processor -> {
+                                        if (original) {
+                                            flags.ignored = !processor.isAutomatic();
+                                            flags.scope = processor.scope();
                                         }
+
+                                        flags.component = !ClassReaders.isAbstract(classData) && !ClassReaders.isInterface(classData);
                                     });
                                 } else if (componentGroupType.equals(type)) {
-                                    return new ComponentProcessor(new ProcessorCallback<ComponentProcessor>() {
-                                        public void complete(final ComponentProcessor processor) {
-                                            flags.group = !flags.dependent;
-                                        }
-                                    });
+                                    return new ComponentProcessor(processor -> flags.group = !flags.dependent);
                                 } else {
                                     return null;
                                 }
@@ -518,7 +496,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         Map<String, Collection<String>> providerMap = serviceProviderMap.get(type);
 
         if (providerMap == null) {
-            serviceProviderMap.put(type, providerMap = new HashMap<String, Collection<String>>());
+            serviceProviderMap.put(type, providerMap = new HashMap<>());
         }
 
         return providerMap;
@@ -594,7 +572,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         Collection<String> providers = map.get(api);
 
         if (providers == null) {
-            map.put(api, providers = new HashSet<String>());
+            map.put(api, providers = new HashSet<>());
         }
 
         providers.add(className);
@@ -607,7 +585,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             Collection<String> list = serviceProviderMap.get(key);
 
             if (list == null) {
-                serviceProviderMap.put(key, list = new HashSet<String>());
+                serviceProviderMap.put(key, list = new HashSet<>());
             } else if (list.contains(className)) {
                 throw new MojoExecutionException(String.format("Duplicate service provider class %s", className));
             }

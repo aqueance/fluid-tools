@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class IsolatedClassLoader extends ClassLoader {
 
-    private final Map<String, Class> loaded = new ConcurrentHashMap<String, Class>();
-    private final Set<String> invisible = new HashSet<String>();
+    private final Map<String, Class> loaded = new ConcurrentHashMap<>();
+    private final Set<String> invisible = new HashSet<>();
 
     private final String name;
 
@@ -70,9 +70,7 @@ public class IsolatedClassLoader extends ClassLoader {
                     final ByteArrayOutputStream output = new ByteArrayOutputStream();
                     final byte[] buffer = new byte[1024];
 
-                    final InputStream input = new BufferedInputStream(getResourceAsStream(name.replaceAll("\\.", "/").concat(".class")));
-
-                    try {
+                    try (final InputStream input = new BufferedInputStream(getResourceAsStream(name.replaceAll("\\.", "/").concat(".class")))) {
                         int read;
                         while ((read = input.read(buffer)) > 0) {
                             output.write(buffer, 0, read);
@@ -91,12 +89,6 @@ public class IsolatedClassLoader extends ClassLoader {
                         return type;
                     } catch (final IOException e) {
                         throw new ClassNotFoundException(name, e);
-                    } finally {
-                        try {
-                            input.close();
-                        } catch (final IOException e) {
-                            // ignore
-                        }
                     }
                 }
             }

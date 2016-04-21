@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -606,7 +606,7 @@ public class GenericsTest {
         public B(final C<A> p1, final C<B> p2) { }
     }
 
-    @SuppressWarnings("UnusedParameters")
+    @SuppressWarnings({ "UnusedParameters", "unused" })
     private static class C<N> { }
 
     private static class D extends A<I1, I2, I3> {
@@ -616,7 +616,7 @@ public class GenericsTest {
         }
     }
 
-    @SuppressWarnings("UnusedParameters")
+    @SuppressWarnings({ "UnusedParameters", "unused" })
     private interface I<R, S, T> { }
 
     private static class E<T> implements I<T, I2, I3> {
@@ -625,7 +625,7 @@ public class GenericsTest {
         public E(final B<T, I2> p1, final B<I2, I3> p2, final B<T, I3>[] p3) { }
     }
 
-    @SuppressWarnings("UnusedParameters")
+    @SuppressWarnings({ "UnusedParameters", "unused" })
     private interface F1<T extends I1 & I2> { }
 
     private static class G1 implements F1, I { }
@@ -694,6 +694,7 @@ public class GenericsTest {
         }
     }
 
+    @SuppressWarnings("unused")
     private enum E1 { A, B, C }
 
     private static class SuperType<R, S, T> implements I<R, S, T> { }

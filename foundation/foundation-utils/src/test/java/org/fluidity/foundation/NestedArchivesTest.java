@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public class NestedArchivesTest {
     private boolean standard;
 
     private ClassLoader createLoader(final URL root, final String... paths) throws IOException {
-        final List<URL> urls = new ArrayList<URL>();
+        final List<URL> urls = new ArrayList<>();
 
         urls.add(root);
         for (final String path : paths) {
@@ -90,7 +90,7 @@ public class NestedArchivesTest {
         final List<URL> resources = Collections.list(loader.getResources("resource-1.txt"));
         assert resources.size() == 4 : resources;
 
-        final Set<String> protocols = new HashSet<String>();
+        final Set<String> protocols = new HashSet<>();
         for (final URL url : resources) {
             protocols.add(new URL(url.getFile()).getProtocol());
         }

@@ -56,7 +56,7 @@ final class JavaSecurityPolicy implements SecurityPolicy {
      * @param log     the log to emit messages to.
      */
     @SuppressWarnings("unchecked")
-    public JavaSecurityPolicy(final int levels, final boolean cached, final byte[] buffer, final File archive, final Logger log) throws IOException {
+    JavaSecurityPolicy(final int levels, final boolean cached, final byte[] buffer, final File archive, final Logger log) throws IOException {
         assert levels > 0 : levels;
 
         this.cached = cached;
@@ -67,7 +67,7 @@ final class JavaSecurityPolicy implements SecurityPolicy {
         this.files = new List[levels];
 
         for (int i = 0; i < files.length; i++) {
-            files[i] = new ArrayList<String>();
+            files[i] = new ArrayList<>();
         }
 
         final String entry = entry(archive);

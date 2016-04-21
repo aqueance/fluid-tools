@@ -32,7 +32,7 @@ package org.fluidity.deployment.cli;
  * {@linkplain org.fluidity.composition.Component @Component}
  * final class MyApplication implements <span class="hl1">Application</span> {
  *
- *   public void <span class="hl1">run</span>(final {@linkplain String}[] arguments) throws {@linkplain Exception} {
+ *   public void <span class="hl1">run</span>(final {@linkplain String}... arguments) throws {@linkplain Exception} {
  *     &hellip;
  *   }
  * }
@@ -48,5 +48,5 @@ public interface Application {
      *
      * @throws Exception reported to the command launcher.
      */
-    void run(String[] arguments) throws Exception;
+    void run(String... arguments) throws Exception;
 }

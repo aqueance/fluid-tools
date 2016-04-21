@@ -199,7 +199,7 @@ public final class StandaloneWarMojo extends AbstractMojo {
 
         final Collection<Artifact> bootstrapDependencies = DependenciesSupport.dependencyClosure(repositorySystem, repositorySession, repositories, handlerDependency, false, false, null);
 
-        final Set<Artifact> serverDependencies = new HashSet<Artifact>();
+        final Set<Artifact> serverDependencies = new HashSet<>();
 
         for (final Dependency dependency : project.getPlugin(pluginKey).getDependencies()) {
             assert !dependency.isOptional() : dependency;
@@ -215,9 +215,9 @@ public final class StandaloneWarMojo extends AbstractMojo {
         try {
             final byte buffer[] = new byte[16384];
 
-            final AtomicReference<String> mainClass = new AtomicReference<String>();
-            final Map<String, Attributes> attributesMap = new HashMap<String, Attributes>();
-            final Map<String, String[]> providerMap = new HashMap<String, String[]>();
+            final AtomicReference<String> mainClass = new AtomicReference<>();
+            final Map<String, Attributes> attributesMap = new HashMap<>();
+            final Map<String, String[]> providerMap = new HashMap<>();
 
             ArchivesSupport.load(attributesMap, providerMap, buffer, log, new ArchivesSupport.Feed() {
                 private final Iterator<Artifact> iterator = bootstrapDependencies.iterator();
@@ -238,16 +238,14 @@ public final class StandaloneWarMojo extends AbstractMojo {
             });
 
             final File file = createTempFile();
-            final JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(file));
-
-            try {
+            try (final JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(file))) {
                 if (mainClass.get() == null) {
                     throw new MojoExecutionException(String.format("None of the following dependencies specified a main class (manifest entry '%s'): %s",
                                                                    Attributes.Name.MAIN_CLASS,
                                                                    bootstrapDependencies));
                 }
 
-                final Set<String> bootLibraries = new HashSet<String>();
+                final Set<String> bootLibraries = new HashSet<>();
 
                 final String libDirectory = Archives.WEB_INF.concat("/lib/");
                 for (final Artifact artifact : serverDependencies) {
@@ -274,7 +272,7 @@ public final class StandaloneWarMojo extends AbstractMojo {
 
                 ArchivesSupport.expand(outputStream, buffer, providerMap, new ArchivesSupport.Feed() {
                     private final Iterator<Artifact> iterator = bootstrapDependencies.iterator();
-                    private final AtomicReference<Boolean> last = new AtomicReference<Boolean>(false);
+                    private final AtomicReference<Boolean> last = new AtomicReference<>(false);
 
                     public File next() throws IOException {
                         if (iterator.hasNext()) {
@@ -303,12 +301,6 @@ public final class StandaloneWarMojo extends AbstractMojo {
                         outputStream.putNextEntry(new JarEntry(bootDirectory + dependency.getName()));
                         Streams.copy(new FileInputStream(dependency), outputStream, buffer, true, false);
                     }
-                }
-            } finally {
-                try {
-                    outputStream.close();
-                } catch (final IOException ignored) {
-                    // ignored
                 }
             }
 

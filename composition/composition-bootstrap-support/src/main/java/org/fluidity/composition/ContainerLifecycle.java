@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.composition.spi.PackageBindings;
-import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Log;
 
 /**
@@ -40,7 +39,7 @@ final class ContainerLifecycle {
     private final OpenContainer container;
     private final List<PackageBindings> bindings;
 
-    private final Set<ContainerLifecycle> children = new HashSet<ContainerLifecycle>();
+    private final Set<ContainerLifecycle> children = new HashSet<>();
 
     private final AtomicBoolean shouldInitialize = new AtomicBoolean(true);
     private final AtomicBoolean shouldShutdown = new AtomicBoolean(true);
@@ -66,11 +65,7 @@ final class ContainerLifecycle {
                 log.debug("Initializing %s", container);
 
                 // shutdown actions are registered first: will be run after the tasks added by bindings and child containers
-                termination.add(new Command.Job<Exception>() {
-                    public void run() {
-                        shutdown(log);
-                    }
-                });
+                termination.add(() -> shutdown(log));
 
                 // post-registration initialization next: may add shutdown tasks
                 for (final PackageBindings next : bindings) {
@@ -106,7 +101,7 @@ final class ContainerLifecycle {
             }
 
             // make sure the children are shut down before this container
-            for (final ContainerLifecycle child : new HashSet<ContainerLifecycle>(children)) {
+            for (final ContainerLifecycle child : new HashSet<>(children)) {
                 child.shutdown(log);
             }
 

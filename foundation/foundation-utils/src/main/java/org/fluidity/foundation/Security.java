@@ -45,6 +45,7 @@ import java.security.PrivilegedAction;
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("WeakerAccess")
 public final class Security extends Utility {
 
     /**
@@ -62,11 +63,7 @@ public final class Security extends Utility {
         boolean controlled;
 
         try {
-            controlled = AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
-                public Boolean run() {
-                    return System.getSecurityManager() != null || Boolean.getBoolean(PROPERTY);
-                }
-            });
+            controlled = AccessController.doPrivileged((PrivilegedAction<Boolean>) () -> System.getSecurityManager() != null || Boolean.getBoolean(PROPERTY));
         } catch (final AccessControlException e) {
             controlled = true;
         }
@@ -97,11 +94,9 @@ public final class Security extends Utility {
         if (object.isAccessible()) {
             return null;
         } else if (CONTROLLED) {
-            return new PrivilegedAction<T>() {
-                public T run() {
-                    object.setAccessible(true);
-                    return object;
-                }
+            return () -> {
+                object.setAccessible(true);
+                return object;
             };
         } else {
             object.setAccessible(true);

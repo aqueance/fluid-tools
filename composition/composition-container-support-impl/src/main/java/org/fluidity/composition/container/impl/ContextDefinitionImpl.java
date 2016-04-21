@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,20 +48,12 @@ import org.fluidity.foundation.Strings;
  */
 final class ContextDefinitionImpl implements ContextDefinition {
 
-    private static final Qualifier.Composition DEFAULT_COMPOSITION = (Qualifier.Composition) Methods.get(Qualifier.class, new Methods.Invoker<Qualifier>() {
-        public void invoke(final Qualifier capture) throws Exception {
-            capture.value();
-        }
-    })[0].getDefaultValue();
+    private static final Qualifier.Composition DEFAULT_COMPOSITION = (Qualifier.Composition) Methods.get(Qualifier.class, Qualifier::value)[0].getDefaultValue();
 
-    private final Map<Class<? extends Annotation>, Annotation[]> defined = new LinkedHashMap<Class<? extends Annotation>, Annotation[]>();
-    private final Map<Class<? extends Annotation>, Annotation[]> active = new HashMap<Class<? extends Annotation>, Annotation[]>();
+    private final Map<Class<? extends Annotation>, Annotation[]> defined = new LinkedHashMap<>();
+    private final Map<Class<? extends Annotation>, Annotation[]> active = new HashMap<>();
 
-    private final Deferred.Reference<Integer> hashCode = Deferred.shared(new Deferred.Factory<Integer>() {
-        public Integer create() {
-            return AnnotationMaps.hashCode(defined);
-        }
-    });
+    private final Deferred.Reference<Integer> hashCode = Deferred.shared(() -> AnnotationMaps.hashCode(defined));
 
     ContextDefinitionImpl() {
         // empty
@@ -146,7 +138,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
             final Component.Qualifiers annotation = type.getAnnotation(Component.Qualifiers.class);
 
             if (annotation != null) {
-                final Set<Class<? extends Annotation>> context = new HashSet<Class<? extends Annotation>>(Arrays.asList(annotation.value()));
+                final Set<Class<? extends Annotation>> context = new HashSet<>(Arrays.asList(annotation.value()));
 
                 active.putAll(defined);
                 active.keySet().retainAll(context);
@@ -181,7 +173,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
                 if (composition != Qualifier.Composition.IMMEDIATE && defined.containsKey(type)) {
                     final List<Annotation> present = Arrays.asList(defined.get(type));
                     final Annotation[] annotations = entry.getValue();
-                    final Set<Annotation> retained = new HashSet<Annotation>(Arrays.asList(annotations));
+                    final Set<Annotation> retained = new HashSet<>(Arrays.asList(annotations));
 
                     retained.retainAll(present);
 
@@ -238,7 +230,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
     }
 
     private Annotation[] combine(final Annotation[] present, final Annotation... addition) {
-        final Collection<Annotation> list = new LinkedHashSet<Annotation>(present.length + addition.length);
+        final Collection<Annotation> list = new LinkedHashSet<>(present.length + addition.length);
 
         list.addAll(Arrays.asList(present));
         list.addAll(Arrays.asList(addition));

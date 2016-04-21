@@ -36,13 +36,9 @@ public final class ComponentImplTest extends Simulator {
         EasyMock.expect(dependency.receiveText(accepted)).andReturn(true);
         EasyMock.expect(dependency.receiveText(rejected)).andReturn(false);
 
-        verify(new Task() {
-
-            @Override
-            public void run() throws Exception {
-                Assert.assertTrue(subject.sendText(accepted));
-                Assert.assertFalse(subject.sendText(rejected));
-            }
+        verify((Task) () -> {
+            Assert.assertTrue(subject.sendText(accepted));
+            Assert.assertFalse(subject.sendText(rejected));
         });
     }
 }

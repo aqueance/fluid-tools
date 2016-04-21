@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +36,9 @@ import org.fluidity.foundation.Strings;
 @Component.Qualifiers(Component.Reference.class)
 final class ContainerTerminationJobs<T> implements ContainerTermination.Jobs<T> {
 
-    private final List<Command.Job<Exception>> jobs = new ArrayList<Command.Job<Exception>>();
-    private final List<Command.Job<Exception>> added = new ArrayList<Command.Job<Exception>>();
-    private final List<Command.Job<Exception>> removed = new ArrayList<Command.Job<Exception>>();
+    private final List<Command.Job<Exception>> jobs = new ArrayList<>();
+    private final List<Command.Job<Exception>> added = new ArrayList<>();
+    private final List<Command.Job<Exception>> removed = new ArrayList<>();
 
     private final Log log;
     private final Class<?> caller;
@@ -103,18 +103,16 @@ final class ContainerTerminationJobs<T> implements ContainerTermination.Jobs<T> 
             throw new IllegalArgumentException(String.format("Attempted to add null job to %s", Strings.formatClass(false, true, caller)));
         }
 
-        final PrivilegedAction<Boolean> check = new PrivilegedAction<Boolean>() {
-            public Boolean run() {
-                final ClassLoader check = job.getClass().getClassLoader();
+        final PrivilegedAction<Boolean> check = () -> {
+            final ClassLoader _check = job.getClass().getClassLoader();
 
-                for (ClassLoader loader = caller.getClassLoader(); loader != null; loader = loader.getParent()) {
-                    if (loader == check) {
-                        return true;
-                    }
+            for (ClassLoader loader = caller.getClassLoader(); loader != null; loader = loader.getParent()) {
+                if (loader == _check) {
+                    return true;
                 }
-
-                return caller.getClassLoader() == null && check == null;
             }
+
+            return caller.getClassLoader() == null && _check == null;
         };
 
         return Security.CONTROLLED ? AccessController.doPrivileged(check) : check.run();

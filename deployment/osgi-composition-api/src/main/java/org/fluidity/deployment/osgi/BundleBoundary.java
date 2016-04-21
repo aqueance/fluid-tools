@@ -16,6 +16,8 @@
 
 package org.fluidity.deployment.osgi;
 
+import org.fluidity.foundation.Exceptions;
+
 import static org.fluidity.foundation.Command.Process;
 
 /**
@@ -72,7 +74,7 @@ public interface BundleBoundary {
 
     /**
      * Invokes the given command with a context class loader that allows the <code>remote</code> object to find classes from the bundle of the
-     * <code>local</code> object.
+     * <code>local</code> object. Any exception thrown by the command will be {@link org.fluidity.foundation.Exceptions#wrap(Process) wrapped}.
      *
      * @param <T>     the return type of the command.
      * @param <E>     the exception type thrown by the command.
@@ -82,7 +84,7 @@ public interface BundleBoundary {
      *
      * @return whatever the command returns.
      *
-     * @throws E as thrown by the command.
+     * @throws Exceptions.Wrapper wraps all checked exceptions thrown by the method.
      */
-    <T, E extends Exception> T invoke(Object remote, Object local, Process<T, E> command) throws E;
+    <T, E extends Exception> T invoke(Object remote, Object local, Process<T, E> command) throws Exceptions.Wrapper;
 }

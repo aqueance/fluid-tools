@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class ComponentGroupTests extends AbstractContainerTests {
 
-    public ComponentGroupTests(final ArtifactFactory factory) {
+    ComponentGroupTests(final ArtifactFactory factory) {
         super(factory);
     }
 
@@ -136,13 +136,11 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
     @Test
     public void testDependentGroupInHierarchy() throws Exception {
-        final OpenContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(OrderedFilter8.class);
-                registry.bindComponent(OrderedFilter7.class);
-                registry.bindComponent(OrderedFilter6.class);
-                registry.bindComponent(OrderedFilter5.class);
-            }
+        final OpenContainer child = container.makeChildContainer(registry -> {
+            registry.bindComponent(OrderedFilter8.class);
+            registry.bindComponent(OrderedFilter7.class);
+            registry.bindComponent(OrderedFilter6.class);
+            registry.bindComponent(OrderedFilter5.class);
         });
 
         registry.bindComponent(OrderedFilter4.class);
@@ -165,11 +163,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
     @Test
     public void testGroupInHierarchy() throws Exception {
-        final OpenContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(Filter2.class);
-            }
-        });
+        final OpenContainer child = container.makeChildContainer(registry -> registry.bindComponent(Filter2.class));
 
         registry.bindComponent(Filter1.class);
 
@@ -226,7 +220,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
     private <T> void checkComponentOrder(final T[] group, final Class<? extends T>... types) {
         final List<Class<? extends T>> expected = Arrays.asList(types);
-        final List<Class<?>> actual = new ArrayList<Class<?>>();
+        final List<Class<?>> actual = new ArrayList<>();
 
         for (final T t : group) {
             actual.add(t.getClass());
@@ -236,7 +230,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
     }
 
     @ComponentGroup
-    public interface Filter { }
+    interface Filter { }
 
     @Component(automatic = false)
     public static class Processor {
@@ -245,12 +239,12 @@ public final class ComponentGroupTests extends AbstractContainerTests {
             assert filters != null : "Component group dependency was not resolved";
             assert filters.length == 2 : String.format("Component group dependency did not find all implementations: %s", Arrays.toString(filters));
 
-            final Set<Class<? extends Filter>> provided = new HashSet<Class<? extends Filter>>();
+            final Set<Class<? extends Filter>> provided = new HashSet<>();
             for (final Filter filter : filters) {
                 provided.add(filter.getClass());
             }
 
-            assert provided.equals(new HashSet<Class<? extends Filter>>(Arrays.asList(Filter1.class, Filter2.class))) : provided;
+            assert provided.equals(new HashSet<>(Arrays.asList(Filter1.class, Filter2.class))) : provided;
         }
     }
 
@@ -262,9 +256,9 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         }
     }
 
-    public static class Filter1 implements Filter { }
+    private static class Filter1 implements Filter { }
 
-    public static class Filter2 implements Filter { }
+    private static class Filter2 implements Filter { }
 
     private static class OrderedFilter1 implements Filter { }
 
@@ -363,7 +357,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
         private final Class<?> type;
 
-        protected DynamicFilterFactory() {
+        DynamicFilterFactory() {
             this.type = getClass().getAnnotation(Component.class).api()[0];
         }
 
@@ -375,11 +369,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
             dependencies.discover(type);
 
-            return new Instance() {
-                public void bind(final Registry registry) throws Exception {
-                    registry.bindComponent(type);
-                }
-            };
+            return registry -> registry.bindComponent(type);
         }
     }
 

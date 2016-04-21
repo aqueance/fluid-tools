@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,10 @@ import org.fluidity.foundation.spi.LogLevels;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("WeakerAccess")
 final class LoggingMBeanImpl extends StandardMBean implements LoggingMBean {
 
-    protected LoggingMBeanImpl() throws NotCompliantMBeanException {
+    public LoggingMBeanImpl() throws NotCompliantMBeanException {
         super(LoggingMBean.class);
     }
 
@@ -42,11 +43,7 @@ final class LoggingMBeanImpl extends StandardMBean implements LoggingMBean {
         return "Management interface for logging related items.";
     }
 
-    private final String logLevelUpdateOperation = Methods.get(LoggingMBean.class, new Methods.Invoker<LoggingMBean>() {
-        public void invoke(final LoggingMBean capture) throws Exception {
-            capture.logLevelsUpdated();
-        }
-    })[0].getName();
+    private final String logLevelUpdateOperation = Methods.get(LoggingMBean.class, LoggingMBean::logLevelsUpdated)[0].getName();
 
     @Override
     protected String getDescription(final MBeanOperationInfo info) {

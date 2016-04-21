@@ -40,7 +40,6 @@ import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -116,46 +115,34 @@ public class BundleComponentContainerLogicTest extends Simulator {
         final Deferred.Reference<BundleComponentContainerImpl.Logic> services = discover(StatusCheck.class, componentClass);
 
         // registering the service
-        test(new Task() {
-            public void run() throws Exception {
-                final Properties properties = new Properties();
+        test(() -> {
+            final Properties properties = new Properties();
 
-                properties.setProperty("property-1", "value-1");
-                properties.setProperty("property-2", "value-2");
+            properties.setProperty("property-1", "value-1");
+            properties.setProperty("property-2", "value-2");
 
-                final Class<ServiceInterface1> serviceInterface = ServiceInterface1.class;
+            final Class<ServiceInterface1> serviceInterface = ServiceInterface1.class;
 
-                EasyMock.expect(Service1.delegate.properties()).andReturn(properties);
+            EasyMock.expect(Service1.delegate.properties()).andReturn(properties);
 
-                Service1.delegate.start();
-                EasyMock.expect(context.registerService(EasyMock.aryEq(new String[] { serviceInterface.getName() }),
-                                                        EasyMock.<Service1>notNull(),
-                                                        (Dictionary) EasyMock.same(properties))).andReturn(registration);
+            Service1.delegate.start();
+            EasyMock.expect(context.registerService(EasyMock.aryEq(new String[] { serviceInterface.getName() }),
+                                                    EasyMock.<Service1>notNull(),
+                                                    (Dictionary) EasyMock.same(properties))).andReturn(registration);
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        services.get().start();
-                    }
-                });
+            verify(() -> services.get().start());
 
-                assertFailed();
-                assertActive(StatusCheck.class, componentClass);
-                assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
-            }
+            assertFailed();
+            assertActive(StatusCheck.class, componentClass);
+            assertInactive(Collections.emptyMap());
         });
 
         // un-registering the service
-        test(new Task() {
-            public void run() throws Exception {
-                registration.unregister();
-                Service1.delegate.stop();
+        test(() -> {
+            registration.unregister();
+            Service1.delegate.stop();
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        services.get().stop();
-                    }
-                });
-            }
+            verify(() -> services.get().stop());
         });
     }
 
@@ -169,127 +156,105 @@ public class BundleComponentContainerLogicTest extends Simulator {
         final Map.Entry<Class<?>, Set<Service>> dependencies = dependencies(ServiceDependent1.class, annotation1, annotation2);
 
         // no services yet
-        final ServiceListener[] listeners = test(new Work<ServiceListener[]>() {
-            public ServiceListener[] run() throws Exception {
-                noServices(ServiceInterface1.class, null);
-                noServices(ServiceInterface2.class, null);
+        final ServiceListener[] listeners = test(() -> {
+            noServices(ServiceInterface1.class, null);
+            noServices(ServiceInterface2.class, null);
 
-                final List<ListenerSpec> listeners = Arrays.asList(expectListenerRegistration(), expectListenerRegistration());
+            final List<ListenerSpec> _listeners = Arrays.asList(expectListenerRegistration(), expectListenerRegistration());
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        services.get().start();
-                    }
-                });
+            verify(() -> services.get().start());
 
-                assertFailed();
-                assertActive(StatusCheck.class);
-                assertInactive(collect(dependencies));
+            assertFailed();
+            assertActive(StatusCheck.class);
+            assertInactive(collect(dependencies));
 
-                final ListenerSpec spec1 = find(listeners, ServiceInterface1.class, null);
-                final ListenerSpec spec2 = find(listeners, ServiceInterface2.class, null);
+            final ListenerSpec spec1 = find(_listeners, ServiceInterface1.class, null);
+            final ListenerSpec spec2 = find(_listeners, ServiceInterface2.class, null);
 
-                checkFilter(spec1, ServiceInterface1.class, null);
-                checkFilter(spec2, ServiceInterface2.class, null);
+            checkFilter(spec1, ServiceInterface1.class, null);
+            checkFilter(spec2, ServiceInterface2.class, null);
 
-                return new ServiceListener[] { spec1.listener(), spec2.listener() };
-            }
+            assert spec1 != null;
+            assert spec2 != null;
+            return new ServiceListener[] { spec1.listener(), spec2.listener() };
         });
 
         // responding to appearance of the first service
-        test(new Task() {
-            public void run() throws Exception {
-                serviceAdded(ServiceInterface1.class, null, reference1, service1);
+        test(() -> {
+            serviceAdded(ServiceInterface1.class, null, reference1, service1);
 
-                verify(event(listeners[0], ServiceEvent.REGISTERED, reference1));
+            verify(event(listeners[0], ServiceEvent.REGISTERED, reference1));
 
-                assertFailed();
-                assertActive(StatusCheck.class);
-                assertInactive(collect(dependencies), annotation1);
-            }
+            assertFailed();
+            assertActive(StatusCheck.class);
+            assertInactive(collect(dependencies), annotation1);
         });
 
         // responding to appearance of the second service
-        test(new Task() {
-            public void run() throws Exception {
-                serviceAdded(ServiceInterface2.class, null, reference2, service2);
-                ServiceDependent1.delegate.start();
+        test(() -> {
+            serviceAdded(ServiceInterface2.class, null, reference2, service2);
+            ServiceDependent1.delegate.start();
 
-                verify(event(listeners[1], ServiceEvent.REGISTERED, reference2));
+            verify(event(listeners[1], ServiceEvent.REGISTERED, reference2));
 
-                assertFailed();
-                assertActive(StatusCheck.class, componentClass);
-                assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
-            }
+            assertFailed();
+            assertActive(StatusCheck.class, componentClass);
+            assertInactive(Collections.emptyMap());
         });
 
         // responding to disappearance of the first service
-        test(new Task() {
-            public void run() throws Exception {
-                serviceRemoved(ServiceInterface1.class, null, reference1);
-                ServiceDependent1.delegate.stop();
+        test(() -> {
+            serviceRemoved(ServiceInterface1.class, null, reference1);
+            ServiceDependent1.delegate.stop();
 
-                verify(event(listeners[0], ServiceEvent.UNREGISTERING, reference1));
+            verify(event(listeners[0], ServiceEvent.UNREGISTERING, reference1));
 
-                assertFailed();
-                assertActive(StatusCheck.class);
-                assertInactive(collect(dependencies), annotation2);
-            }
+            assertFailed();
+            assertActive(StatusCheck.class);
+            assertInactive(collect(dependencies), annotation2);
         });
 
         // responding to reappearance of the first service
-        test(new Task() {
-            public void run() throws Exception {
-                serviceAdded(ServiceInterface1.class, null, reference1, service1);
-                ServiceDependent1.delegate.start();
+        test(() -> {
+            serviceAdded(ServiceInterface1.class, null, reference1, service1);
+            ServiceDependent1.delegate.start();
 
-                verify(event(listeners[0], ServiceEvent.REGISTERED, reference1));
+            verify(event(listeners[0], ServiceEvent.REGISTERED, reference1));
 
-                assertFailed();
-                assertActive(StatusCheck.class, componentClass);
-                assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
-            }
+            assertFailed();
+            assertActive(StatusCheck.class, componentClass);
+            assertInactive(Collections.emptyMap());
         });
 
         // responding to disappearance of the second service
-        test(new Task() {
-            public void run() throws Exception {
-                serviceRemoved(ServiceInterface2.class, null, reference2);
-                ServiceDependent1.delegate.stop();
+        test(() -> {
+            serviceRemoved(ServiceInterface2.class, null, reference2);
+            ServiceDependent1.delegate.stop();
 
-                verify(event(listeners[1], ServiceEvent.UNREGISTERING, reference2));
+            verify(event(listeners[1], ServiceEvent.UNREGISTERING, reference2));
 
-                assertFailed();
-                assertActive(StatusCheck.class);
-                assertInactive(collect(dependencies), annotation1);
-            }
+            assertFailed();
+            assertActive(StatusCheck.class);
+            assertInactive(collect(dependencies), annotation1);
         });
 
         // responding to disappearance of the first service
-        test(new Task() {
-            public void run() throws Exception {
-                serviceRemoved(ServiceInterface1.class, null, reference1);
+        test(() -> {
+            serviceRemoved(ServiceInterface1.class, null, reference1);
 
-                verify(event(listeners[0], ServiceEvent.UNREGISTERING, reference1));
+            verify(event(listeners[0], ServiceEvent.UNREGISTERING, reference1));
 
-                assertFailed();
-                assertActive(StatusCheck.class);
-                assertInactive(collect(dependencies));
-            }
+            assertFailed();
+            assertActive(StatusCheck.class);
+            assertInactive(collect(dependencies));
         });
 
         // removing the listeners
-        test(new Task() {
-            public void run() throws Exception {
-                context.removeServiceListener(listeners[0]);
-                context.removeServiceListener(listeners[1]);
+        test(() -> {
+            context.removeServiceListener(listeners[0]);
+            context.removeServiceListener(listeners[1]);
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        services.get().stop();
-                    }
-                });
-            }
+            verify(() -> services.get().stop());
         });
     }
 
@@ -303,89 +268,73 @@ public class BundleComponentContainerLogicTest extends Simulator {
         final Map.Entry<Class<?>, Set<Service>> dependencies = dependencies(ServiceDependent1.class, annotation1, annotation2);
 
         // first service already registered
-        final ServiceListener[] listeners = test(new Work<ServiceListener[]>() {
-            public ServiceListener[] run() throws Exception {
-                final List<ListenerSpec> listeners = Arrays.asList(expectListenerRegistration(), expectListenerRegistration());
+        final ServiceListener[] listeners = test(() -> {
+            final List<ListenerSpec> _listeners = Arrays.asList(expectListenerRegistration(), expectListenerRegistration());
 
-                serviceAdded(ServiceInterface1.class, null, reference1, service1);
-                noServices(ServiceInterface2.class, null);
+            serviceAdded(ServiceInterface1.class, null, reference1, service1);
+            noServices(ServiceInterface2.class, null);
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        services.get().start();
-                    }
-                });
+            verify(() -> services.get().start());
 
-                assertFailed();
-                assertActive(StatusCheck.class);
-                assertInactive(collect(dependencies), annotation1);
+            assertFailed();
+            assertActive(StatusCheck.class);
+            assertInactive(collect(dependencies), annotation1);
 
-                final ListenerSpec spec1 = find(listeners, ServiceInterface1.class, null);
-                final ListenerSpec spec2 = find(listeners, ServiceInterface2.class, null);
+            final ListenerSpec spec1 = find(_listeners, ServiceInterface1.class, null);
+            final ListenerSpec spec2 = find(_listeners, ServiceInterface2.class, null);
 
-                checkFilter(spec1, ServiceInterface1.class, null);
-                checkFilter(spec2, ServiceInterface2.class, null);
+            checkFilter(spec1, ServiceInterface1.class, null);
+            checkFilter(spec2, ServiceInterface2.class, null);
 
-                return new ServiceListener[] { spec1.listener(), spec2.listener() };
-            }
+            assert spec1 != null;
+            assert spec2 != null;
+            return new ServiceListener[] { spec1.listener(), spec2.listener() };
         });
 
         // responding to appearance of the second service
-        test(new Task() {
-            public void run() throws Exception {
-                serviceAdded(ServiceInterface2.class, null, reference2, service2);
-                ServiceDependent1.delegate.start();
+        test(() -> {
+            serviceAdded(ServiceInterface2.class, null, reference2, service2);
+            ServiceDependent1.delegate.start();
 
-                verify(event(listeners[1], ServiceEvent.REGISTERED, reference2));
+            verify(event(listeners[1], ServiceEvent.REGISTERED, reference2));
 
-                assertFailed();
-                assertActive(StatusCheck.class, componentClass);
-                assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
-            }
+            assertFailed();
+            assertActive(StatusCheck.class, componentClass);
+            assertInactive(Collections.emptyMap());
         });
 
         // responding to disappearance of the first service
-        test(new Task() {
-            public void run() throws Exception {
-                serviceRemoved(ServiceInterface1.class, null, reference1);
-                ServiceDependent1.delegate.stop();
+        test(() -> {
+            serviceRemoved(ServiceInterface1.class, null, reference1);
+            ServiceDependent1.delegate.stop();
 
-                verify(event(listeners[0], ServiceEvent.UNREGISTERING, reference1));
+            verify(event(listeners[0], ServiceEvent.UNREGISTERING, reference1));
 
-                assertFailed();
-                assertActive(StatusCheck.class);
-                assertInactive(collect(dependencies), annotation2);
-            }
+            assertFailed();
+            assertActive(StatusCheck.class);
+            assertInactive(collect(dependencies), annotation2);
         });
 
         // responding to reappearance of the first service
-        test(new Task() {
-            public void run() throws Exception {
-                serviceAdded(ServiceInterface1.class, null, reference1, service1);
-                ServiceDependent1.delegate.start();
+        test(() -> {
+            serviceAdded(ServiceInterface1.class, null, reference1, service1);
+            ServiceDependent1.delegate.start();
 
-                verify(event(listeners[0], ServiceEvent.REGISTERED, reference1));
+            verify(event(listeners[0], ServiceEvent.REGISTERED, reference1));
 
-                assertFailed();
-                assertActive(StatusCheck.class, componentClass);
-                assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
-            }
+            assertFailed();
+            assertActive(StatusCheck.class, componentClass);
+            assertInactive(Collections.emptyMap());
         });
 
         // removing the listener
-        test(new Task() {
-            public void run() throws Exception {
-                context.removeServiceListener(listeners[0]);
-                context.removeServiceListener(listeners[1]);
+        test(() -> {
+            context.removeServiceListener(listeners[0]);
+            context.removeServiceListener(listeners[1]);
 
-                ServiceDependent1.delegate.stop();
+            ServiceDependent1.delegate.stop();
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        services.get().stop();
-                    }
-                });
-            }
+            verify(() -> services.get().stop());
         });
     }
 
@@ -398,48 +347,38 @@ public class BundleComponentContainerLogicTest extends Simulator {
 
         final Deferred.Reference<BundleComponentContainerImpl.Logic> services = discover(Arrays.asList(selector1, selector2), StatusCheck.class, componentClass);
 
-        final ServiceListener[] listeners = test(new Work<ServiceListener[]>() {
-            public ServiceListener[] run() throws Exception {
-                final List<ListenerSpec> listeners = Arrays.asList(expectListenerRegistration(), expectListenerRegistration());
+        final ServiceListener[] listeners = test(() -> {
+            final List<ListenerSpec> _listeners = Arrays.asList(expectListenerRegistration(), expectListenerRegistration());
 
-                serviceAdded(ServiceInterface1.class, selector1, reference1, service1);
-                serviceAdded(ServiceInterface2.class, selector2, reference2, service2);
-                ServiceDependent2.delegate.start();
+            serviceAdded(ServiceInterface1.class, selector1, reference1, service1);
+            serviceAdded(ServiceInterface2.class, selector2, reference2, service2);
+            ServiceDependent2.delegate.start();
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        services.get().start();
-                    }
-                });
+            verify(() -> services.get().start());
 
-                assertFailed();
-                assertActive(StatusCheck.class, componentClass);
-                assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
+            assertFailed();
+            assertActive(StatusCheck.class, componentClass);
+            assertInactive(Collections.emptyMap());
 
-                final ListenerSpec spec1 = find(listeners, ServiceInterface1.class, null);
-                final ListenerSpec spec2 = find(listeners, ServiceInterface2.class, null);
+            final ListenerSpec spec1 = find(_listeners, ServiceInterface1.class, null);
+            final ListenerSpec spec2 = find(_listeners, ServiceInterface2.class, null);
 
-                checkFilter(spec1, ServiceInterface1.class, selector1);
-                checkFilter(spec2, ServiceInterface2.class, selector2);
+            checkFilter(spec1, ServiceInterface1.class, selector1);
+            checkFilter(spec2, ServiceInterface2.class, selector2);
 
-                return new ServiceListener[] { spec1.listener(), spec2.listener() };
-            }
+            assert spec1 != null;
+            assert spec2 != null;
+            return new ServiceListener[] { spec1.listener(), spec2.listener() };
         });
 
         // removing the listeners
-        test(new Task() {
-            public void run() throws Exception {
-                context.removeServiceListener(listeners[0]);
-                context.removeServiceListener(listeners[1]);
+        test(() -> {
+            context.removeServiceListener(listeners[0]);
+            context.removeServiceListener(listeners[1]);
 
-                ServiceDependent2.delegate.stop();
+            ServiceDependent2.delegate.stop();
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        services.get().stop();
-                    }
-                });
-            }
+            verify(() -> services.get().stop());
         });
     }
 
@@ -451,113 +390,89 @@ public class BundleComponentContainerLogicTest extends Simulator {
         final EventSource source = new EventSource();
 
         // service listener registration
-        final ListenerSpec spec = test(new Work<ListenerSpec>() {
-            public ListenerSpec run() throws Exception {
-                final ListenerSpec spec = expectListenerRegistration();
+        final ListenerSpec spec = test(() -> {
+            final ListenerSpec _spec = expectListenerRegistration();
 
-                EasyMock.expect(source.type()).andReturn(Consumer.class);
-                noServices(Consumer.class, null);
-                EventSource.delegate.start();
+            EasyMock.expect(source.type()).andReturn(Consumer.class);
+            noServices(Consumer.class, null);
+            EventSource.delegate.start();
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        services.get().start();
-                    }
-                });
+            verify(() -> services.get().start());
 
-                assertFailed();
-                assertActive(StatusCheck.class, componentClass);
-                assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
+            assertFailed();
+            assertActive(StatusCheck.class, componentClass);
+            assertInactive(Collections.emptyMap());
 
-                assert spec.filter().equals(String.format("(%s=%s)", Constants.OBJECTCLASS, Consumer.class.getName()));
+            assert _spec.filter().equals(String.format("(%s=%s)", Constants.OBJECTCLASS, Consumer.class.getName()));
 
-                return spec;
-            }
+            return _spec;
         });
 
         // response to appearance of first consumer
-        test(new Task() {
-            public void run() throws Exception {
-                resolveService(reference1, consumer1);
-                EasyMock.expect(reference1.getPropertyKeys()).andReturn(new String[0]);
-                EventSource.delegate.serviceAdded(EasyMock.same(consumer1), EasyMock.<Properties>eq(new Properties()));
+        test(() -> {
+            resolveService(reference1, consumer1);
+            EasyMock.expect(reference1.getPropertyKeys()).andReturn(new String[0]);
+            EventSource.delegate.serviceAdded(EasyMock.same(consumer1), EasyMock.eq(new Properties()));
 
-                verify(event(spec.listener(), ServiceEvent.REGISTERED, reference1));
-            }
+            verify(event(spec.listener(), ServiceEvent.REGISTERED, reference1));
         });
 
         // response to appearance of second consumer
-        test(new Task() {
-            public void run() throws Exception {
-                final Properties properties = new Properties();
+        test(() -> {
+            final Properties properties = new Properties();
 
-                final String key = "xxx";
-                properties.setProperty(key, "yyy");
+            final String key = "xxx";
+            properties.setProperty(key, "yyy");
 
-                resolveService(reference2, consumer2);
-                EasyMock.expect(reference2.getPropertyKeys()).andReturn(new String[] { key });
-                EasyMock.expect(reference2.getProperty(key)).andReturn(properties.getProperty(key));
-                EventSource.delegate.serviceAdded(EasyMock.same(consumer2), EasyMock.<Properties>eq(properties));
+            resolveService(reference2, consumer2);
+            EasyMock.expect(reference2.getPropertyKeys()).andReturn(new String[] { key });
+            EasyMock.expect(reference2.getProperty(key)).andReturn(properties.getProperty(key));
+            EventSource.delegate.serviceAdded(EasyMock.same(consumer2), EasyMock.eq(properties));
 
-                verify(event(spec.listener(), ServiceEvent.REGISTERED, reference2));
-            }
+            verify(event(spec.listener(), ServiceEvent.REGISTERED, reference2));
         });
 
         // response to disappearance of first consumer
-        test(new Task() {
-            public void run() throws Exception {
-                resolveService(reference1, consumer1);
-                EventSource.delegate.serviceRemoved(EasyMock.same(consumer1));
+        test(() -> {
+            resolveService(reference1, consumer1);
+            EventSource.delegate.serviceRemoved(EasyMock.same(consumer1));
 
-                verify(event(spec.listener(), ServiceEvent.UNREGISTERING, reference1));
-            }
+            verify(event(spec.listener(), ServiceEvent.UNREGISTERING, reference1));
         });
 
         // response to reappearance of first consumer
-        test(new Task() {
-            public void run() throws Exception {
-                resolveService(reference1, consumer1);
-                EasyMock.expect(reference1.getPropertyKeys()).andReturn(new String[0]);
-                EventSource.delegate.serviceAdded(EasyMock.same(consumer1), EasyMock.eq(new Properties()));
+        test(() -> {
+            resolveService(reference1, consumer1);
+            EasyMock.expect(reference1.getPropertyKeys()).andReturn(new String[0]);
+            EventSource.delegate.serviceAdded(EasyMock.same(consumer1), EasyMock.eq(new Properties()));
 
-                verify(event(spec.listener(), ServiceEvent.REGISTERED, reference1));
-            }
+            verify(event(spec.listener(), ServiceEvent.REGISTERED, reference1));
         });
 
         // response to disappearance of second consumer
-        test(new Task() {
-            public void run() throws Exception {
-                resolveService(reference2, consumer2);
+        test(() -> {
+            resolveService(reference2, consumer2);
 
-                EventSource.delegate.serviceRemoved(EasyMock.same(consumer2));
+            EventSource.delegate.serviceRemoved(EasyMock.same(consumer2));
 
-                verify(event(spec.listener(), ServiceEvent.UNREGISTERING, reference2));
-            }
+            verify(event(spec.listener(), ServiceEvent.UNREGISTERING, reference2));
         });
 
         // response to disappearance of first consumer
-        test(new Task() {
-            public void run() throws Exception {
-                resolveService(reference1, consumer1);
+        test(() -> {
+            resolveService(reference1, consumer1);
 
-                EventSource.delegate.serviceRemoved(EasyMock.same(consumer1));
+            EventSource.delegate.serviceRemoved(EasyMock.same(consumer1));
 
-                verify(event(spec.listener(), ServiceEvent.UNREGISTERING, reference1));
-            }
+            verify(event(spec.listener(), ServiceEvent.UNREGISTERING, reference1));
         });
 
         // removing the event source
-        test(new Task() {
-            public void run() throws Exception {
-                context.removeServiceListener(spec.listener());
-                EventSource.delegate.stop();
+        test(() -> {
+            context.removeServiceListener(spec.listener());
+            EventSource.delegate.stop();
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        services.get().stop();
-                    }
-                });
-            }
+            verify(() -> services.get().stop());
         });
     }
 
@@ -569,76 +484,58 @@ public class BundleComponentContainerLogicTest extends Simulator {
         final EventSource source = new EventSource();
 
         // service listener registration
-        final ListenerSpec spec = test(new Work<ListenerSpec>() {
-            public ListenerSpec run() throws Exception {
-                final ListenerSpec spec = expectListenerRegistration();
+        final ListenerSpec spec = test(() -> {
+            final ListenerSpec _spec = expectListenerRegistration();
 
-                serviceAdded(Consumer.class, null, reference1, consumer1);
-                EasyMock.expect(reference1.getPropertyKeys()).andReturn(new String[0]);
-                EasyMock.expect(source.type()).andReturn(Consumer.class);
-                source.serviceAdded(EasyMock.same(consumer1), EasyMock.<Properties>notNull());
-                EventSource.delegate.start();
+            serviceAdded(Consumer.class, null, reference1, consumer1);
+            EasyMock.expect(reference1.getPropertyKeys()).andReturn(new String[0]);
+            EasyMock.expect(source.type()).andReturn(Consumer.class);
+            source.serviceAdded(EasyMock.same(consumer1), EasyMock.notNull());
+            EventSource.delegate.start();
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        services.get().start();
-                    }
-                });
+            verify(() -> services.get().start());
 
-                assertFailed();
-                assertActive(StatusCheck.class, componentClass);
-                assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
+            assertFailed();
+            assertActive(StatusCheck.class, componentClass);
+            assertInactive(Collections.emptyMap());
 
-                assert spec.filter().equals(String.format("(%s=%s)", Constants.OBJECTCLASS, Consumer.class.getName()));
+            assert _spec.filter().equals(String.format("(%s=%s)", Constants.OBJECTCLASS, Consumer.class.getName()));
 
-                return spec;
-            }
+            return _spec;
         });
 
         // response to appearance of second consumer
-        test(new Task() {
-            public void run() throws Exception {
-                resolveService(reference2, consumer2);
-                EasyMock.expect(reference2.getPropertyKeys()).andReturn(new String[0]);
-                EventSource.delegate.serviceAdded(EasyMock.same(consumer2), EasyMock.eq(new Properties()));
+        test(() -> {
+            resolveService(reference2, consumer2);
+            EasyMock.expect(reference2.getPropertyKeys()).andReturn(new String[0]);
+            EventSource.delegate.serviceAdded(EasyMock.same(consumer2), EasyMock.eq(new Properties()));
 
-                verify(event(spec.listener(), ServiceEvent.REGISTERED, reference2));
-            }
+            verify(event(spec.listener(), ServiceEvent.REGISTERED, reference2));
         });
 
         // response to disappearance of first consumer
-        test(new Task() {
-            public void run() throws Exception {
-                resolveService(reference1, consumer1);
-                EventSource.delegate.serviceRemoved(EasyMock.same(consumer1));
+        test(() -> {
+            resolveService(reference1, consumer1);
+            EventSource.delegate.serviceRemoved(EasyMock.same(consumer1));
 
-                verify(event(spec.listener(), ServiceEvent.UNREGISTERING, reference1));
-            }
+            verify(event(spec.listener(), ServiceEvent.UNREGISTERING, reference1));
         });
 
         // response to reappearance of first consumer
-        test(new Task() {
-            public void run() throws Exception {
-                resolveService(reference1, consumer1);
-                EasyMock.expect(reference1.getPropertyKeys()).andReturn(new String[0]);
-                EventSource.delegate.serviceAdded(EasyMock.same(consumer1), EasyMock.eq(new Properties()));
+        test(() -> {
+            resolveService(reference1, consumer1);
+            EasyMock.expect(reference1.getPropertyKeys()).andReturn(new String[0]);
+            EventSource.delegate.serviceAdded(EasyMock.same(consumer1), EasyMock.eq(new Properties()));
 
-                verify(event(spec.listener(), ServiceEvent.REGISTERED, reference1));
-            }
+            verify(event(spec.listener(), ServiceEvent.REGISTERED, reference1));
         });
 
         // removing the event source
-        test(new Task() {
-            public void run() throws Exception {
-                context.removeServiceListener(spec.listener());
-                EventSource.delegate.stop();
+        test(() -> {
+            context.removeServiceListener(spec.listener());
+            EventSource.delegate.stop();
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        services.get().stop();
-                    }
-                });
-            }
+            verify(() -> services.get().stop());
         });
     }
 
@@ -660,177 +557,151 @@ public class BundleComponentContainerLogicTest extends Simulator {
         final Map.Entry<Class<?>, Set<Service>> dependencies5 = dependencies(Component5Service2.class, annotation2);
 
         // one listener per service specification
-        final ListenerSpec[] listeners = test(new Work<ListenerSpec[]>() {
-            public ListenerSpec[] run() throws Exception {
+        final ListenerSpec[] listeners = test(() -> {
 
-                // no services yet
-                final List<ListenerSpec> listeners = Arrays.asList(expectListenerRegistration(), expectListenerRegistration());
-                noServices(ServiceInterface1.class, null);
-                noServices(ServiceInterface2.class, null);
+            // no services yet
+            final List<ListenerSpec> _listeners = Arrays.asList(expectListenerRegistration(), expectListenerRegistration());
+            noServices(ServiceInterface1.class, null);
+            noServices(ServiceInterface2.class, null);
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        services.get().start();
-                    }
-                });
+            verify(() -> services.get().start());
 
-                assertFailed();
-                assertActive(StatusCheck.class);
-                assertInactive(collect(dependencies1, dependencies2, dependencies3, dependencies4, dependencies5));
+            assertFailed();
+            assertActive(StatusCheck.class);
+            assertInactive(collect(dependencies1, dependencies2, dependencies3, dependencies4, dependencies5));
 
-                return new ListenerSpec[] { find(listeners, ServiceInterface1.class, null), find(listeners, ServiceInterface2.class, null) };
-            }
+            return new ListenerSpec[] { find(_listeners, ServiceInterface1.class, null), find(_listeners, ServiceInterface2.class, null) };
         });
 
         // add ServiceInterface1
-        test(new Task() {
-            public void run() throws Exception {
-                serviceAdded(ServiceInterface1.class, null, reference1, service1);
+        test(() -> {
+            serviceAdded(ServiceInterface1.class, null, reference1, service1);
 
-                // start components that require service 1 only
-                Component3Service1.delegate.start();
-                Component4Service1.delegate.start();
+            // start components that require service 1 only
+            Component3Service1.delegate.start();
+            Component4Service1.delegate.start();
 
-                verify(event(listeners[0].listener(), ServiceEvent.REGISTERED, reference1));
+            verify(event(listeners[0].listener(), ServiceEvent.REGISTERED, reference1));
 
-                assertFailed();
-                assertActive(StatusCheck.class, Component3Service1.class, Component4Service1.class);
-                assertInactive(collect(dependencies1, dependencies2, dependencies5), annotation1);
-            }
+            assertFailed();
+            assertActive(StatusCheck.class, Component3Service1.class, Component4Service1.class);
+            assertInactive(collect(dependencies1, dependencies2, dependencies5), annotation1);
         });
 
         // add ServiceInterface2
-        test(new Task() {
-            public void run() throws Exception {
-                serviceAdded(ServiceInterface2.class, null, reference2, service2);
+        test(() -> {
+            serviceAdded(ServiceInterface2.class, null, reference2, service2);
 
-                // start components that require service 2 only
-                Component5Service2.delegate.start();
-                Component2Service2.delegate.start();
+            // start components that require service 2 only
+            Component5Service2.delegate.start();
+            Component2Service2.delegate.start();
 
-                // start components that require both services
-                Component1Service12.delegate.start();
+            // start components that require both services
+            Component1Service12.delegate.start();
 
-                verify(event(listeners[1].listener(), ServiceEvent.REGISTERED, reference2));
+            verify(event(listeners[1].listener(), ServiceEvent.REGISTERED, reference2));
 
-                assertFailed();
-                assertActive(StatusCheck.class,
-                             Component1Service12.class,
-                             Component2Service2.class,
-                             Component3Service1.class,
-                             Component4Service1.class,
-                             Component5Service2.class);
-                assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
-            }
+            assertFailed();
+            assertActive(StatusCheck.class,
+                         Component1Service12.class,
+                         Component2Service2.class,
+                         Component3Service1.class,
+                         Component4Service1.class,
+                         Component5Service2.class);
+            assertInactive(Collections.emptyMap());
         });
 
         // remove ServiceInterface1
-        test(new Task() {
-            public void run() throws Exception {
-                serviceRemoved(ServiceInterface1.class, null, reference1);
+        test(() -> {
+            serviceRemoved(ServiceInterface1.class, null, reference1);
 
-                Component1Service12.delegate.stop();
-                Component3Service1.delegate.stop();
-                Component4Service1.delegate.stop();
+            Component1Service12.delegate.stop();
+            Component3Service1.delegate.stop();
+            Component4Service1.delegate.stop();
 
-                verify(event(listeners[0].listener(), ServiceEvent.UNREGISTERING, reference1));
+            verify(event(listeners[0].listener(), ServiceEvent.UNREGISTERING, reference1));
 
-                assertFailed();
-                assertActive(StatusCheck.class, Component2Service2.class, Component5Service2.class);
-                assertInactive(collect(dependencies1, dependencies3, dependencies4), annotation2);
-            }
+            assertFailed();
+            assertActive(StatusCheck.class, Component2Service2.class, Component5Service2.class);
+            assertInactive(collect(dependencies1, dependencies3, dependencies4), annotation2);
         });
 
         // add ServiceInterface1
-        test(new Task() {
-            public void run() throws Exception {
-                serviceAdded(ServiceInterface1.class, null, reference1, service1);
+        test(() -> {
+            serviceAdded(ServiceInterface1.class, null, reference1, service1);
 
-                // start components that require service 1 only
-                Component3Service1.delegate.start();
-                Component4Service1.delegate.start();
+            // start components that require service 1 only
+            Component3Service1.delegate.start();
+            Component4Service1.delegate.start();
 
-                // start components that require both services
-                Component1Service12.delegate.start();
+            // start components that require both services
+            Component1Service12.delegate.start();
 
-                verify(event(listeners[0].listener(), ServiceEvent.REGISTERED, reference1));
+            verify(event(listeners[0].listener(), ServiceEvent.REGISTERED, reference1));
 
-                assertFailed();
-                assertActive(StatusCheck.class,
-                             Component1Service12.class,
-                             Component2Service2.class,
-                             Component3Service1.class,
-                             Component4Service1.class,
-                             Component5Service2.class);
-                assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
-            }
+            assertFailed();
+            assertActive(StatusCheck.class,
+                         Component1Service12.class,
+                         Component2Service2.class,
+                         Component3Service1.class,
+                         Component4Service1.class,
+                         Component5Service2.class);
+            assertInactive(Collections.emptyMap());
         });
 
         // remove ServiceInterface2
-        test(new Task() {
-            public void run() throws Exception {
-                serviceRemoved(ServiceInterface2.class, null, reference2);
+        test(() -> {
+            serviceRemoved(ServiceInterface2.class, null, reference2);
 
-                Component1Service12.delegate.stop();
-                Component2Service2.delegate.stop();
-                Component5Service2.delegate.stop();
+            Component1Service12.delegate.stop();
+            Component2Service2.delegate.stop();
+            Component5Service2.delegate.stop();
 
-                verify(event(listeners[1].listener(), ServiceEvent.UNREGISTERING, reference2));
+            verify(event(listeners[1].listener(), ServiceEvent.UNREGISTERING, reference2));
 
-                assertFailed();
-                assertActive(StatusCheck.class, Component3Service1.class, Component4Service1.class);
-                assertInactive(collect(dependencies1, dependencies2, dependencies5), annotation1);
-            }
+            assertFailed();
+            assertActive(StatusCheck.class, Component3Service1.class, Component4Service1.class);
+            assertInactive(collect(dependencies1, dependencies2, dependencies5), annotation1);
         });
 
         // remove ServiceInterface1
-        test(new Task() {
-            public void run() throws Exception {
-                serviceRemoved(ServiceInterface1.class, null, reference1);
+        test(() -> {
+            serviceRemoved(ServiceInterface1.class, null, reference1);
 
-                Component3Service1.delegate.stop();
-                Component4Service1.delegate.stop();
+            Component3Service1.delegate.stop();
+            Component4Service1.delegate.stop();
 
-                verify(event(listeners[0].listener(), ServiceEvent.UNREGISTERING, reference1));
+            verify(event(listeners[0].listener(), ServiceEvent.UNREGISTERING, reference1));
 
-                assertFailed();
-                assertActive(StatusCheck.class);
-                assertInactive(collect(dependencies1, dependencies2, dependencies3, dependencies4, dependencies5));
-            }
+            assertFailed();
+            assertActive(StatusCheck.class);
+            assertInactive(collect(dependencies1, dependencies2, dependencies3, dependencies4, dependencies5));
         });
 
         // add ServiceInterface2
-        test(new Task() {
-            public void run() throws Exception {
-                serviceAdded(ServiceInterface2.class, null, reference2, service2);
+        test(() -> {
+            serviceAdded(ServiceInterface2.class, null, reference2, service2);
 
-                // start components that require service 2 only
-                Component2Service2.delegate.start();
-                Component5Service2.delegate.start();
+            // start components that require service 2 only
+            Component2Service2.delegate.start();
+            Component5Service2.delegate.start();
 
-                verify(event(listeners[1].listener(), ServiceEvent.REGISTERED, reference2));
+            verify(event(listeners[1].listener(), ServiceEvent.REGISTERED, reference2));
 
-                assertFailed();
-                assertActive(StatusCheck.class, Component2Service2.class, Component5Service2.class);
-                assertInactive(collect(dependencies1, dependencies3, dependencies4), annotation2);
-            }
+            assertFailed();
+            assertActive(StatusCheck.class, Component2Service2.class, Component5Service2.class);
+            assertInactive(collect(dependencies1, dependencies3, dependencies4), annotation2);
         });
 
         // stop
-        test(new Task() {
-            public void run() throws Exception {
-                context.removeServiceListener(listeners[0].listener());
-                context.removeServiceListener(listeners[1].listener());
+        test(() -> {
+            context.removeServiceListener(listeners[0].listener());
+            context.removeServiceListener(listeners[1].listener());
 
-                Component2Service2.delegate.stop();
-                Component5Service2.delegate.stop();
+            Component2Service2.delegate.stop();
+            Component5Service2.delegate.stop();
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        services.get().stop();
-                    }
-                });
-            }
+            verify(() -> services.get().stop());
         });
     }
 
@@ -848,82 +719,64 @@ public class BundleComponentContainerLogicTest extends Simulator {
         final ListenerSpec listener = expectListenerRegistration();
 
         // no services yet
-        test(new Task() {
-            public void run() throws Exception {
-                noServices(ServiceInterface1.class, null);
+        test(() -> {
+            noServices(ServiceInterface1.class, null);
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        services.get().start();
-                    }
-                });
+            verify(() -> services.get().start());
 
-                assertFailed();
-                assertActive(StatusCheck.class);
-                assertInactive(collect(dependencies1, dependencies2));
-            }
+            assertFailed();
+            assertActive(StatusCheck.class);
+            assertInactive(collect(dependencies1, dependencies2));
         });
 
         // add ServiceInterface1
-        test(new Task() {
-            public void run() throws Exception {
-                serviceAdded(ServiceInterface1.class, null, reference1, service1);
+        test(() -> {
+            serviceAdded(ServiceInterface1.class, null, reference1, service1);
 
-                // start components that require service 1 only
-                Component4Service1.delegate.start();
+            // start components that require service 1 only
+            Component4Service1.delegate.start();
 
-                verify(event(listener.listener(), ServiceEvent.REGISTERED, reference1));
+            verify(event(listener.listener(), ServiceEvent.REGISTERED, reference1));
 
-                assertFailed(FailingComponent.class);
-                assertActive(StatusCheck.class, Component4Service1.class);
-                assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
-            }
+            assertFailed(FailingComponent.class);
+            assertActive(StatusCheck.class, Component4Service1.class);
+            assertInactive(Collections.emptyMap());
         });
 
         // remove ServiceInterface1
-        test(new Task() {
-            public void run() throws Exception {
-                serviceRemoved(ServiceInterface1.class, null, reference1);
+        test(() -> {
+            serviceRemoved(ServiceInterface1.class, null, reference1);
 
-                Component4Service1.delegate.stop();
+            Component4Service1.delegate.stop();
 
-                verify(event(listener.listener(), ServiceEvent.UNREGISTERING, reference1));
+            verify(event(listener.listener(), ServiceEvent.UNREGISTERING, reference1));
 
-                assertFailed();
-                assertActive(StatusCheck.class);
-                assertInactive(collect(dependencies1, dependencies2));
-            }
+            assertFailed();
+            assertActive(StatusCheck.class);
+            assertInactive(collect(dependencies1, dependencies2));
         });
 
         // add ServiceInterface1
-        test(new Task() {
-            public void run() throws Exception {
-                serviceAdded(ServiceInterface1.class, null, reference1, service1);
+        test(() -> {
+            serviceAdded(ServiceInterface1.class, null, reference1, service1);
 
-                // start components that require service 1 only
-                Component4Service1.delegate.start();
+            // start components that require service 1 only
+            Component4Service1.delegate.start();
 
-                verify(event(listener.listener(), ServiceEvent.REGISTERED, reference1));
+            verify(event(listener.listener(), ServiceEvent.REGISTERED, reference1));
 
-                assertFailed(FailingComponent.class);
-                assertActive(StatusCheck.class, Component4Service1.class);
-                assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
-            }
+            assertFailed(FailingComponent.class);
+            assertActive(StatusCheck.class, Component4Service1.class);
+            assertInactive(Collections.emptyMap());
         });
 
         // stop
-        test(new Task() {
-            public void run() throws Exception {
-                context.removeServiceListener(listener.listener());
+        test(() -> {
+            context.removeServiceListener(listener.listener());
 
-                Component4Service1.delegate.stop();
+            Component4Service1.delegate.stop();
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        services.get().stop();
-                    }
-                });
-            }
+            verify(() -> services.get().stop());
         });
     }
 
@@ -941,171 +794,141 @@ public class BundleComponentContainerLogicTest extends Simulator {
         final Map.Entry<Class<?>, Set<Service>> dependencies = dependencies(MultipleServiceFiltersComponent.class, annotation1, annotation2);
 
         // one listener per service specification
-        final ServiceListener[] listeners = test(new Work<ServiceListener[]>() {
-            public ServiceListener[] run() throws Exception {
-                final List<ListenerSpec> listeners = Arrays.asList(expectListenerRegistration(), expectListenerRegistration());
+        final ServiceListener[] listeners = test(() -> {
+            final List<ListenerSpec> _listeners = Arrays.asList(expectListenerRegistration(), expectListenerRegistration());
 
-                // no services yet
-                noServices(ServiceInterface1.class, selector1);
-                noServices(ServiceInterface1.class, selector2);
+            // no services yet
+            noServices(ServiceInterface1.class, selector1);
+            noServices(ServiceInterface1.class, selector2);
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        services.get().start();
-                    }
-                });
+            verify(() -> services.get().start());
 
-                final ListenerSpec listener1 = find(listeners, ServiceInterface1.class, selector1);
-                final ListenerSpec listener2 = find(listeners, ServiceInterface1.class, selector2);
+            final ListenerSpec listener1 = find(_listeners, ServiceInterface1.class, selector1);
+            final ListenerSpec listener2 = find(_listeners, ServiceInterface1.class, selector2);
 
-                assertFailed();
-                assertActive(StatusCheck.class);
-                assertInactive(collect(dependencies));
+            assertFailed();
+            assertActive(StatusCheck.class);
+            assertInactive(collect(dependencies));
 
-                return new ServiceListener[] { listener1.listener(), listener2.listener() };
-            }
+            assert listener1 != null;
+            assert listener2 != null;
+            return new ServiceListener[] { listener1.listener(), listener2.listener() };
         });
 
         // add service with filter 1
-        test(new Task() {
-            public void run() throws Exception {
-                serviceAdded(ServiceInterface1.class, selector1, reference1, service1);
+        test(() -> {
+            serviceAdded(ServiceInterface1.class, selector1, reference1, service1);
 
-                verify(event(listeners[0], ServiceEvent.REGISTERED, reference1));
+            verify(event(listeners[0], ServiceEvent.REGISTERED, reference1));
 
-                assertFailed();
-                assertActive(StatusCheck.class);
-                assertInactive(collect(dependencies), annotation1);
-            }
+            assertFailed();
+            assertActive(StatusCheck.class);
+            assertInactive(collect(dependencies), annotation1);
         });
 
         // add service with filter 2
-        test(new Task() {
-            public void run() throws Exception {
-                serviceAdded(ServiceInterface1.class, selector2, reference3, service3);
+        test(() -> {
+            serviceAdded(ServiceInterface1.class, selector2, reference3, service3);
 
-                // start the component
-                MultipleServiceFiltersComponent.delegate.start();
+            // start the component
+            MultipleServiceFiltersComponent.delegate.start();
 
-                verify(event(listeners[1], ServiceEvent.REGISTERED, reference3));
+            verify(event(listeners[1], ServiceEvent.REGISTERED, reference3));
 
-                assertFailed();
-                assertActive(StatusCheck.class, MultipleServiceFiltersComponent.class);
-                assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
-            }
+            assertFailed();
+            assertActive(StatusCheck.class, MultipleServiceFiltersComponent.class);
+            assertInactive(Collections.emptyMap());
         });
 
         // remove service with filter 1
-        test(new Task() {
-            public void run() throws Exception {
-                serviceRemoved(ServiceInterface1.class, selector1, reference1);
+        test(() -> {
+            serviceRemoved(ServiceInterface1.class, selector1, reference1);
 
-                MultipleServiceFiltersComponent.delegate.stop();
+            MultipleServiceFiltersComponent.delegate.stop();
 
-                verify(event(listeners[0], ServiceEvent.UNREGISTERING, reference1));
+            verify(event(listeners[0], ServiceEvent.UNREGISTERING, reference1));
 
-                assertFailed();
-                assertActive(StatusCheck.class);
-                assertInactive(collect(dependencies), annotation2);
-            }
+            assertFailed();
+            assertActive(StatusCheck.class);
+            assertInactive(collect(dependencies), annotation2);
         });
 
         // add service with filter 1
-        test(new Task() {
-            public void run() throws Exception {
-                serviceAdded(ServiceInterface1.class, selector1, reference1, service1);
+        test(() -> {
+            serviceAdded(ServiceInterface1.class, selector1, reference1, service1);
 
-                // start the component
-                MultipleServiceFiltersComponent.delegate.start();
+            // start the component
+            MultipleServiceFiltersComponent.delegate.start();
 
-                verify(event(listeners[0], ServiceEvent.REGISTERED, reference1));
+            verify(event(listeners[0], ServiceEvent.REGISTERED, reference1));
 
-                assertFailed();
-                assertActive(StatusCheck.class, MultipleServiceFiltersComponent.class);
-                assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
-            }
+            assertFailed();
+            assertActive(StatusCheck.class, MultipleServiceFiltersComponent.class);
+            assertInactive(Collections.emptyMap());
         });
 
         // remove service with filter 2
-        test(new Task() {
-            public void run() throws Exception {
-                serviceRemoved(ServiceInterface1.class, selector2, reference3);
+        test(() -> {
+            serviceRemoved(ServiceInterface1.class, selector2, reference3);
 
-                MultipleServiceFiltersComponent.delegate.stop();
+            MultipleServiceFiltersComponent.delegate.stop();
 
-                verify(event(listeners[1], ServiceEvent.UNREGISTERING, reference3));
+            verify(event(listeners[1], ServiceEvent.UNREGISTERING, reference3));
 
-                assertFailed();
-                assertActive(StatusCheck.class);
-                assertInactive(collect(dependencies), annotation1);
-            }
+            assertFailed();
+            assertActive(StatusCheck.class);
+            assertInactive(collect(dependencies), annotation1);
         });
 
         // remove service with filter 1
-        test(new Task() {
-            public void run() throws Exception {
-                serviceRemoved(ServiceInterface1.class, selector1, reference1);
+        test(() -> {
+            serviceRemoved(ServiceInterface1.class, selector1, reference1);
 
-                verify(event(listeners[0], ServiceEvent.UNREGISTERING, reference1));
+            verify(event(listeners[0], ServiceEvent.UNREGISTERING, reference1));
 
-                assertFailed();
-                assertActive(StatusCheck.class);
-                assertInactive(collect(dependencies));
-            }
+            assertFailed();
+            assertActive(StatusCheck.class);
+            assertInactive(collect(dependencies));
         });
 
         // add service with filter 2
-        test(new Task() {
-            public void run() throws Exception {
-                serviceAdded(ServiceInterface1.class, selector2, reference3, service3);
+        test(() -> {
+            serviceAdded(ServiceInterface1.class, selector2, reference3, service3);
 
-                verify(event(listeners[1], ServiceEvent.REGISTERED, reference3));
+            verify(event(listeners[1], ServiceEvent.REGISTERED, reference3));
 
-                assertFailed();
-                assertActive(StatusCheck.class);
-                assertInactive(collect(dependencies), annotation2);
-            }
+            assertFailed();
+            assertActive(StatusCheck.class);
+            assertInactive(collect(dependencies), annotation2);
         });
 
         // add service with filter 1
-        test(new Task() {
-            public void run() throws Exception {
-                serviceAdded(ServiceInterface1.class, selector1, reference1, service1);
+        test(() -> {
+            serviceAdded(ServiceInterface1.class, selector1, reference1, service1);
 
-                // start the component
-                MultipleServiceFiltersComponent.delegate.start();
+            // start the component
+            MultipleServiceFiltersComponent.delegate.start();
 
-                verify(event(listeners[0], ServiceEvent.REGISTERED, reference1));
+            verify(event(listeners[0], ServiceEvent.REGISTERED, reference1));
 
-                assertFailed();
-                assertActive(StatusCheck.class, MultipleServiceFiltersComponent.class);
-                assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
-            }
+            assertFailed();
+            assertActive(StatusCheck.class, MultipleServiceFiltersComponent.class);
+            assertInactive(Collections.emptyMap());
         });
 
         // stop
-        test(new Task() {
-            public void run() throws Exception {
-                context.removeServiceListener(listeners[0]);
-                context.removeServiceListener(listeners[1]);
+        test(() -> {
+            context.removeServiceListener(listeners[0]);
+            context.removeServiceListener(listeners[1]);
 
-                MultipleServiceFiltersComponent.delegate.stop();
+            MultipleServiceFiltersComponent.delegate.stop();
 
-                verify(new Task() {
-                    public void run() throws Exception {
-                        services.get().stop();
-                    }
-                });
-            }
+            verify(() -> services.get().stop());
         });
     }
 
     private Task event(final ServiceListener listener, final int event, final ServiceReference reference) {
-        return new Task() {
-            public void run() throws Exception {
-                listener.serviceChanged(new ServiceEvent(event, reference));
-            }
-        };
+        return () -> listener.serviceChanged(new ServiceEvent(event, reference));
     }
 
     private void noServices(final Class<?> api, final String selector) throws InvalidSyntaxException {
@@ -1117,7 +940,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
     }
 
     private <T> void serviceAdded(final Class<T> api, final String selector, final ServiceReference<T> reference, final T service) throws InvalidSyntaxException {
-        EasyMock.expect(context.getServiceReferences(api, selector)).andReturn(Collections.<ServiceReference<T>>singleton(reference));
+        EasyMock.expect(context.getServiceReferences(api, selector)).andReturn(Collections.singleton(reference));
         resolveService(reference, service);
     }
 
@@ -1143,22 +966,22 @@ public class BundleComponentContainerLogicTest extends Simulator {
         assert StatusCheck.component != null : BundleComponents.Status.class;
         final List<Class<?>> expected = Arrays.asList(components);
         final Collection<Class<?>> actual = StatusCheck.component.active();
-        assert new HashSet<Class<?>>(actual).equals(new HashSet<Class<?>>(expected)) : String.format("Expected %s, actual %s", expected, actual);
+        assert new HashSet<>(actual).equals(new HashSet<>(expected)) : String.format("Expected %s, actual %s", expected, actual);
     }
 
     private void assertFailed(final Class<?>... components) {
         assert StatusCheck.component != null : BundleComponents.Status.class;
         final List<Class<?>> expected = Arrays.asList(components);
         final Collection<Class<?>> actual = StatusCheck.component.failed();
-        assert new HashSet<Class<?>>(actual).equals(new HashSet<Class<?>>(expected)) : String.format("Expected %s, actual %s", expected, actual);
+        assert new HashSet<>(actual).equals(new HashSet<>(expected)) : String.format("Expected %s, actual %s", expected, actual);
     }
 
     private Map.Entry<Class<?>, Set<Service>> dependencies(final Class<?> component, final Service... services) {
-        return new AbstractMap.SimpleEntry<Class<?>, Set<Service>>(component, new HashSet<Service>(Arrays.asList(services)));
+        return new AbstractMap.SimpleEntry<>(component, new HashSet<>(Arrays.asList(services)));
     }
 
     private Map<Class<?>, Set<Service>> collect(final Map.Entry<Class<?>, Set<Service>>... entries) {
-        final Map<Class<?>, Set<Service>> map = new HashMap<Class<?>, Set<Service>>();
+        final Map<Class<?>, Set<Service>> map = new HashMap<>();
 
         for (final Map.Entry<Class<?>, Set<Service>> entry : entries) {
             map.put(entry.getKey(), entry.getValue());
@@ -1170,9 +993,9 @@ public class BundleComponentContainerLogicTest extends Simulator {
     private void assertInactive(final Map<Class<?>, Set<Service>> original, final Service... active) {
         assert StatusCheck.component != null : BundleComponents.Status.class;
 
-        final Map<Class<?>, Set<Service>> expected = new HashMap<Class<?>, Set<Service>>();
+        final Map<Class<?>, Set<Service>> expected = new HashMap<>();
         for (final Map.Entry<Class<?>, Set<Service>> entry : original.entrySet()) {
-            expected.put(entry.getKey(), new HashSet<Service>(entry.getValue()));
+            expected.put(entry.getKey(), new HashSet<>(entry.getValue()));
         }
 
         final List<Service> resolved = Arrays.asList(active);
@@ -1185,7 +1008,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
         assert actual.keySet().equals(expected.keySet()) : String.format("Expected %s, actual %s", expected, actual);
         for (final Map.Entry<Class<?>, Collection<Service>> entry : actual.entrySet()) {
             final Class<?> type = entry.getKey();
-            assert new HashSet<Service>(entry.getValue()).equals(expected.get(type)) : String.format("Expected %s, actual %s", expected, actual);
+            assert new HashSet<>(entry.getValue()).equals(expected.get(type)) : String.format("Expected %s, actual %s", expected, actual);
         }
     }
 
@@ -1194,11 +1017,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
         EasyMock.expect(bundle.getSymbolicName()).andReturn("test-bundle");
         EasyMock.expect(discovery.findComponentClasses(BundleComponents.Managed.class, BundleComponentContainerImpl.class.getClassLoader(), false)).andReturn(types);
 
-        return Deferred.local(new Deferred.Factory<BundleComponentContainerImpl.Logic>() {
-            public BundleComponentContainerImpl.Logic create() {
-                return new BundleComponentContainerImpl.Logic(context, discovery, container, loader, log);
-            }
-        });
+        return Deferred.local(() -> new BundleComponentContainerImpl.Logic(context, discovery, log, container, loader));
     }
 
     private Deferred.Reference<BundleComponentContainerImpl.Logic> discover(final List<String> filters, final Class... types) throws Exception {
@@ -1210,11 +1029,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
             EasyMock.expect(context.createFilter(filter)).andReturn(null);
         }
 
-        return Deferred.local(new Deferred.Factory<BundleComponentContainerImpl.Logic>() {
-            public BundleComponentContainerImpl.Logic create() {
-                return new BundleComponentContainerImpl.Logic(context, discovery, container, loader, log);
-            }
-        });
+        return Deferred.local(() -> new BundleComponentContainerImpl.Logic(context, discovery, log, container, loader));
     }
 
     private void checkFilter(final ListenerSpec listener, final Class<?> api, final String filter) {
@@ -1230,13 +1045,11 @@ public class BundleComponentContainerLogicTest extends Simulator {
     private ListenerSpec expectListenerRegistration() throws Exception {
         final ListenerSpecImpl spec = new ListenerSpecImpl();
 
-        context.addServiceListener(EasyMock.<ServiceListener>notNull(), EasyMock.<String>notNull());
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
-            public Object answer() throws Throwable {
-                spec.listener = (ServiceListener) EasyMock.getCurrentArguments()[0];
-                spec.filter = (String) EasyMock.getCurrentArguments()[1];
-                return null;
-            }
+        context.addServiceListener(EasyMock.notNull(), EasyMock.notNull());
+        EasyMock.expectLastCall().andAnswer(() -> {
+            spec.listener = (ServiceListener) EasyMock.getCurrentArguments()[0];
+            spec.filter = (String) EasyMock.getCurrentArguments()[1];
+            return null;
         });
 
         return spec;
@@ -1250,8 +1063,9 @@ public class BundleComponentContainerLogicTest extends Simulator {
     }
 
     private static class ListenerSpecImpl implements ListenerSpec {
-        public ServiceListener listener;
-        public String filter;
+
+        ServiceListener listener;
+        String filter;
 
         public ServiceListener listener() {
             return listener;
@@ -1262,12 +1076,12 @@ public class BundleComponentContainerLogicTest extends Simulator {
         }
     }
 
-    public interface ServiceInterface1 extends BundleComponents.Registration { }
+    private interface ServiceInterface1 extends BundleComponents.Registration { }
 
-    public interface ServiceInterface2 extends BundleComponents.Registration { }
+    private interface ServiceInterface2 extends BundleComponents.Registration { }
 
     @Component(automatic = false)
-    public static final class Service1 implements ServiceInterface1 {
+    private static final class Service1 implements ServiceInterface1 {
 
         private static ServiceInterface1 delegate;
 
@@ -1285,7 +1099,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
     }
 
     @Component(automatic = false)
-    public static final class Service2 implements ServiceInterface1 {
+    private static final class Service2 implements ServiceInterface1 {
 
         private static ServiceInterface1 delegate;
 
@@ -1303,7 +1117,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
     }
 
     @Component(automatic = false)
-    public static final class ServiceDependent1 implements BundleComponents.Managed {
+    private static final class ServiceDependent1 implements BundleComponents.Managed {
 
         private static BundleComponents.Managed delegate;
 
@@ -1322,7 +1136,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
     }
 
     @Component(automatic = false)
-    public static final class ServiceDependent2 implements BundleComponents.Managed {
+    private static final class ServiceDependent2 implements BundleComponents.Managed {
 
         private static BundleComponents.Managed delegate;
 
@@ -1340,10 +1154,10 @@ public class BundleComponentContainerLogicTest extends Simulator {
         }
     }
 
-    public interface Consumer extends BundleComponents.Managed { }
+    private interface Consumer extends BundleComponents.Managed { }
 
     @Component(automatic = false)
-    public static class EventSource implements BundleComponents.Registration.Listener<Consumer> {
+    private static class EventSource implements BundleComponents.Registration.Listener<Consumer> {
 
         private static BundleComponents.Registration.Listener<Consumer> delegate;
 
@@ -1369,7 +1183,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
     }
 
     @Component(automatic = false)
-    public static class Component1Service12 implements BundleComponents.Managed {
+    private static class Component1Service12 implements BundleComponents.Managed {
 
         private static BundleComponents.Managed delegate;
 
@@ -1388,7 +1202,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
     }
 
     @Component(automatic = false)
-    public static class Component2Service2 implements BundleComponents.Managed {
+    private static class Component2Service2 implements BundleComponents.Managed {
 
         private static BundleComponents.Managed delegate;
 
@@ -1407,7 +1221,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
     }
 
     @Component(automatic = false)
-    public static class Component3Service1 implements BundleComponents.Managed {
+    private static class Component3Service1 implements BundleComponents.Managed {
 
         private static BundleComponents.Managed delegate;
 
@@ -1426,7 +1240,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
     }
 
     @Component(automatic = false)
-    public static class Component4Service1 implements BundleComponents.Managed {
+    private static class Component4Service1 implements BundleComponents.Managed {
 
         private static BundleComponents.Managed delegate;
 
@@ -1445,7 +1259,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
     }
 
     @Component(automatic = false)
-    public static class Component5Service2 implements BundleComponents.Managed {
+    private static class Component5Service2 implements BundleComponents.Managed {
 
         private static BundleComponents.Managed delegate;
 
@@ -1464,7 +1278,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
     }
 
     @Component(automatic = false)
-    public static class FailingComponent implements BundleComponents.Managed {
+    private static class FailingComponent implements BundleComponents.Managed {
 
         @SuppressWarnings("UnusedDeclaration")
         private static BundleComponents.Managed delegate;
@@ -1482,7 +1296,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
     }
 
     @Component(automatic = false)
-    public static class MultipleServiceFiltersComponent implements BundleComponents.Managed {
+    private static class MultipleServiceFiltersComponent implements BundleComponents.Managed {
 
         private static BundleComponents.Managed delegate;
 
@@ -1501,9 +1315,9 @@ public class BundleComponentContainerLogicTest extends Simulator {
     }
 
     @Component(automatic = false)
-    public static class StatusCheck implements BundleComponents.Managed {
+    private static class StatusCheck implements BundleComponents.Managed {
 
-        public static ComponentStatus component;
+        static ComponentStatus component;
 
         public StatusCheck(final ComponentStatus status) {
             StatusCheck.component = status;

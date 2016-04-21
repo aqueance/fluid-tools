@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,19 @@
 
 package org.fluidity.deployment.osgi.impl;
 
+import java.util.Objects;
+
 import org.fluidity.deployment.osgi.Service;
 
 /**
+ * Encapsulates an OSGi service dependency with an optional filter, and implements the object identity methods to enable placement in a set.
+ *
  * @author Tibor Varga
  */
 final class ServiceDescriptor extends Descriptor {
 
-    public final String filter;
-    public final Service annotation;
+    final String filter;
+    final Service annotation;
 
     ServiceDescriptor(final Class<?> reference, final Service service) {
         super(service.api() == Object.class ? reference : service.api());
@@ -36,9 +40,7 @@ final class ServiceDescriptor extends Descriptor {
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (filter != null ? filter.hashCode() : 0);
-        return result;
+        return Objects.hash(type, filter);
     }
 
     @Override

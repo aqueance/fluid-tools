@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,12 @@ package org.fluidity.foundation;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.fluidity.foundation.Command.Process;
 
 /**
  * @author Tibor Varga
@@ -33,11 +34,7 @@ public class ExceptionsTest {
     public void testReturning() throws Exception {
         final int original = 1234;
 
-        final Integer result = Exceptions.wrap(new Process<Integer, Exception>() {
-            public Integer run() throws Exception {
-                return original;
-            }
-        });
+        final Integer result = Exceptions.wrap(() -> original);
 
         assert result == original : result;
     }
@@ -48,10 +45,8 @@ public class ExceptionsTest {
 
         try {
             try {
-                Exceptions.wrap(new Process<Void, Exception>() {
-                    public Void run() throws Exception {
-                        throw original;
-                    }
+                Exceptions.wrap(() -> {
+                    throw original;
                 });
             } catch (final Exceptions.Wrapper e) {
 
@@ -96,6 +91,17 @@ public class ExceptionsTest {
         };
     }
 
+    @Test(expectedExceptions = Exception.class, expectedExceptionsMessageRegExp = "Gotcha")
+    public void testCommonWrapper() throws Exception {
+        try {
+            Exceptions.wrap(() -> AccessController.doPrivileged((PrivilegedExceptionAction<Void>) () -> {
+                throw new PrivilegedActionException(new Exception("Gotcha"));
+            }));
+        } catch (final Exceptions.Wrapper wrapper) {
+            throw wrapper.rethrow(Exception.class);
+        }
+    }
+
     @Test(dataProvider = "exceptions")
     public void testUnwrapping(final Exception original) {
         final UndeclaredThrowableException wrapped =
@@ -112,15 +118,9 @@ public class ExceptionsTest {
         assert unwrapped == original : unwrapped;
 
         try {
-            Exceptions.wrap(new Process<Void, Exception>() {
-                public Void run() throws Exception {
-                    return Exceptions.wrap(new Process<Void, Exception>() {
-                        public Void run() throws Exception {
-                            throw wrapped;
-                        }
-                    });
-                }
-            });
+            Exceptions.wrap(() -> Exceptions.wrap(() -> {
+                throw wrapped;
+            }));
         } catch (final Exceptions.Wrapper e) {
             assert e.getCause() == original : e.getCause();
         } catch (final RuntimeException e) {
@@ -133,7 +133,7 @@ public class ExceptionsTest {
 
         class MyWrapper extends Exception {
 
-            MyWrapper(final Throwable cause) {
+            private MyWrapper(final Throwable cause) {
                 super(cause);
             }
         }
@@ -155,10 +155,8 @@ public class ExceptionsTest {
         assert unwrapped == original : unwrapped;
 
         try {
-            tunnel.wrap(new Process<Void, Exception>() {
-                public Void run() throws Exception {
-                    throw wrapped;
-                }
+            tunnel.wrap(() -> {
+                throw wrapped;
             });
         } catch (final Exceptions.Wrapper e) {
             assert e.getCause() == original : e.getCause();
@@ -193,10 +191,8 @@ public class ExceptionsTest {
         final Deferred.Label message = Deferred.label("testing");
 
         try {
-            Exceptions.wrap(null, CustomWrapper.class, new Process<Void, Exception>() {
-                public Void run() throws Exception {
-                    throw wrapped;
-                }
+            Exceptions.wrap(null, CustomWrapper.class, () -> {
+                throw wrapped;
             });
         } catch (final CustomWrapper e) {
             assert e.getCause() == original : e.getCause();
@@ -205,10 +201,8 @@ public class ExceptionsTest {
         }
 
         try {
-            Exceptions.wrap(message, CustomWrapper.class, new Process<Void, Exception>() {
-                public Void run() throws Exception {
-                    throw wrapped;
-                }
+            Exceptions.wrap(message, CustomWrapper.class, () -> {
+                throw wrapped;
             });
         } catch (final CustomWrapper e) {
             assert e.getCause() == original : e.getCause();
@@ -218,10 +212,8 @@ public class ExceptionsTest {
         }
 
         try {
-            Exceptions.wrap(message, null, new Process<Void, Exception>() {
-                public Void run() throws Exception {
-                    throw wrapped;
-                }
+            Exceptions.wrap(message, null, () -> {
+                throw wrapped;
             });
         } catch (final Exceptions.Wrapper e) {
             assert e.getCause() == original : e.getCause();
@@ -234,10 +226,8 @@ public class ExceptionsTest {
     @Test(dataProvider = "exceptions")
     public void testCheckedWrapper(final Exception original) throws Exception {
         try {
-            Exceptions.wrap(CheckedWrapper.class, new Process<Void, Exception>() {
-                public Void run() throws Exception {
-                    throw original;
-                }
+            Exceptions.wrap(CheckedWrapper.class, () -> {
+                throw original;
             });
         } catch (final CheckedWrapper e) {
             assert e.getCause() == original;
@@ -246,10 +236,8 @@ public class ExceptionsTest {
         final CheckedWrapper wrapped1 = new CheckedWrapper(original);
 
         try {
-            Exceptions.wrap(CheckedWrapper.class, new Process<Void, Exception>() {
-                public Void run() throws Exception {
-                    throw wrapped1;
-                }
+            Exceptions.wrap(CheckedWrapper.class, () -> {
+                throw wrapped1;
             });
         } catch (final CheckedWrapper e) {
             assert e.getCause() == wrapped1;
@@ -258,10 +246,8 @@ public class ExceptionsTest {
         final String message = "message";
 
         try {
-            Exceptions.wrap(message, CheckedWrapper.class, new Process<Void, Exception>() {
-                public Void run() throws Exception {
-                    throw wrapped1;
-                }
+            Exceptions.wrap(message, CheckedWrapper.class, () -> {
+                throw wrapped1;
             });
         } catch (final CheckedWrapper e) {
             assert e.getCause() == wrapped1;
@@ -270,10 +256,8 @@ public class ExceptionsTest {
         final CheckedWrapper wrapped2 = new CheckedWrapper(message, original);
 
         try {
-            Exceptions.wrap(message, CheckedWrapper.class, new Process<Void, Exception>() {
-                public Void run() throws Exception {
-                    throw wrapped2;
-                }
+            Exceptions.wrap(message, CheckedWrapper.class, () -> {
+                throw wrapped2;
             });
         } catch (final CheckedWrapper e) {
             assert e == wrapped2;

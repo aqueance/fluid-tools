@@ -101,6 +101,7 @@ public interface DependencyGraph {
          *
          * @author Tibor Varga
          */
+        @FunctionalInterface
         interface Reference {
 
             /**

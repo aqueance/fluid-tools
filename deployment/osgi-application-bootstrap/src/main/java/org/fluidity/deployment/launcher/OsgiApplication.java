@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import java.security.ProtectionDomain;
 import java.security.Provider;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -48,7 +47,7 @@ import org.fluidity.deployment.cli.Application;
 import org.fluidity.deployment.osgi.Initialization;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
-import org.fluidity.foundation.Command;
+import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.Security;
@@ -78,6 +77,7 @@ import org.osgi.framework.startlevel.FrameworkStartLevel;
  * @author Tibor Varga
  */
 @Component
+@SuppressWarnings("WeakerAccess")
 final class OsgiApplication implements Application {
 
     /**
@@ -115,26 +115,22 @@ final class OsgiApplication implements Application {
         this.initializations = initializations;
     }
 
-    public void run(final String[] arguments) throws Exception {
-        Archives.Cache.access(new Command.Process<Void, Exception>() {
-            public Void run() throws Exception {
-                if (Security.CONTROLLED) {
-                    try {
-                        AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
-                            public Void run() throws Exception {
-                                start();
-                                return null;
-                            }
-                        });
-                    } catch (final PrivilegedActionException e) {
-                        throw (Exception) e.getCause();
-                    }
-                } else {
-                    start();
+    public void run(final String... arguments) throws Exception {
+        Archives.Cache.access(() -> {
+            if (Security.CONTROLLED) {
+                try {
+                    Exceptions.wrap(() -> AccessController.doPrivileged((PrivilegedExceptionAction<Void>) () -> {
+                        start();
+                        return null;
+                    }));
+                } catch (final Exceptions.Wrapper wrapper) {
+                    throw wrapper.rethrow(Exception.class);
                 }
-
-                return null;
+            } else {
+                start();
             }
+
+            return null;
         });
     }
 
@@ -178,7 +174,7 @@ final class OsgiApplication implements Application {
                                       ? distribution
                                       : loadProperties(Archives.open(cached, new URL(placeholders.interpolate(deployment, recursion))), distribution);
 
-        final Map<String, String> config = new HashMap<String, String>();
+        final Map<String, String> config = new HashMap<>();
 
         @SuppressWarnings("unchecked")
         final List<String> keys = Collections.list((Enumeration<String>) properties.propertyNames());
@@ -198,12 +194,8 @@ final class OsgiApplication implements Application {
 
         final Framework framework = factory.newFramework(config);
 
-        final List<Bundle> bundles = new ArrayList<Bundle>();
-        final Set<URL> jars = new TreeSet<URL>(new Comparator<URL>() {
-            public int compare(final URL url1, final URL url2) {
-                return url1.getPath().compareTo(url2.getPath());
-            }
-        });
+        final List<Bundle> bundles = new ArrayList<>();
+        final Set<URL> jars = new TreeSet<>((url1, url2) -> url1.getPath().compareTo(url2.getPath()));
 
         final URL archive = Archives.containing(Archives.containing(getClass()));
 
@@ -225,46 +217,42 @@ final class OsgiApplication implements Application {
 
         framework.start();
 
-        termination.add(new Command.Job<Exception>() {
-            public void run() {
-                try {
-                    switch (framework.getState()) {
-                    case Framework.ACTIVE:
-                    case Framework.STARTING:
-                        final PrivilegedAction<Void> stop = new PrivilegedAction<Void>() {
-                            public Void run() {
-                                try {
-                                    framework.stop(0);
-                                } catch (final BundleException e) {
-                                    log.error(e, "Could not stop the OSGi framework");
-                                }
-
-                                return null;
-                            }
-                        };
-
-                        if (Security.CONTROLLED) {
-                            AccessController.doPrivileged(stop);
-                        } else {
-                            stop.run();
-                        }
-
-                        // fall through
-                    case Framework.STOPPING:
+        termination.add(() -> {
+            try {
+                switch (framework.getState()) {
+                case Framework.ACTIVE:
+                case Framework.STARTING:
+                    final PrivilegedAction<Void> stop = () -> {
                         try {
-                            framework.waitForStop(0);
-                        } catch (final InterruptedException e) {
-                            Thread.currentThread().interrupt();
+                            framework.stop(0);
+                        } catch (final BundleException e) {
+                            log.error(e, "Could not stop the OSGi framework");
                         }
 
-                        log.debug("OSGi framework (%s) stopped", framework.getSymbolicName());
+                        return null;
+                    };
 
-                    default:
-                        break;
+                    if (Security.CONTROLLED) {
+                        AccessController.doPrivileged(stop);
+                    } else {
+                        stop.run();
                     }
-                } catch (final Exception e) {
-                    log.error(e, "Error stopping the OSGi framework");
+
+                    // fall through
+                case Framework.STOPPING:
+                    try {
+                        framework.waitForStop(0);
+                    } catch (final InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+
+                    log.debug("OSGi framework (%s) stopped", framework.getSymbolicName());
+
+                default:
+                    break;
                 }
+            } catch (final Exception e) {
+                log.error(e, "Error stopping the OSGi framework");
             }
         });
 
@@ -326,6 +314,7 @@ final class OsgiApplication implements Application {
         });
     }
 
+    @SuppressWarnings("ThrowFromFinallyBlock")
     private Properties loadProperties(final InputStream stream, final Properties defaults) throws IOException {
         if (stream == null) {
             return defaults == null ? new Properties() : defaults;
@@ -354,7 +343,7 @@ final class OsgiApplication implements Application {
         private final ProtectionDomain launcherDomain = OsgiApplication.class.getProtectionDomain();
         private final ProtectionDomain frameworkDomain;
 
-        public FrameworkPolicy(final Class<? extends FrameworkFactory> frameworkType) {
+        FrameworkPolicy(final Class<? extends FrameworkFactory> frameworkType) {
             this.frameworkDomain = frameworkType.getProtectionDomain();
         }
 

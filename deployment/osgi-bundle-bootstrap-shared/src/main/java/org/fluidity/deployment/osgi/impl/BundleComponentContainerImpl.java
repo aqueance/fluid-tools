@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
@@ -69,22 +68,28 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
         this.discovery = discovery;
     }
 
-    private final AtomicReference<Logic> logic = new AtomicReference<Logic>();
+    // no synchronization necessary: see API description for #start() and #stop()
+    private Logic logic;
 
     public void start(final ComponentContainer container, final ClassLoader loader) {
-        if (!logic.compareAndSet(null, new Logic(context, discovery, container, loader, log))) {
+        if (logic != null) {
             throw new IllegalStateException(String.format("%s has already been started", Strings.formatClass(false, false, getClass())));
         }
 
-        logic.get().start();
+        logic = new Logic(context, discovery, log, container, loader);
+        logic.start();
     }
 
     public void stop() {
-        if (logic.get() == null) {
+        if (logic == null) {
             throw new IllegalStateException(String.format("%s has not been started", Strings.formatClass(false, false, getClass())));
         }
 
-        logic.getAndSet(null).stop();
+        try {
+            logic.stop();
+        } finally {
+            logic = null;
+        }
     }
 
     /**
@@ -92,7 +97,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
      */
     static final class Logic {
 
-        private final List<BundleComponents.Stoppable> cleanup = new ArrayList<BundleComponents.Stoppable>();
+        private final List<BundleComponents.Stoppable> cleanup = new ArrayList<>();
 
         private final Log log;
         private final BundleContext context;
@@ -108,7 +113,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
         private final BundleComponents.Status status = new ComponentStatus() {
 
             public Collection<Class<?>> active() {
-                final Collection<Class<?>> list = new ArrayList<Class<?>>();
+                final Collection<Class<?>> list = new ArrayList<>();
 
                 for (final ComponentDescriptor component : components) {
                     if (component.instance() != null) {
@@ -120,15 +125,15 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
             }
 
             public Map<Class<?>, Collection<Service>> inactive() {
-                final Map<Class<?>, Collection<Service>> map = new HashMap<Class<?>, Collection<Service>>();
+                final Map<Class<?>, Collection<Service>> map = new HashMap<>();
                 final Set<ServiceDescriptor> services = activeServices();
 
                 for (final ComponentDescriptor component : components) {
                     if (component.instance() == null && !component.failed()) {
-                        final Set<ServiceDescriptor> dependencies = new HashSet<ServiceDescriptor>(component.dependencies());
+                        final Set<ServiceDescriptor> dependencies = new HashSet<>(component.dependencies());
                         dependencies.removeAll(services);
 
-                        final Collection<Service> list = new ArrayList<Service>();
+                        final Collection<Service> list = new ArrayList<>();
 
                         for (final ServiceDescriptor dependency : dependencies) {
                             list.add(dependency.annotation);
@@ -144,7 +149,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
             }
 
             public Collection<Class<?>> failed() {
-                final Collection<Class<?>> list = new ArrayList<Class<?>>();
+                final Collection<Class<?>> list = new ArrayList<>();
 
                 for (final ComponentDescriptor component : components) {
                     if (component.failed()) {
@@ -156,7 +161,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
             }
         };
 
-        Logic(final BundleContext context, final ComponentDiscovery discovery, final ComponentContainer container, final ClassLoader loader, final Log log) {
+        Logic(final BundleContext context, final ComponentDiscovery discovery, final Log log, final ComponentContainer container, final ClassLoader loader) {
             this.context = context;
             this.container = container;
             this.log = log;
@@ -166,54 +171,55 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
             // find all managed component classes
             final Class<? extends BundleComponents.Managed>[] items = discovery.findComponentClasses(BundleComponents.Managed.class, loader, false);
 
-            final Map<Class<? extends BundleComponents.Managed>, ComponentDescriptor> components = new HashMap<Class<? extends BundleComponents.Managed>, ComponentDescriptor>();
+            final Map<Class<? extends BundleComponents.Managed>, ComponentDescriptor> components = new HashMap<>();
 
             log.debug("[%s] Discovering service dependencies", bundleName);
 
-            final ComponentContainer pool = container.makeChildContainer(new ComponentContainer.Bindings() {
-                @SuppressWarnings("unchecked")
-                public void bindComponents(final ComponentContainer.Registry registry) {
-                    for (final Class<? extends BundleComponents.Managed> type : items) {
-                        if (type.isAnnotationPresent(Component.Qualifiers.class)) {
-                            log.warning("[%s] Managed component %s accepts qualifiers; the received context will always be empty", bundleName, type);
-                        }
-
-                        final List<Class<? extends BundleComponents.Managed>> interfaces = new ArrayList<Class<? extends BundleComponents.Managed>>();
-
-                        for (final Components.Specification specification : inspect(type).api) {
-                            final Class<? extends BundleComponents.Managed> api = (Class<? extends BundleComponents.Managed>) specification.api;
-
-                            // we can't bind to service provider interfaces (group interfaces are not present in the iterated list)
-                            if (api == type || !isServiceProvider(api)) {
-                                interfaces.add(api);
-                            }
-                        }
-
-                        if (interfaces.isEmpty()) {
-                            interfaces.add(type);
-                        }
-
-                        final ComponentDescriptor descriptor = new ComponentDescriptor(type, interfaces);
-                        components.put(type, descriptor);
-
-                        registry.bindComponent((Class) type, (Class[]) descriptor.interfaces());
+            final ComponentContainer pool = container.makeChildContainer(registry -> {
+                for (final Class<? extends BundleComponents.Managed> type : items) {
+                    if (type.isAnnotationPresent(Component.Qualifiers.class)) {
+                        log.warning("[%s] Managed component %s accepts qualifiers; the received context will always be empty", bundleName, type);
                     }
+
+                    final List<Class<? extends BundleComponents.Managed>> interfaces = new ArrayList<>();
+
+                    for (final Components.Specification specification : inspect(type).api) {
+
+                        @SuppressWarnings("unchecked")
+                        final Class<? extends BundleComponents.Managed> api = (Class<? extends BundleComponents.Managed>) specification.api;
+
+                        // we can't bind to service provider interfaces (group interfaces are not present in the iterated list)
+                        if (api == type || !isServiceProvider(api)) {
+                            interfaces.add(api);
+                        }
+                    }
+
+                    if (interfaces.isEmpty()) {
+                        interfaces.add(type);
+                    }
+
+                    final ComponentDescriptor descriptor = new ComponentDescriptor(type, interfaces);
+                    components.put(type, descriptor);
+
+                    registry.bindComponent((Class) type, (Class[]) descriptor.interfaces());
                 }
             });
 
-            final AtomicReference<Set<ServiceDescriptor>> dependencies = new AtomicReference<Set<ServiceDescriptor>>();
+            final class ServiceDependencyCollector extends ComponentContainer.ObserverSupport {
 
-            // collects the OSGi service dependencies encountered during dependency resolution
-            final ObservedContainer observed = pool.observed(new ComponentContainer.ObserverSupport() {
+                private Set<ServiceDescriptor> dependencies;
+
                 public void descending(final Class<?> declaringType,
                                        final Class<?> dependencyType,
                                        final Annotation[] typeAnnotations,
                                        final Annotation[] referenceAnnotations) {
+                    assert dependencies != null;
+
                     for (final Annotation annotation : referenceAnnotations) {
                         if (annotation.annotationType() == Service.class) {
                             final ServiceDescriptor descriptor = new ServiceDescriptor(dependencyType, (Service) annotation);
 
-                            if (dependencies.get().add(descriptor)) {
+                            if (dependencies.add(descriptor)) {
                                 final String filter = descriptor.filter;
 
                                 if (filter != null) {
@@ -231,16 +237,21 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
                         }
                     }
                 }
-            });
+            }
 
-            final Set<ServiceDescriptor> services = new HashSet<ServiceDescriptor>();
+            final ServiceDependencyCollector collector = new ServiceDependencyCollector();
+
+            // collects the OSGi service dependencies encountered during dependency resolution
+            final ObservedContainer observed = pool.observed(collector);
+
+            final Set<ServiceDescriptor> services = new HashSet<>();
 
             // get the observer methods invoked
             for (final Class<? extends BundleComponents.Managed> type : items) {
                 final ComponentDescriptor descriptor = components.get(type);
-                final Set<ServiceDescriptor> collected = new HashSet<ServiceDescriptor>();
+                final Set<ServiceDescriptor> collected = new HashSet<>();
 
-                dependencies.set(collected);
+                collector.dependencies = collected;
                 for (final Class<?> api : descriptor.interfaces()) {
                     observed.resolveComponent(api);
                 }
@@ -258,7 +269,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
         }
 
         private ServiceDescriptor[] remoteServices(final Set<ServiceDescriptor> services, final Map components) {
-            final List<ServiceDescriptor> remote = new ArrayList<ServiceDescriptor>();
+            final List<ServiceDescriptor> remote = new ArrayList<>();
 
             for (final ServiceDescriptor service : services) {
                 if (!components.containsKey(service.type)) {
@@ -329,13 +340,11 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
         }
 
         private void cleanup(final String name, final BundleComponents.Stoppable stoppable) {
-            cleanup.add(new BundleComponents.Stoppable() {
-                public void stop() {
-                    try {
-                        stoppable.stop();
-                    } catch (final Exception e) {
-                        log.error(e, "[%s] Stopping %s", bundleName, name);
-                    }
+            cleanup.add(() -> {
+                try {
+                    stoppable.stop();
+                } catch (final Exception e) {
+                    log.error(e, "[%s] Stopping %s", bundleName, name);
                 }
             });
         }
@@ -343,36 +352,34 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
         private <T> void register(final BundleComponents.Registration.Listener<T> source) {
             final Class<T> type = source.type();
 
-            final ServiceListener listener = new ServiceListener() {
-                public void serviceChanged(final ServiceEvent event) {
-                    final ServiceReference reference = event.getServiceReference();
+            final ServiceListener listener = event -> {
+                final ServiceReference reference = event.getServiceReference();
 
-                    @SuppressWarnings("unchecked")
-                    final T service = (T) context.getService(reference);
+                @SuppressWarnings("unchecked")
+                final T service = (T) context.getService(reference);
 
-                    switch (event.getType()) {
-                    case ServiceEvent.REGISTERED:
-                        final Properties properties = new Properties();
+                switch (event.getType()) {
+                case ServiceEvent.REGISTERED:
+                    final Properties properties = new Properties();
 
-                        for (final String key : reference.getPropertyKeys()) {
-                            final Object property = reference.getProperty(key);
-                            properties.setProperty(key, property.getClass().isArray() ? Arrays.toString((Object[]) property) : String.valueOf(property));
-                        }
-
-                        source.serviceAdded(service, properties);
-                        log.debug("[%s] %s (%s) added to %s", bundleName, service.getClass(), properties, source.getClass());
-
-                        break;
-
-                    case ServiceEvent.UNREGISTERING:
-                        source.serviceRemoved(service);
-                        log.debug("[%s] %s removed from %s", bundleName, service.getClass(), source.getClass());
-                        break;
-
-                    default:
-                        context.ungetService(reference);
-                        break;
+                    for (final String key : reference.getPropertyKeys()) {
+                        final Object property = reference.getProperty(key);
+                        properties.setProperty(key, property.getClass().isArray() ? Arrays.toString((Object[]) property) : String.valueOf(property));
                     }
+
+                    source.serviceAdded(service, properties);
+                    log.debug("[%s] %s (%s) added to %s", bundleName, service.getClass(), properties, source.getClass());
+
+                    break;
+
+                case ServiceEvent.UNREGISTERING:
+                    source.serviceRemoved(service);
+                    log.debug("[%s] %s removed from %s", bundleName, service.getClass(), source.getClass());
+                    break;
+
+                default:
+                    context.ungetService(reference);
+                    break;
                 }
             };
 
@@ -390,11 +397,9 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
                 assert false : e;
             }
 
-            cleanup(String.format("service listener for %s", sourceName), new BundleComponents.Stoppable() {
-                public void stop() {
-                    context.removeServiceListener(listener);
-                    log.debug("[%s] Ignoring %s components", bundleName, sourceName);
-                }
+            cleanup(String.format("service listener for %s", sourceName), () -> {
+                context.removeServiceListener(listener);
+                log.debug("[%s] Ignoring %s components", bundleName, sourceName);
             });
         }
 
@@ -410,11 +415,9 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
             @SuppressWarnings("unchecked")
             final ServiceRegistration registration = context.registerService(classes, service, (Dictionary) properties);
 
-            cleanup(service.getClass().getName(), new BundleComponents.Stoppable() {
-                public void stop() {
-                    registration.unregister();
-                    log.debug("[%s] Unregistered %s", bundleName, serviceMessage);
-                }
+            cleanup(service.getClass().getName(), () -> {
+                registration.unregister();
+                log.debug("[%s] Unregistered %s", bundleName, serviceMessage);
             });
         }
 
@@ -458,10 +461,11 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
             startResolved();
         }
 
+        @SuppressWarnings("unchecked")
         private synchronized void startResolved() {
             final Set<ServiceDescriptor> servicesUp = activeServices();
-            final Set<ComponentDescriptor> resolved = new HashSet<ComponentDescriptor>();
-            final Set<ComponentDescriptor> running = new HashSet<ComponentDescriptor>();
+            final Set<ComponentDescriptor> resolved = new HashSet<>();
+            final Set<ComponentDescriptor> running = new HashSet<>();
 
             for (final ComponentDescriptor descriptor : components) {
                 final Object instance = descriptor.instance();
@@ -476,28 +480,25 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
             if (!resolved.isEmpty()) {
                 log.debug("[%s] Starting components: %s", bundleName, resolved);
 
-                final OpenContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
-                    @SuppressWarnings("unchecked")
-                    public void bindComponents(final ComponentContainer.Registry registry) {
-                        registry.bindInstance(status);
+                final OpenContainer child = container.makeChildContainer(registry -> {
+                    registry.bindInstance(status);
 
-                        final Class<?>[] services = serviceFactory.api();
-                        if (services.length > 0) {
-                            registry.bindFactory(serviceFactory, services); // call is ONLY valid if services.length > 0
+                    final Class<?>[] services = serviceFactory.api();
+                    if (services.length > 0) {
+                        registry.bindFactory(serviceFactory, services); // call is ONLY valid if services.length > 0
+                    }
+
+                    for (final ComponentDescriptor descriptor : running) {
+                        for (final Class<?> api : descriptor.interfaces()) {
+                            registry.bindInstance(descriptor.instance(), (Class) api);
                         }
+                    }
 
-                        for (final ComponentDescriptor descriptor : running) {
-                            for (final Class<?> api : descriptor.interfaces()) {
-                                registry.bindInstance(descriptor.instance(), (Class) api);
-                            }
-                        }
+                    for (final ComponentDescriptor descriptor : resolved) {
+                        final Class<? extends BundleComponents.Managed> type = (Class<? extends BundleComponents.Managed>) descriptor.type;
 
-                        for (final ComponentDescriptor descriptor : resolved) {
-                            final Class<? extends BundleComponents.Managed> type = (Class<? extends BundleComponents.Managed>) descriptor.type;
-
-                            for (final Class api : descriptor.interfaces()) {
-                                registry.bindComponent((Class) type, api);
-                            }
+                        for (final Class api : descriptor.interfaces()) {
+                            registry.bindComponent((Class) type, api);
                         }
                     }
                 });
@@ -512,13 +513,11 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
                     try {
                         start(name, instance);
 
-                        cleanup(name, new BundleComponents.Stoppable() {
-                            public void stop() throws Exception {
-                                final BundleComponents.Managed component = (BundleComponents.Managed) descriptor.stopped(false);
+                        cleanup(name, () -> {
+                            final BundleComponents.Managed component = (BundleComponents.Managed) descriptor.stopped(false);
 
-                                if (component != null) {
-                                    component.stop();
-                                }
+                            if (component != null) {
+                                component.stop();
                             }
                         });
                     } catch (final Exception e) {
@@ -530,7 +529,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
         }
 
         private Set<ServiceDescriptor> activeServices() {
-            final Set<ServiceDescriptor> active = new HashSet<ServiceDescriptor>();
+            final Set<ServiceDescriptor> active = new HashSet<>();
 
             for (final ServiceDescriptor descriptor : services) {
                 if (descriptor.instance() != null) {
@@ -542,7 +541,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
         }
 
         private boolean resolved(final Set<ServiceDescriptor> servicesUp, final ComponentDescriptor descriptor) {
-            final Set<ServiceDescriptor> dependenciesUp = new HashSet<ServiceDescriptor>(descriptor.dependencies());
+            final Set<ServiceDescriptor> dependenciesUp = new HashSet<>(descriptor.dependencies());
 
             dependenciesUp.retainAll(servicesUp);
 
@@ -596,7 +595,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
             if (annotation != null) {
                 return annotation.value();
             } else {
-                final Collection<Class<?>> interfaces = new ArrayList<Class<?>>(Arrays.asList(service.getInterfaces()));
+                final Collection<Class<?>> interfaces = new ArrayList<>(Arrays.asList(service.getInterfaces()));
                 interfaces.removeAll(IGNORED_TYPES);
 
                 if (interfaces.isEmpty()) {
@@ -625,7 +624,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
             }
 
             @SuppressWarnings("unchecked")
-            public void servicesChanged(final int eventType) {
+            void servicesChanged(final int eventType) {
                 final boolean registered = eventType == ServiceEvent.REGISTERED;
                 final boolean modified = eventType == ServiceEvent.MODIFIED;
                 final boolean unregistering = eventType == ServiceEvent.UNREGISTERING;
@@ -671,7 +670,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
                 final String filter = service.filter;
 
                 try {
-                    return (ServiceReference[]) Lists.asArray(ServiceReference.class, context.getServiceReferences((Class) service.type, filter));
+                    return Lists.asArray(ServiceReference.class, context.getServiceReferences((Class) service.type, filter));
                 } catch (final InvalidSyntaxException e) {
                     throw new IllegalStateException(filter, e);   // filter has already been used when the listener was created
                 }

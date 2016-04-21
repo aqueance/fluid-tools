@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,10 +39,10 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({ "unchecked", "WeakerAccess" })
 public final class ComponentContextTests extends AbstractContainerTests {
 
-    public ComponentContextTests(final ArtifactFactory factory) {
+    ComponentContextTests(final ArtifactFactory factory) {
         super(factory);
     }
 
@@ -94,7 +94,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Test(dataProvider = "component-types")
-    public <T extends ContextAware, F extends ComponentFactory> void testExplicitContext(final Class<? extends T> type) throws Exception {
+    public <T extends ContextAware> void testExplicitContext(final Class<? extends T> type) throws Exception {
         if (type != null) {
             registry.bindComponent(type);
         }
@@ -240,8 +240,8 @@ public final class ComponentContextTests extends AbstractContainerTests {
         assert dependent2.group.size() == 3;
 
         final List<Class<? extends GroupApi>> expected = Arrays.asList(GroupMember1.class, GroupMember2.class, GroupMember3.class);
-        final List<Class<? extends GroupApi>> group1 = new ArrayList<Class<? extends GroupApi>>();
-        final List<Class<? extends GroupApi>> group2 = new ArrayList<Class<? extends GroupApi>>();
+        final List<Class<? extends GroupApi>> group1 = new ArrayList<>();
+        final List<Class<? extends GroupApi>> group2 = new ArrayList<>();
 
         for (final GroupApi member : dependent1.group) {
             group1.add(member.getClass());
@@ -422,16 +422,11 @@ public final class ComponentContextTests extends AbstractContainerTests {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
             final Dependency<?>[] arguments = dependencies.discover(SecondComponent.class);
 
-            return new Instance() {
-                public void bind(final Registry registry) throws Exception {
-
-                    // direct instantiation to bypass the container when instantiating ThirdComponent
-                    registry.bindInstance(new SecondComponent((ThirdComponent) arguments[0].instance(),
-                                                              context.qualifiers(Setting1.class),
-                                                              context.qualifiers(Setting2.class),
-                                                              context.qualifiers(Setting3.class)));
-                }
-            };
+            // direct instantiation to bypass the container when instantiating ThirdComponent
+            return registry -> registry.bindInstance(new SecondComponent((ThirdComponent) arguments[0].instance(),
+                                                                         context.qualifiers(Setting1.class),
+                                                                         context.qualifiers(Setting2.class),
+                                                                         context.qualifiers(Setting3.class)));
         }
     }
 
@@ -441,18 +436,13 @@ public final class ComponentContextTests extends AbstractContainerTests {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
             dependencies.discover(ThirdComponent.class);
 
-            return new Instance() {
-                public void bind(final Registry registry) throws Exception {
-
-                    // direct instantiation to bypass the container
-                    registry.bindInstance(new ThirdComponent(context));
-                }
-            };
+            // direct instantiation to bypass the container
+            return registry -> registry.bindInstance(new ThirdComponent(context));
         }
     }
 
     private void assertContext(final Object[] settings, final String... expected) throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
 
         if (settings != null) {
             for (final Object setting : settings) {
@@ -468,7 +458,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         String setting();
 
-        public interface Settings {
+        interface Settings {
 
             String setting();
         }
@@ -617,18 +607,18 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Component(api = ContextAware.class, automatic = false)
     @Component.Qualifiers(Setting1.class)
     private static class ContextAwareVariants1 implements ComponentFactory {
+
+        @SuppressWarnings("Convert2Lambda")
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            return new Instance() {
-                public void bind(final Registry registry) throws Exception {
-                    registry.bindComponent(NotContextAware1Impl.class);
-                    registry.bindInstance(new ContextAware.Settings() {
-                        public String setting() {
-                            final Setting1 setting = context.qualifier(Setting1.class, null);
-                            final String value = setting == null ? null : setting.value();
-                            return value == null ? "missing-value" : value;
-                        }
-                    });
-                }
+            return registry -> {
+                registry.bindComponent(NotContextAware1Impl.class);
+                registry.bindInstance(new ContextAware.Settings() {         // must remain actual class: a Lambda would not resolve the component type
+                    public String setting() {
+                        final Setting1 setting = context.qualifier(Setting1.class, null);
+                        final String value = setting == null ? null : setting.value();
+                        return value == null ? "missing-value" : value;
+                    }
+                });
             };
         }
     }
@@ -636,18 +626,18 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Component(api = ContextAware.class, automatic = false)
     @Component.Qualifiers(Setting2.class)
     private static class ContextAwareVariants2 implements ComponentFactory {
+
+        @SuppressWarnings("Convert2Lambda")
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            return new Instance() {
-                public void bind(final Registry registry) throws Exception {
-                    registry.bindComponent(NotContextAware2Impl.class);
-                    registry.bindInstance(new ContextAware.Settings() {
-                        public String setting() {
-                            final Setting2 setting = context.qualifier(Setting2.class, null);
-                            final String value = setting == null ? null : setting.value();
-                            return value == null ? "missing-value" : value;
-                        }
-                    });
-                }
+            return registry -> {
+                registry.bindComponent(NotContextAware2Impl.class);
+                registry.bindInstance(new ContextAware.Settings() {         // must remain actual class: a Lambda would not resolve the component type
+                    public String setting() {
+                        final Setting2 setting = context.qualifier(Setting2.class, null);
+                        final String value = setting == null ? null : setting.value();
+                        return value == null ? "missing-value" : value;
+                    }
+                });
             };
         }
     }
@@ -655,18 +645,18 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Component(api = OrdinaryComponent1.class, automatic = false)
     @Component.Qualifiers(Setting1.class)
     private static class OrdinaryComponentVariants1 implements ComponentFactory {
+
+        @SuppressWarnings("Convert2Lambda")
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            return new Instance() {
-                public void bind(final Registry registry) throws Exception {
-                    registry.bindComponent(OrdinaryComponent1Impl.class);
-                    registry.bindInstance(new ContextAware.Settings() {
-                        public String setting() {
-                            final Setting1 setting = context.qualifier(Setting1.class, null);
-                            final String value = setting == null ? null : setting.value();
-                            return value == null ? "missing-value" : value;
-                        }
-                    });
-                }
+            return registry -> {
+                registry.bindComponent(OrdinaryComponent1Impl.class);
+                registry.bindInstance(new ContextAware.Settings() {         // must remain actual class: a Lambda would not resolve the component type
+                    public String setting() {
+                        final Setting1 setting = context.qualifier(Setting1.class, null);
+                        final String value = setting == null ? null : setting.value();
+                        return value == null ? "missing-value" : value;
+                    }
+                });
             };
         }
     }
@@ -674,18 +664,18 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Component(api = OrdinaryComponent2.class, automatic = false)
     @Component.Qualifiers(Setting2.class)
     private static class OrdinaryComponentVariants2 implements ComponentFactory {
+
+        @SuppressWarnings("Convert2Lambda")
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            return new Instance() {
-                public void bind(final Registry registry) throws Exception {
-                    registry.bindComponent(OrdinaryComponent2Impl.class);
-                    registry.bindInstance(new ContextAware.Settings() {
-                        public String setting() {
-                            final Setting2 setting = context.qualifier(Setting2.class, null);
-                            final String value = setting == null ? null : setting.value();
-                            return value == null ? "missing-value" : value;
-                        }
-                    });
-                }
+            return registry -> {
+                registry.bindComponent(OrdinaryComponent2Impl.class);
+                registry.bindInstance(new ContextAware.Settings() {         // must remain actual class: a Lambda would not resolve the component type
+                    public String setting() {
+                        final Setting2 setting = context.qualifier(Setting2.class, null);
+                        final String value = setting == null ? null : setting.value();
+                        return value == null ? "missing-value" : value;
+                    }
+                });
             };
         }
     }
@@ -899,7 +889,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
-    public static @interface Setting1 {
+    public @interface Setting1 {
 
         String value();
     }
@@ -907,7 +897,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
-    public static @interface Setting2 {
+    public @interface Setting2 {
 
         String value();
     }
@@ -915,7 +905,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
-    public static @interface Setting3 {
+    public @interface Setting3 {
 
         @SuppressWarnings("UnusedDeclaration")
         String value();

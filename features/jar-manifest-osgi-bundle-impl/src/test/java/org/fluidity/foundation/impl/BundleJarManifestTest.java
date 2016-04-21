@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.testing.Simulator;
 
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.License;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Organization;
@@ -73,7 +72,7 @@ public class BundleJarManifestTest extends Simulator {
     private void expectations() throws MojoExecutionException {
         dependencies.attribute(BUNDLE_CLASSPATH, ",");
 
-        EasyMock.expect(dependencies.compiler()).andReturn(Collections.<Artifact>emptyList());
+        EasyMock.expect(dependencies.compiler()).andReturn(Collections.emptyList());
     }
 
     @Test
@@ -82,11 +81,7 @@ public class BundleJarManifestTest extends Simulator {
 
         expectations();
 
-        verify(new Task() {
-            public void run() throws Exception {
-                manifest.processManifest(project, attributes, policy, logger(), dependencies);
-            }
-        });
+        verify((Task) () -> manifest.processManifest(project, attributes, policy, logger(), dependencies));
 
         assert attributes.getValue(BUNDLE_CLASSPATH) == null;
 
@@ -121,11 +116,7 @@ public class BundleJarManifestTest extends Simulator {
 
         expectations();
 
-        verify(new Task() {
-            public void run() throws Exception {
-                manifest.processManifest(project, attributes, policy, logger(), dependencies);
-            }
-        });
+        verify((Task) () -> manifest.processManifest(project, attributes, policy, logger(), dependencies));
 
         verify(expected, attributes, BUNDLE_VERSION);
     }
@@ -153,11 +144,7 @@ public class BundleJarManifestTest extends Simulator {
 
         expectations();
 
-        verify(new Task() {
-            public void run() throws Exception {
-                manifest.processManifest(project, attributes, policy, logger(), dependencies);
-            }
-        });
+        verify((Task) () -> manifest.processManifest(project, attributes, policy, logger(), dependencies));
 
         expect(attributes, BUNDLE_NAME, project.getName());
         expect(attributes, BUNDLE_DESCRIPTION, project.getDescription());
@@ -191,11 +178,7 @@ public class BundleJarManifestTest extends Simulator {
 
         expectations();
 
-        verify(new Task() {
-            public void run() throws Exception {
-                manifest.processManifest(project, attributes, policy, logger(), dependencies);
-            }
-        });
+        verify((Task) () -> manifest.processManifest(project, attributes, policy, logger(), dependencies));
 
         verify(String.format(expected, VERSION_ATTRIBUTE), attributes, EXPORT_PACKAGE);
         verify(String.format(expected, VERSION_ATTRIBUTE), attributes, IMPORT_PACKAGE);

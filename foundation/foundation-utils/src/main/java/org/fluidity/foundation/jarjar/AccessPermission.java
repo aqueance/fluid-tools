@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.fluidity.foundation.jarjar;
 import java.net.URL;
 import java.security.Permission;
 
-import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Strings;
@@ -34,16 +33,9 @@ import org.fluidity.foundation.Strings;
  */
 public final class AccessPermission extends Permission {
 
-    private final Deferred.Reference<Permission> delegate = Deferred.shared(new Deferred.Factory<Permission>() {
-        public Permission create() {
-            final String spec = getName();
-
-            return Exceptions.wrap(new Command.Process<Permission, Exception>() {
-                public Permission run() throws Exception {
-                    return new URL(spec).openConnection().getPermission();
-                }
-            });
-        }
+    private final Deferred.Reference<Permission> delegate = Deferred.shared(() -> {
+        final String spec = getName();
+        return Exceptions.wrap(() -> new URL(spec).openConnection().getPermission());
     });
 
     public AccessPermission(final String name) {

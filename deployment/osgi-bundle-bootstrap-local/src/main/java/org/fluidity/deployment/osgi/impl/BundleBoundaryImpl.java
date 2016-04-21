@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Proxies;
 import org.fluidity.foundation.Security;
 
-import static org.fluidity.foundation.Command.Function;
 import static org.fluidity.foundation.Command.Process;
 
 /**
@@ -45,51 +44,31 @@ final class BundleBoundaryImpl implements BundleBoundary {
     public <T> T imported(final Class<T> type, final T remote) {
 
         // the use of "this" here requires this class to be loaded by the class loader of the bundle importing the remote object into
-        return tunnel(remote, this, new Tunnel<T, RuntimeException>() {
-            public T run(final boolean internal, final DelegatingClassLoader loader) {
-                return internal ? remote : proxy(remote, type, loader);
-            }
-        });
+        return tunnel(remote, this, (internal, loader) -> internal ? remote : proxy(remote, type, loader));
     }
+
     public <T> T exported(final Class<T> type, final Object remote, final T local) {
-        return tunnel(local, remote, new Tunnel<T, RuntimeException>() {
-            public T run(final boolean internal, final DelegatingClassLoader loader) {
-                return internal ? local : proxy(local, type, loader);
-            }
-        });
+        return tunnel(local, remote, (internal, loader) -> internal ? local : proxy(local, type, loader));
     }
 
     private <T> T proxy(final T component, final Class<T> type, final DelegatingClassLoader loader) {
         return Proxies.create(type, new ServiceInvocation(component, loader));
     }
 
-    public <T, E extends Exception> T invoke(final Object remote, final Object local, final Process<T, E> command) throws E {
-        return tunnel(remote, local, new Tunnel<T, E>() {
-            public T run(final boolean internal, final DelegatingClassLoader loader) throws E {
-                return internal ? command.run() : ClassLoaders.context(loader, new Function<T, ClassLoader, E>() {
-                    public T run(final ClassLoader loader) throws E {
-                        return command.run();
-                    }
-                });
-            }
-        });
+    @SuppressWarnings("RedundantCast")  // fails to compile without the cast
+    public <T, E extends Exception> T invoke(final Object remote, final Object local, final Process<T, E> command) throws Exceptions.Wrapper {
+        return tunnel(remote, local, (Tunnel<T, E>) (internal, loader) -> internal ? command.run() : ClassLoaders.context(loader, ignored -> command.run()));
     }
 
-    private <T, E extends Exception> T tunnel(final Object remote, final Object local, final Tunnel<T, E> command) throws E {
-        final PrivilegedExceptionAction<T> action = new PrivilegedExceptionAction<T>() {
-            public T run() throws E {
-                final ClassLoader remoteCL = loader(remote);
-                final ClassLoader localCL = loader(local);
+    private <T, E extends Exception> T tunnel(final Object remote, final Object local, final Tunnel<T, E> command) throws Exceptions.Wrapper {
+        final PrivilegedExceptionAction<T> action = () -> {
+            final ClassLoader remoteCL = loader(remote);
+            final ClassLoader localCL = loader(local);
 
-                return command.run(remoteCL == localCL, new DelegatingClassLoader(remoteCL, localCL));
-            }
+            return command.run(remoteCL == localCL, new DelegatingClassLoader(remoteCL, localCL));
         };
 
-        return Exceptions.wrap(new Process<T, Exception>() {
-            public T run() throws Exception {
-                return !Security.CONTROLLED ? action.run() : AccessController.doPrivileged(action);
-            }
-        });
+        return Exceptions.wrap(() -> !Security.CONTROLLED ? action.run() : AccessController.doPrivileged(action));
     }
 
     private ClassLoader loader(final Object remote) {
@@ -104,7 +83,8 @@ final class BundleBoundaryImpl implements BundleBoundary {
      *
      * @author Tibor Varga
      */
-    public interface Tunnel<T, E extends Throwable> {
+    @FunctionalInterface
+    private interface Tunnel<T, E extends Throwable> {
 
         /**
          * Run caller logic with the given tunneling class loader.
@@ -135,11 +115,7 @@ final class BundleBoundaryImpl implements BundleBoundary {
         }
 
         public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
-            return ClassLoaders.context(tunnel, new Function<Object, ClassLoader, Exception>() {
-                public Object run(final ClassLoader loader) throws Exception {
-                    return method.invoke(implementation, arguments);
-                }
-            });
+            return ClassLoaders.context(tunnel, loader -> method.invoke(implementation, arguments));
         }
     }
 

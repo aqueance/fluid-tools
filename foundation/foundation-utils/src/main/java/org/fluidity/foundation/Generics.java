@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * Utility methods to access parameterized type information.
@@ -137,11 +138,7 @@ public final class Generics extends Utility {
                 }
             }
 
-            return abstractions(reference, new Inspector() {
-                public Type inspect(final Type type) {
-                    return resolve(propagate(reference, type), variable);
-                }
-            });
+            return abstractions(reference, type -> resolve(propagate(reference, type), variable));
         } else if (reference instanceof Class) {
             final String name = variable.getName();
 
@@ -151,11 +148,7 @@ public final class Generics extends Utility {
                 }
             }
 
-            return abstractions(reference, new Inspector() {
-                public Type inspect(final Type type) {
-                    return resolve(propagate(reference, type), variable);
-                }
-            });
+            return abstractions(reference, type -> resolve(propagate(reference, type), variable));
         } else if (reference instanceof GenericArrayType) {
             return resolve(((GenericArrayType) reference).getGenericComponentType(), variable);
         }
@@ -193,7 +186,7 @@ public final class Generics extends Utility {
      * @return an array of {@link TypeVariable} or {@link WildcardType} objects, or <code>null</code> if no unresolved variable was found.
      */
     public static Type[] unresolved(final Type reference) {
-        return Lists.asArray(Type.class, false, unresolved(reference, new ArrayList<Type>()));
+        return Lists.asArray(Type.class, false, unresolved(reference, new ArrayList<>()));
     }
 
     /**
@@ -201,7 +194,8 @@ public final class Generics extends Utility {
      *
      * @author Tibor Varga
      */
-    public static interface Inspector {
+    @FunctionalInterface
+    public interface Inspector {
 
         /**
          * Invoked at points of a type hierarchy.
@@ -267,11 +261,7 @@ public final class Generics extends Utility {
                 Type resolved = propagate(inbound, argument);
 
                 if (resolved == null) {
-                    resolved = abstractions(inbound, new Inspector() {
-                        public Type inspect(final Type type) {
-                            return propagate(propagate(inbound, type), argument);
-                        }
-                    });
+                    resolved = abstractions(inbound, type -> propagate(propagate(inbound, type), argument));
                 }
 
                 if (resolved != null) {
@@ -609,10 +599,7 @@ public final class Generics extends Utility {
 
         @Override
         public int hashCode() {
-            int result = original.getRawType().hashCode();
-            result = 31 * result + (original.getOwnerType() == null ? 0 : original.getOwnerType().hashCode());
-            result = 31 * result + Arrays.hashCode(arguments);
-            return result;
+            return Objects.hash(original.getRawType(), original.getOwnerType(), Arrays.hashCode(arguments));
         }
 
         @Override
@@ -658,21 +645,19 @@ public final class Generics extends Utility {
         if (missingTypes > 0) {
             for (int i = enclosingTypes; i < params.length - missingTypes + enclosingTypes; ++i) {
                 if (Generics.rawType(types[i - enclosingTypes]) != params[i]) {
-                    AccessController.doPrivileged(new PrivilegedAction<Void>() {
-                        public Void run() {
-                            throw new IllegalStateException(String.format("Could not match parameter types of %s constructor; "
-                                                                          + "classes: %s, types: %s, annotations: %s, "
-                                                                          + "on %s %s version %s virtual machine for %s Java %s",
-                                                                          Strings.formatObject(false, true, type),
-                                                                          Strings.formatObject(false, true, params),
-                                                                          Strings.formatObject(false, true, types),
-                                                                          Strings.formatObject(false, true, annotations),
-                                                                          System.getProperty("java.vm.vendor"),
-                                                                          System.getProperty("java.vm.name"),
-                                                                          System.getProperty("java.vm.version"),
-                                                                          System.getProperty("java.vendor"),
-                                                                          System.getProperty("java.version")));
-                        }
+                    AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+                        throw new IllegalStateException(String.format("Could not match parameter types of %s constructor; "
+                                                                      + "classes: %s, types: %s, annotations: %s, "
+                                                                      + "on %s %s version %s virtual machine for %s Java %s",
+                                                                      Strings.formatObject(false, true, type),
+                                                                      Strings.formatObject(false, true, params),
+                                                                      Strings.formatObject(false, true, types),
+                                                                      Strings.formatObject(false, true, annotations),
+                                                                      System.getProperty("java.vm.vendor"),
+                                                                      System.getProperty("java.vm.name"),
+                                                                      System.getProperty("java.vm.version"),
+                                                                      System.getProperty("java.vendor"),
+                                                                      System.getProperty("java.version")));
                     });
                 }
             }

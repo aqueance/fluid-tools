@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import org.fluidity.composition.DependencyPath;
 @SuppressWarnings("unused")
 public final class CompositeObserver implements ComponentContainer.Observer {
 
-    private final Set<ComponentContainer.Observer> observers = new LinkedHashSet<ComponentContainer.Observer>();
+    private final Set<ComponentContainer.Observer> observers = new LinkedHashSet<>();
 
     /**
      * Combines zero, one, or more observers into one, which can then be fed to {@link ComponentContainer#observed(ComponentContainer.Observer)
@@ -53,7 +53,7 @@ public final class CompositeObserver implements ComponentContainer.Observer {
      * @return an observer that broadcasts observed events to the given list of observers, or <code>null</code> if the given argument list is empty.
      */
     public static ComponentContainer.Observer combine(final ComponentContainer.Observer... observers) {
-        final Set<ComponentContainer.Observer> list = new LinkedHashSet<ComponentContainer.Observer>(observers.length);
+        final Set<ComponentContainer.Observer> list = new LinkedHashSet<>(observers.length);
 
         for (final ComponentContainer.Observer observer : observers) {
             if (observer != null) {
@@ -74,7 +74,7 @@ public final class CompositeObserver implements ComponentContainer.Observer {
      * @return an observer that broadcasts observed events to the given list of observers, or <code>null</code> if the given argument list is empty.
      */
     public static ComponentContainer.Observer combine(final Collection<? extends ComponentContainer.Observer> observers) {
-        final Set<ComponentContainer.Observer> list = new LinkedHashSet<ComponentContainer.Observer>(observers.size());
+        final Set<ComponentContainer.Observer> list = new LinkedHashSet<>(observers.size());
 
         for (final ComponentContainer.Observer observer : observers) {
             if (observer != null) {
@@ -97,9 +97,7 @@ public final class CompositeObserver implements ComponentContainer.Observer {
     }
 
     private CompositeObserver(final Collection<? extends ComponentContainer.Observer> observers) {
-        for (final ComponentContainer.Observer observer : observers) {
-            add(observer);
-        }
+        observers.forEach(this::add);
     }
 
     public void descending(final Class<?> declaringType,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,11 @@ import org.testng.annotations.Test;
 public class DeferredTest {
 
     private Deferred.Reference<String> reference(final String original, final boolean safe) {
-        final Deferred.Factory<String> factory = new Deferred.Factory<String>() {
-            private final AtomicBoolean invoked = new AtomicBoolean(false);
+        final AtomicBoolean invoked = new AtomicBoolean(false);
 
-            public String create() {
-                assert invoked.compareAndSet(false, true) : "Invoked multiple times";
-                return original;
-            }
+        final Deferred.Factory<String> factory = () -> {
+            assert invoked.compareAndSet(false, true) : "Invoked multiple times";
+            return original;
         };
 
         return safe ? Deferred.shared(factory) : Deferred.local(factory);
@@ -82,11 +80,9 @@ public class DeferredTest {
 
         final AtomicInteger counter = new AtomicInteger();
 
-        final Object label2 = Deferred.label(new Deferred.Factory<String>() {
-            public String create() {
-                counter.incrementAndGet();
-                return text;
-            }
+        final Object label2 = Deferred.label(() -> {
+            counter.incrementAndGet();
+            return text;
         });
 
         assert counter.get() == 0 : counter.get();

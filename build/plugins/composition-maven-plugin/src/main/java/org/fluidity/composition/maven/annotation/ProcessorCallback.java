@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import org.objectweb.asm.AnnotationVisitor;
  *
  * @author Tibor Varga
  */
+@FunctionalInterface
+@SuppressWarnings("WeakerAccess")
 public interface ProcessorCallback<T extends AnnotationVisitor> {
 
     void complete(T visitor);

@@ -21,7 +21,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
@@ -45,7 +47,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
     private final AtomicReference<ActualPath> resolutionPath;
 
     DependencyPathTraversal(final ComponentContainer.Observer observer) {
-        this(new AtomicReference<ActualPath>(new ActualPath()), observer);
+        this(new AtomicReference<>(new ActualPath()), observer);
     }
 
     private DependencyPathTraversal(final AtomicReference<ActualPath> path, final ComponentContainer.Observer observer) {
@@ -54,26 +56,11 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         this.observer = observer;
     }
 
-    /**
-     * Command to invoke while descending a resolution path.
-     *
-     * @author Tibor Varga
-     */
-    private interface Descent {
-
-        /**
-         * Performs the descent.
-         *
-         * @return whatever the caller of {@link DependencyPathTraversal#descend(DependencyPathTraversal.ActualPath, DependencyPathTraversal.Descent)} expects.
-         */
-        DependencyGraph.Node perform();
-    }
-
-    private DependencyGraph.Node descend(final ActualPath path, final Descent command) {
+    private DependencyGraph.Node descend(final ActualPath path, final Supplier<DependencyGraph.Node> command) {
         final ActualPath saved = resolutionPath.getAndSet(path);
 
         try {
-            return command.perform();
+            return command.get();
         } finally {
             resolutionPath.set(saved);
         }
@@ -96,17 +83,15 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             throw new ComponentContainer.CircularReferencesException(api, path);
         }
 
-        return descend(path, new Descent() {
-            public DependencyGraph.Node perform() {
-                final DependencyGraph.Node resolved = reference.resolve();
-                assert resolved != null : api;
+        return descend(path, () -> {
+            final DependencyGraph.Node resolved = reference.resolve();
+            assert resolved != null : api;
 
-                if (observer != null) {
-                    observer.resolved(path, resolved.type());
-                }
-
-                return new DelegatingNode(path.tail, resolved);
+            if (observer != null) {
+                observer.resolved(path, resolved.type());
             }
+
+            return new DelegatingNode(path.tail, resolved);
         });
     }
 
@@ -127,7 +112,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
     public Object instantiated(final Class<?> type, final Object component) {
         if (observer != null) {
-            final AtomicReference<Object> reference = new AtomicReference<Object>();
+            final AtomicReference<Object> reference = new AtomicReference<>();
 
             try {
                 observer.instantiated(resolutionPath.get(), reference);
@@ -163,18 +148,16 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         return observer;
     }
 
-    Object instantiate(final DependencyGraph.Node node, final ActualElement element, final DependencyGraph.Traversal traversal) {
+    private Object instantiate(final DependencyGraph.Node node, final ActualElement element, final DependencyGraph.Traversal traversal) {
         final ActualPath path = resolutionPath.get().descend(element, true);
 
-        final DependencyGraph.Node resolved = descend(path, new Descent() {
-            public DependencyGraph.Node perform() {
-                try {
-                    return new ResolvedNode(node.type(), node.instance(traversal), node.context());
-                } catch (final ComponentContainer.InjectionException e) {
-                    throw e;
-                } catch (final Exception e) {
-                    throw new ComponentContainer.InstantiationException(path, e);
-                }
+        final DependencyGraph.Node resolved = descend(path, () -> {
+            try {
+                return new ResolvedNode(node.type(), node.instance(traversal), node.context());
+            } catch (final ComponentContainer.InjectionException e) {
+                throw e;
+            } catch (final Exception e) {
+                throw new ComponentContainer.InstantiationException(path, e);
             }
         });
 
@@ -188,11 +171,11 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
      */
     private static class ActualPath implements DependencyPath {
 
-        public final ActualElement tail;
-        public final boolean repeating;
+        final ActualElement tail;
+        final boolean repeating;
 
-        private final List<ActualElement> list = new ArrayList<ActualElement>();
-        private final Map<ActualElement, ActualElement> map = new HashMap<ActualElement, ActualElement>();
+        private final List<ActualElement> list = new ArrayList<>();
+        private final Map<ActualElement, ActualElement> map = new HashMap<>();
 
         private ActualPath() {
             this.repeating = false;
@@ -214,7 +197,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             this.list.add(tail);
         }
 
-        public ActualPath descend(final ActualElement element, final boolean replace) {
+        ActualPath descend(final ActualElement element, final boolean replace) {
             if (replace && map.remove(element) != null) {
                 map.put(element, element);
             }
@@ -227,7 +210,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
 
         public List<Element> path() {
-            return new ArrayList<Element>(list);
+            return new ArrayList<>(list);
         }
 
         @Override
@@ -258,9 +241,9 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
      */
     private static final class ActualElement implements DependencyPath.Element {
 
-        public final Class<?> api;
-        public final Object identity;
-        public final ContextDefinition definition;
+        final Class<?> api;
+        final Object identity;
+        final ContextDefinition definition;
 
         public Class<?> type;
 
@@ -284,7 +267,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
         @Override
         public int hashCode() {
-            return identity.hashCode() + 31 * definition.hashCode();
+            return Objects.hash(identity, definition);
         }
 
         public Class<?> api() {
@@ -304,7 +287,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         private final DependencyGraph.Node node;
         private final ActualElement element;
 
-        public DelegatingNode(final ActualElement element, final DependencyGraph.Node node) {
+        DelegatingNode(final ActualElement element, final DependencyGraph.Node node) {
             this.element = element;
             this.node = node;
         }

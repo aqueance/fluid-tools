@@ -17,7 +17,7 @@
 package org.fluidity.foundation;
 
 /**
- * Namespace for the various extensions of the {@link Runnable} concept.
+ * Namespace for the various extensions of the {@link Runnable} concept, including the possibility to throw checked exceptions.
  *
  * @author Tibor Varga
  */
@@ -32,6 +32,7 @@ public final class Command extends Utility {
      *
      * @author Tibor Varga
      */
+    @FunctionalInterface
     public interface Job<E extends Throwable> {
 
         /**
@@ -50,6 +51,7 @@ public final class Command extends Utility {
      *
      * @author Tibor Varga
      */
+    @FunctionalInterface
     public interface Operation<P, E extends Throwable> {
 
         /**
@@ -70,6 +72,7 @@ public final class Command extends Utility {
 
      * @author Tibor Varga
      */
+    @FunctionalInterface
     public interface Process<R, E extends Throwable> {
 
         /**
@@ -91,6 +94,7 @@ public final class Command extends Utility {
      *
      * @author Tibor Varga
      */
+    @FunctionalInterface
     public interface Function<R, P, E extends Throwable> {
 
         /**

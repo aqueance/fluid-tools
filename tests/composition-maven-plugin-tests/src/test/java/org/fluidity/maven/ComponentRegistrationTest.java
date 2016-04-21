@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ public class ComponentRegistrationTest {
 
     @Test
     public void testComponents() throws Exception {
+
+        @SuppressWarnings("WeakerAccess")
         class References {
             @Inject public @Optional SimpleComponent simpleComponent;
             @Inject public @Optional SuperComponent superComponent;
@@ -58,6 +60,8 @@ public class ComponentRegistrationTest {
 
     @Test
     public void testServiceProviders() throws Exception {
+
+        @SuppressWarnings("WeakerAccess")
         class References {
             @Inject public @Optional SimpleServiceConsumer simpleServiceConsumer;
             @Inject public @Optional MultipleServiceConsumer multipleServiceConsumer;
@@ -79,17 +83,21 @@ public class ComponentRegistrationTest {
 
     @Test
     public void testInnerAndLocalClasses() throws Exception {
+
+        @SuppressWarnings("WeakerAccess")
         class Reference {
             public @Inject @Optional OuterClass.InnerClass component;
         }
 
         final OuterClass.InnerClass inner = container.initialize(new Reference()).component;
         assert inner != null : String.format("Inner class %s not instantiated", OuterClass.InnerClass.class);
-        assert inner.getLocal() != null : String.format("Local class not instantiated");
+        assert inner.getLocal() != null : "Local class not instantiated";
     }
 
     @Test
     public void testComponentHierarchy() throws Exception {
+
+        @SuppressWarnings("WeakerAccess")
         class References {
             @Inject public @Optional SimpleComponent simpleComponent;
             @Inject public @Optional SuperComponent superComponent;

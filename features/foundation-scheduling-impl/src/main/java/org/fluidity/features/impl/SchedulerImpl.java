@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.features.Scheduler;
-import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Configuration;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Log;
@@ -37,11 +36,7 @@ import org.fluidity.foundation.Log;
 final class SchedulerImpl implements Scheduler {
 
     private final AtomicBoolean stopped = new AtomicBoolean(false);
-    private final Deferred.Reference<Timer> timer = Deferred.shared(new Deferred.Factory<Timer>() {
-        public Timer create() {
-            return new Timer(Scheduler.class.getName(), true);
-        }
-    });
+    private final Deferred.Reference<Timer> timer = Deferred.shared(() -> new Timer(Scheduler.class.getName(), true));
 
     private final Configuration<Settings> configuration;
     private final Log log;
@@ -52,11 +47,9 @@ final class SchedulerImpl implements Scheduler {
         this.configuration = configuration;
         this.log = log;
 
-        termination.add(new Command.Job<Exception>() {
-            public void run() {
-                if (stopped.compareAndSet(false, true) && timer.resolved()) {
-                    timer.invalidate().cancel();
-                }
+        termination.add(() -> {
+            if (stopped.compareAndSet(false, true) && timer.resolved()) {
+                timer.invalidate().cancel();
             }
         });
     }
@@ -98,23 +91,21 @@ final class SchedulerImpl implements Scheduler {
 
                 // make sure we don't have invalid data in our user exposed settings
                 if (penalty.get() <= 0 || limit.get() < 0) {
-                    configuration.query(new Configuration.Query<Void, Settings>() {
-                        public Void run(final Settings settings) throws Exception {
-                            long penaltyValue = penaltyTime.get();
-                            while (penaltyValue <= 0 && !penaltyTime.compareAndSet(penaltyValue, settings.defaultErrorPenalty())) {
-                                penaltyValue = penaltyTime.get();
-                            }
-
-                            int limitValue = errorLimit.get();
-                            while (limitValue < 0 && !errorLimit.compareAndSet(limitValue, settings.defaultErrorLimit())) {
-                                limitValue = errorLimit.get();
-                            }
-
-                            limit.set(errorLimit.get());
-                            penalty.set(penaltyTime.get());
-
-                            return null;
+                    configuration.query(settings -> {
+                        long penaltyValue = penaltyTime.get();
+                        while (penaltyValue <= 0 && !penaltyTime.compareAndSet(penaltyValue, settings.defaultErrorPenalty())) {
+                            penaltyValue = penaltyTime.get();
                         }
+
+                        int limitValue = errorLimit.get();
+                        while (limitValue < 0 && !errorLimit.compareAndSet(limitValue, settings.defaultErrorLimit())) {
+                            limitValue = errorLimit.get();
+                        }
+
+                        limit.set(errorLimit.get());
+                        penalty.set(penaltyTime.get());
+
+                        return null;
                     });
                 }
 

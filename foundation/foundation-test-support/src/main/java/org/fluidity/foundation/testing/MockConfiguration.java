@@ -23,7 +23,6 @@ import org.fluidity.foundation.Configuration;
 import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 
 /**
  * Helps unit testing components that depend on {@link Configuration} or {@link DynamicConfiguration} and use {@link Simulator} to implement the tests.
@@ -35,7 +34,7 @@ import org.easymock.IAnswer;
  *
  * @author Tibor Varga
  */
-@SuppressWarnings("UnusedDeclaration")
+@SuppressWarnings({ "UnusedDeclaration", "WeakerAccess" })
 public final class MockConfiguration {
 
     /**
@@ -48,7 +47,7 @@ public final class MockConfiguration {
      * @return a new instance of this class.
      */
     public static <P> Direct<P> direct(final Class<P> type, final Simulator.MockObjects mocks) {
-        return new Direct<P>(type, mocks);
+        return new Direct<>(type, mocks);
     }
 
     /**
@@ -61,7 +60,7 @@ public final class MockConfiguration {
      * @return a new instance of this class.
      */
     public static <P> Cached<P> cached(final Class<P> type, final Simulator.MockObjects mocks) {
-        return new Cached<P>(type, mocks);
+        return new Cached<>(type, mocks);
     }
 
     /**
@@ -151,13 +150,9 @@ public final class MockConfiguration {
          *
          * @throws Exception thrown by the given <code>setup</code> command.
          */
+        @SuppressWarnings("unchecked")
         public <R> void expectQuery(final Command.Operation<P, Exception> setup) throws Exception {
-            EasyMock.expect(configuration.query(EasyMock.<Configuration.Query<R, P>>notNull())).andAnswer(new IAnswer<R>() {
-                @SuppressWarnings("unchecked")
-                public R answer() throws Throwable {
-                    return ((Configuration.Query<R, P>) EasyMock.getCurrentArguments()[0]).run(settings);
-                }
-            });
+            EasyMock.expect(configuration.query(EasyMock.<Configuration.Query<R, P>>notNull())).andAnswer(() -> ((Configuration.Query<R, P>) EasyMock.getCurrentArguments()[0]).run(settings));
 
             setup.run(settings);
         }

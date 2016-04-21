@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,14 +43,14 @@ final class InterceptorFilterImpl implements InterceptorFilter {
         if (interceptors == null) {
             return null;
         } else {
-            final Map<Class<? extends Annotation>, Integer> indexes = new HashMap<Class<? extends Annotation>, Integer>();
+            final Map<Class<? extends Annotation>, Integer> indexes = new HashMap<>();
 
             int index = 0;
             for (final Class<? extends Annotation> annotation : context.defined().keySet()) {
                 indexes.put(annotation, index++);
             }
 
-            final Collection<Descriptor> descriptors = new TreeSet<Descriptor>();
+            final Collection<Descriptor> descriptors = new TreeSet<>();
 
             for (final ComponentInterceptor interceptor : interceptors) {
                 final Descriptor descriptor = new Descriptor(interceptor, indexes);
@@ -82,9 +82,9 @@ final class InterceptorFilterImpl implements InterceptorFilter {
      */
     private static class Descriptor implements Comparable<Descriptor> {
 
-        public final Class<?> type;
-        public final Collection<Class<? extends Annotation>> context;
-        public final ComponentInterceptor interceptor;
+        final Class<?> type;
+        final Collection<Class<? extends Annotation>> context;
+        final ComponentInterceptor interceptor;
 
         final Integer index;
 
@@ -93,7 +93,7 @@ final class InterceptorFilterImpl implements InterceptorFilter {
 
             final Component.Qualifiers context = this.type.getAnnotation(Component.Qualifiers.class);
 
-            this.context = context == null ? Collections.<Class<? extends Annotation>>emptyList() : Arrays.asList(context.value());
+            this.context = context == null ? Collections.emptyList() : Arrays.asList(context.value());
 
             for (final Class<? extends Annotation> annotation : this.context) {
                 final Qualifier specification = annotation.getAnnotation(Qualifier.class);
