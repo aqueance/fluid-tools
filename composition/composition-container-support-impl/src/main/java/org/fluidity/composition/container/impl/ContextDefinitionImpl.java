@@ -50,7 +50,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
     private final Map<Class<? extends Annotation>, Annotation[]> defined = new LinkedHashMap<Class<? extends Annotation>, Annotation[]>();
     private final Map<Class<? extends Annotation>, Annotation[]> active = new HashMap<Class<? extends Annotation>, Annotation[]>();
 
-    private final Deferred.Reference<Integer> hashCode = Deferred.global(new Deferred.Factory<Integer>() {
+    private final Deferred.Reference<Integer> hashCode = Deferred.shared(new Deferred.Factory<Integer>() {
         public Integer create() {
             return AnnotationMaps.hashCode(defined);
         }

@@ -37,7 +37,7 @@ import org.fluidity.foundation.Log;
 final class SchedulerImpl implements Scheduler {
 
     private final AtomicBoolean stopped = new AtomicBoolean(false);
-    private final Deferred.Reference<Timer> timer = Deferred.global(new Deferred.Factory<Timer>() {
+    private final Deferred.Reference<Timer> timer = Deferred.shared(new Deferred.Factory<Timer>() {
         public Timer create() {
             return new Timer(Scheduler.class.getName(), true);
         }

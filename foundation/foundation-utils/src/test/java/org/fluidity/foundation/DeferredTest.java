@@ -37,7 +37,7 @@ public class DeferredTest {
             }
         };
 
-        return safe ? Deferred.global(factory) : Deferred.local(factory);
+        return safe ? Deferred.shared(factory) : Deferred.local(factory);
     }
 
     @DataProvider(name = "safety")

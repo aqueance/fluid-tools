@@ -548,7 +548,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             this.context = new ProxyContext(api, context);
             this.error = error;
 
-            this.node = Deferred.global(new Deferred.Factory<DependencyGraph.Node>() {
+            this.node = Deferred.shared(new Deferred.Factory<DependencyGraph.Node>() {
                 public DependencyGraph.Node create() {
                     try {
                         return descent.perform();
@@ -565,7 +565,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
 
         public Object instance(final DependencyGraph.Traversal traversal) {
-            final Deferred.Reference<Object> delegate = Deferred.global(new Deferred.Factory<Object>() {
+            final Deferred.Reference<Object> delegate = Deferred.shared(new Deferred.Factory<Object>() {
                 public Object create() {
                     if (deferring.compareAndSet(null, error)) {
                         try {

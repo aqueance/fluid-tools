@@ -124,7 +124,7 @@ public class URLClassLoader extends SecureClassLoader {
         this.cache = Archives.Cache.capture(false);
         this.entries = new LinkedHashMap<String, Archive>(locations.size(), 1.0f);
 
-        this.keys = Deferred.global(new Deferred.Factory<String[]>() {
+        this.keys = Deferred.shared(new Deferred.Factory<String[]>() {
             public String[] create() {
                 final List<String> collected = new ArrayList<String>();
 

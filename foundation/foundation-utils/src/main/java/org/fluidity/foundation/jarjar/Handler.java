@@ -100,7 +100,7 @@ public final class Handler extends URLStreamHandler {
         PROTOCOL = canonicalName.substring(dot + 1, canonicalName.lastIndexOf('.'));
     }
 
-    private static final Deferred.Reference<Void> registration = Deferred.global(new Deferred.Factory<Void>() {
+    private static final Deferred.Reference<Void> registration = Deferred.shared(new Deferred.Factory<Void>() {
         public Void create() {
             try {
                 AccessController.doPrivileged(new PrivilegedAction<Void>() {
@@ -424,7 +424,7 @@ public final class Handler extends URLStreamHandler {
             assert !PROTOCOL.equals(enclosed.getProtocol()) : getURL();
 
             root = enclosed.openConnection();
-            headers = Deferred.global(new Deferred.Factory<Map<String, Object>>() {
+            headers = Deferred.shared(new Deferred.Factory<Map<String, Object>>() {
                 @Override
                 public Map<String, Object> create() {
                     return Exceptions.wrap(new Process<Map<String, Object>, Exception>() {

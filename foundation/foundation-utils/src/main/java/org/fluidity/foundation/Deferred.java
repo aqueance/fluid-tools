@@ -67,7 +67,7 @@ public final class Deferred extends Utility {
      *
      * @return a deferred reference to the object created by the given factory.
      */
-    public static <T> Reference<T> global(final Factory<T> factory) {
+    public static <T> Reference<T> shared(final Factory<T> factory) {
         return new SafeReference<T>(factory);
     }
 
@@ -126,7 +126,7 @@ public final class Deferred extends Utility {
     }
 
     /**
-     * A factory of some object to be {@link Deferred lazily} instantiated. This is used by the {@link Deferred#global(Deferred.Factory) Deferred.global(&hellip;)},
+     * A factory of some object to be {@link Deferred lazily} instantiated. This is used by the {@link Deferred#shared(Deferred.Factory) Deferred.shared(&hellip;)},
      * the {@link Deferred#local(Deferred.Factory) Deferred.local(&hellip;)}, and the <code>Deferred.label(&hellip;)</code> methods.
      * <h3>Usage</h3>
      * See {@link Deferred}.
@@ -146,7 +146,7 @@ public final class Deferred extends Utility {
     }
 
     /**
-     * A reference to some object that is {@link Deferred lazily} instantiated. Instances are created by {@link Deferred#global(Deferred.Factory)} and
+     * A reference to some object that is {@link Deferred lazily} instantiated. Instances are created by {@link Deferred#shared(Deferred.Factory)} and
      * {@link Deferred#local(Deferred.Factory)}.
      * <h3>Usage</h3>
      * See {@link Deferred}.

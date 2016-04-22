@@ -44,7 +44,7 @@ final class DeferredReferenceInterceptor implements ComponentInterceptor {
             }
         };
 
-        final Deferred.Reference<?> deferred = context.annotation(Defer.class, null).global() ? Deferred.global(factory) : Deferred.local(factory);
+        final Deferred.Reference<?> deferred = context.annotation(Defer.class, null).shared() ? Deferred.shared(factory) : Deferred.local(factory);
 
         return new Dependency() {
             public Object create() {
