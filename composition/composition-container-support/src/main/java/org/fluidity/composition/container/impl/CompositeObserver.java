@@ -27,15 +27,33 @@ import org.fluidity.composition.DependencyPath;
 
 /**
  * A composite component resolution observer.
+ * <h3>Usage</h3>
+ * <pre>
+ * final {@linkplain ComponentContainer} <span class="hl2">container</span> = &hellip;
+ * final {@linkplain ComponentContainer.Observer}[] <span class="hl3">observers</span> = &hellip;
+ * &hellip;
+ * final {@linkplain org.fluidity.composition.ObservedContainer ObservedContainer} observed = <span class="hl2">container</span>.{@linkplain ComponentContainer#observed(ComponentContainer.Observer) observe}(<span class="hl1">{@linkplain CompositeObserver#combine(ComponentContainer.Observer...) CompositeObserver.combine}</span>(<span class="hl3">observers</span>));
+ * &hellip;
+ * </pre>
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("unused")
 public final class CompositeObserver implements ComponentContainer.Observer {
 
     private final Set<ComponentContainer.Observer> observers = new LinkedHashSet<ComponentContainer.Observer>();
 
+    /**
+     * Combines zero, one, or more observers into one, which can then be fed to {@link ComponentContainer#observed(ComponentContainer.Observer)
+     * ComponentContainer.observed(…)}. Composite observer in the given list will have its individual observers added to this one. Missing (<code>null</code>)
+     * elements will be omitted from the composite.
+     *
+     * @param observers the list of observers to combine.
+     *
+     * @return an observer that broadcasts observed events to the given list of observers, or <code>null</code> if the given argument list is empty.
+     */
     public static ComponentContainer.Observer combine(final ComponentContainer.Observer... observers) {
-        final Set<ComponentContainer.Observer> list = new LinkedHashSet<ComponentContainer.Observer>(observers.length, (float) 1.0);
+        final Set<ComponentContainer.Observer> list = new LinkedHashSet<ComponentContainer.Observer>(observers.length);
 
         for (final ComponentContainer.Observer observer : observers) {
             if (observer != null) {
@@ -43,6 +61,31 @@ public final class CompositeObserver implements ComponentContainer.Observer {
             }
         }
 
+        return _cases(list);
+    }
+
+    /**
+     * Combines zero, one, or more observers into one, which can then be fed to {@link ComponentContainer#observed(ComponentContainer.Observer)
+     * ComponentContainer.observed(…)}. Composite observer in the given list will have its individual observers added to this one. Missing (<code>null</code>)
+     * elements will be omitted from the composite.
+     *
+     * @param observers the list of observers to combine.
+     *
+     * @return an observer that broadcasts observed events to the given list of observers, or <code>null</code> if the given argument list is empty.
+     */
+    public static ComponentContainer.Observer combine(final Collection<? extends ComponentContainer.Observer> observers) {
+        final Set<ComponentContainer.Observer> list = new LinkedHashSet<ComponentContainer.Observer>(observers.size());
+
+        for (final ComponentContainer.Observer observer : observers) {
+            if (observer != null) {
+                list.add(observer);
+            }
+        }
+
+        return _cases(list);
+    }
+
+    private static ComponentContainer.Observer _cases(final Collection<? extends ComponentContainer.Observer> list) {
         switch (list.size()) {
         case 0:
             return null;
@@ -53,7 +96,7 @@ public final class CompositeObserver implements ComponentContainer.Observer {
         }
     }
 
-    private CompositeObserver(final Collection<ComponentContainer.Observer> observers) {
+    private CompositeObserver(final Collection<? extends ComponentContainer.Observer> observers) {
         for (final ComponentContainer.Observer observer : observers) {
             add(observer);
         }
