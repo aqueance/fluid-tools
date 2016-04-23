@@ -67,7 +67,7 @@ $ cd fluid-tools
 $ mvn install
 ```
 
-**NOTE**: You will need Maven 3.1+ to build, or use, these libraries.
+**NOTE**: You will need Maven 3.2+ to build, or use, these libraries.
 
 #### Generating the Javadocs
 

@@ -46,6 +46,10 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
@@ -70,118 +74,91 @@ import org.eclipse.aether.repository.RemoteRepository;
  * There are various set operations performed in these dependencies to make sure nothing is included that shouldn't.
  *
  * @author Tibor Varga
- * @goal standalone
- * @phase package
- * @threadSafe
  */
-@SuppressWarnings("UnusedDeclaration")
+@Mojo(name = "standalone", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
 public final class StandaloneWarMojo extends AbstractMojo {
 
     /**
      * Instructs the plugin, when set, to remove from the WEB-INF/lib directory all .jar files that the plugin puts in the WEB-INF/boot directory, effectively
      * making the resulting WAR smaller than otherwise but also making it executable via the command line only, i.e. the WAR file will not be deployable in an
      * ordinary web container.
-     *
-     * @parameter default-value="false"
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(defaultValue = "false")
     private boolean commandLineOnly;
 
     /**
      * Instructs the plugin, when set, to create a new JAR with the given classifier and attach it to the project. When not set, the project's JAR artifact
      * is overwritten.
-     *
-     * @parameter default-value=""
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter
     private String classifier;
 
     /**
      * Tells the plugin to emit details about its operation. The default value of this parameter is <code>false</code>.
-     *
-     * @parameter default-value="${fluidity.maven.verbose}"
      */
+    @Parameter(property = "fluidity.maven.verbose")
     private boolean verbose;
 
     /**
      * The location of the compiled classes.
-     *
-     * @parameter property="project.build.directory"
-     * @required
-     * @readonly
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(property = "project.build.directory", required = true, readonly = true)
     private File outputDirectory;
 
     /**
      * The project artifact file name.
-     *
-     * @parameter property="standalone.archive.name" default-value="${project.build.finalName}.war"
-     * @required
-     * @readonly
+
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(property = "standalone.archive.name", defaultValue = "${project.build.finalName}.war", required = true, readonly = true)
     private String archiveName;
 
     /**
      * The project artifact's final name.
-     *
-     * @parameter property="project.build.finalName"
-     * @required
-     * @readonly
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(property = "project.build.finalName", required = true, readonly = true)
     private String finalName;
 
     /**
-     * @parameter property="plugin.groupId"
-     * @required
+     * The plugin's group ID.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(property = "plugin.groupId", required = true, readonly = true)
     private String pluginGroupId;
 
     /**
-     * @parameter property="plugin.artifactId"
-     * @required
+     * The plugin's artifact ID.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(property = "plugin.artifactId", required = true, readonly = true)
     private String pluginArtifactId;
 
     /**
      * The Maven project.
-     *
-     * @parameter property="project"
-     * @required
-     * @readonly
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(property = "project", required = true, readonly = true)
     private MavenProject project;
 
     /**
      * The current repository/network configuration of Maven.
-     *
-     * @parameter default-value="${repositorySystemSession}"
-     * @readonly
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
     private RepositorySystemSession repositorySession;
 
     /**
-     * The entry point to Aether, i.e. the component doing all the work.
-     *
-     * @component
+     * The project's remote repositories to use for the resolution of dependencies.
      */
-    @SuppressWarnings("UnusedDeclaration")
-    private RepositorySystem repositorySystem;
+    @Parameter(defaultValue = "${project.remoteProjectRepositories}", readonly = true)
+    private List<RemoteRepository> repositories;
 
     /**
-     * The project's remote repositories to use for the resolution of dependencies.
-     *
-     * @parameter default-value="${project.remoteProjectRepositories}"
-     * @readonly
+     * The entry point to Aether, i.e. the component doing all the work.
      */
-    @SuppressWarnings({ "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
-    private List<RemoteRepository> repositories;
+    @Component
+    private RepositorySystem repositorySystem;
+
+    @Component
+    private ArchivesSupport archives;
+
+    @Component
+    private DependenciesSupport dependencies;
 
     public void execute() throws MojoExecutionException {
         final File packageFile = new File(outputDirectory, archiveName);
@@ -193,20 +170,20 @@ public final class StandaloneWarMojo extends AbstractMojo {
         final String pluginKey = Plugin.constructKey(pluginGroupId, pluginArtifactId);
         final Artifact pluginArtifact = project.getPluginArtifactMap().get(pluginKey);
 
-        final Collection<Artifact> pluginDependencies = DependenciesSupport.dependencyClosure(repositorySystem, repositorySession, repositories, pluginArtifact, false, false, null);
-        final Artifact handlerDependency = DependenciesSupport.artifact(WebApplicationBootstrap.class, pluginDependencies);
+        final Collection<Artifact> pluginDependencies = dependencies.dependencyClosure(repositorySystem, repositorySession, repositories, pluginArtifact, false, false, null);
+        final Artifact handlerDependency = dependencies.artifact(WebApplicationBootstrap.class, pluginDependencies);
         assert handlerDependency != null : WebApplicationBootstrap.class;
 
-        final Collection<Artifact> bootstrapDependencies = DependenciesSupport.dependencyClosure(repositorySystem, repositorySession, repositories, handlerDependency, false, false, null);
+        final Collection<Artifact> bootstrapDependencies = dependencies.dependencyClosure(repositorySystem, repositorySession, repositories, handlerDependency, false, false, null);
 
         final Set<Artifact> serverDependencies = new HashSet<>();
 
         for (final Dependency dependency : project.getPlugin(pluginKey).getDependencies()) {
             assert !dependency.isOptional() : dependency;
-            serverDependencies.addAll(DependenciesSupport.dependencyClosure(repositorySystem, repositorySession, repositories, DependenciesSupport.dependencyArtifact(dependency), false, false, dependency.getExclusions()));
+            serverDependencies.addAll(dependencies.dependencyClosure(repositorySystem, repositorySession, repositories, dependencies.dependencyArtifact(dependency), false, false, dependency.getExclusions()));
         }
 
-        serverDependencies.removeAll(DependenciesSupport.dependencyClosure(repositorySystem, repositorySession, repositories, project.getArtifact(), false, false, null));
+        serverDependencies.removeAll(dependencies.dependencyClosure(repositorySystem, repositorySession, repositories, project.getArtifact(), false, false, null));
         serverDependencies.removeAll(pluginDependencies);
         serverDependencies.remove(pluginArtifact);
 
@@ -219,7 +196,7 @@ public final class StandaloneWarMojo extends AbstractMojo {
             final Map<String, Attributes> attributesMap = new HashMap<>();
             final Map<String, String[]> providerMap = new HashMap<>();
 
-            ArchivesSupport.load(attributesMap, providerMap, buffer, log, new ArchivesSupport.Feed() {
+            archives.load(attributesMap, providerMap, buffer, log, new ArchivesSupport.Feed() {
                 private final Iterator<Artifact> iterator = bootstrapDependencies.iterator();
 
                 public File next() throws IOException {
@@ -265,12 +242,12 @@ public final class StandaloneWarMojo extends AbstractMojo {
 
                 mainAttributes.putValue(Attributes.Name.MAIN_CLASS.toString(), mainClass.get());
 
-                ArchivesSupport.include(attributesMap, manifest);
+                archives.include(attributesMap, manifest);
 
                 outputStream.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
                 manifest.write(outputStream);
 
-                ArchivesSupport.expand(outputStream, buffer, providerMap, new ArchivesSupport.Feed() {
+                archives.expand(outputStream, buffer, providerMap, new ArchivesSupport.Feed() {
                     private final Iterator<Artifact> iterator = bootstrapDependencies.iterator();
                     private final AtomicReference<Boolean> last = new AtomicReference<>(false);
 
@@ -304,7 +281,7 @@ public final class StandaloneWarMojo extends AbstractMojo {
                 }
             }
 
-            DependenciesSupport.saveArtifact(project, file, String.format("%s/%s", outputDirectory, finalName), classifier, DependenciesSupport.WAR_TYPE, log);
+            dependencies.saveArtifact(project, file, String.format("%s/%s", outputDirectory, finalName), classifier, DependenciesSupport.WAR_TYPE, log);
         } catch (final IOException e) {
             throw new MojoExecutionException(String.format("Processing %s", packageFile), e);
         }

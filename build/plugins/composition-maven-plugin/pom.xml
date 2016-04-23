@@ -110,6 +110,11 @@ class name of the Service Provider interface> unless one already exists.
         </dependency>
 
         <dependency>
+            <groupId>org.apache.maven.plugin-tools</groupId>
+            <artifactId>maven-plugin-annotations</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm</artifactId>
             <version>${asm.version}</version>

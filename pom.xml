@@ -28,7 +28,7 @@
     <url>https://github.com/aqueance/fluid-tools.git</url>
 
     <prerequisites>
-        <maven>3.1.0</maven>
+        <maven>3.2.3</maven>
     </prerequisites>
 
     <scm>
@@ -42,7 +42,7 @@
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <today.year>${maven.build.timestamp}</today.year>
 
-        <maven.api.version>3.1.0</maven.api.version>
+        <maven.api.version>3.2.3</maven.api.version>
         <aether.version>1.1.0</aether.version>
         <asm.version>5.1</asm.version>
 
@@ -167,6 +167,12 @@
             </dependency>
 
             <dependency>
+                <groupId>org.apache.maven.plugin-tools</groupId>
+                <artifactId>maven-plugin-annotations</artifactId>
+                <version>3.4</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.eclipse.aether</groupId>
                 <artifactId>aether-impl</artifactId>
                 <version>${aether.version}</version>
@@ -175,7 +181,7 @@
             <dependency>
                 <groupId>org.codehaus.plexus</groupId>
                 <artifactId>plexus-interpolation</artifactId>
-                <version>1.19</version>
+                <version>1.22</version>
             </dependency>
 
         </dependencies>
@@ -269,6 +275,7 @@
                 <module>tutorials</module>
             </modules>
         </profile>
+
     </profiles>
 
     <build>
@@ -308,6 +315,19 @@
                     <configuration>
                         <encoding>${project.build.sourceEncoding}</encoding>
                     </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.codehaus.plexus</groupId>
+                    <artifactId>plexus-component-metadata</artifactId>
+                    <version>1.6</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>generate-metadata</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
 
                 <plugin>

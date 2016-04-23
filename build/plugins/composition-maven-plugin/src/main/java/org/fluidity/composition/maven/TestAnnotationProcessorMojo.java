@@ -20,15 +20,14 @@ import java.io.File;
 
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
 /**
- * @goal process-test-annotations
- * @phase process-test-classes
- * @requiresDependencyResolution test
- * @threadSafe
- *
  * @author Tibor Varga
  */
+@Mojo(name = "process-test-annotations", defaultPhase = LifecyclePhase.PROCESS_TEST_CLASSES, requiresDependencyResolution = ResolutionScope.TEST, threadSafe = true)
 public class TestAnnotationProcessorMojo extends AbstractAnnotationProcessorMojo {
 
     public void execute() throws MojoExecutionException {

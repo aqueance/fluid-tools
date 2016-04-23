@@ -20,15 +20,14 @@ import java.io.File;
 
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
 /**
- * @goal process-annotations
- * @phase process-classes
- * @requiresDependencyResolution compile
- * @threadSafe
- *
  * @author Tibor Varga
  */
+@Mojo(name = "process-annotations", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
 public class AnnotationProcessorMojo extends AbstractAnnotationProcessorMojo {
 
     public void execute() throws MojoExecutionException {

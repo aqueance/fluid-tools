@@ -56,6 +56,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.objectweb.asm.AnnotationVisitor;
@@ -104,19 +105,14 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
     /**
      * Reference to the maven project
-     *
-     * @parameter property="project"
-     * @required
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(property = "project", required = true)
     private MavenProject project;
 
     /**
      * Tells the plugin to emit details about its operation. The default value of this parameter is <code>false</code>.
-     *
-     * @parameter default-value="${fluidity.maven.verbose}"
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(property = "fluidity.maven.verbose")
     private boolean verbose;
 
     private String projectName;

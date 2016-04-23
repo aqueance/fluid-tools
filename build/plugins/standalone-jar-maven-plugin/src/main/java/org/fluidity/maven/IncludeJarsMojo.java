@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,7 +37,6 @@ import java.util.jar.Manifest;
 import org.fluidity.deployment.maven.ArchivesSupport;
 import org.fluidity.deployment.maven.DependenciesSupport;
 import org.fluidity.deployment.maven.Logger;
-import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.Lists;
@@ -48,6 +46,10 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Profile;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
@@ -58,101 +60,80 @@ import org.eclipse.aether.repository.RemoteRepository;
  * will always overwrite that artifact.
  *
  * @author Tibor Varga
- * @goal include
- * @phase package
- * @threadSafe
  */
-@SuppressWarnings("UnusedDeclaration")
+@Mojo(name = IncludeJarsMojo.name, defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
 public final class IncludeJarsMojo extends AbstractMojo {
 
     static final String name = "include";
 
     /**
      * The location of the compiled classes.
-     *
-     * @parameter property="project.build.directory"
-     * @required
-     * @readonly
      */
     @SuppressWarnings("UnusedDeclaration")
+    @Parameter(property = "project.build.directory", required = true, readonly = true)
     private File outputDirectory;
 
     /**
      * The project artifact's final name.
-     *
-     * @parameter property="project.build.finalName"
-     * @required
-     * @readonly
      */
     @SuppressWarnings("UnusedDeclaration")
+    @Parameter(property = "project.build.finalName", required = true, readonly = true)
     private String finalName;
 
     /**
      * Instructs the plugin, when set, to use the given classifier.
-     *
-     * @parameter default-value=""
      */
     @SuppressWarnings("UnusedDeclaration")
+    @Parameter
     private String classifier;
 
     /**
      * Tells the plugin to emit details about its operation. The default value of this parameter is <code>false</code>.
-     *
-     * @parameter default-value="${fluidity.maven.verbose}"
      */
+    @Parameter(property = "fluidity.maven.verbose")
     private boolean verbose;
 
     /**
      * List of profile IDs to package the dependencies of into the artifact.
-     *
-     * @parameter default-value=""
      */
-    @SuppressWarnings({ "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
+    @Parameter
     private List<String> profiles;
 
     /**
-     * @parameter property="plugin.artifactId"
-     * @readonly
-     * @required
+     * The plugin's artifact ID.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(property = "plugin.artifactId", required = true, readonly = true)
     private String pluginArtifactId;
 
     /**
      * The Maven project.
-     *
-     * @parameter property="project"
-     * @required
-     * @readonly
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(property = "project", required = true, readonly = true)
     private MavenProject project;
 
     /**
      * The current repository/network configuration of Maven.
-     *
-     * @parameter default-value="${repositorySystemSession}"
-     * @readonly
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
     private RepositorySystemSession repositorySession;
 
     /**
      * The entry point to Aether, i.e. the component doing all the work.
-     *
-     * @component
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Component
     private RepositorySystem repositorySystem;
 
     /**
      * The project's remote repositories to use for the resolution of dependencies.
-     *
-     * @parameter default-value="${project.remoteProjectRepositories}"
-     * @readonly
      */
-    @SuppressWarnings({ "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
+    @Parameter(defaultValue = "${project.remoteProjectRepositories}", readonly = true)
     private List<RemoteRepository> repositories;
+
+    @Component
+    private ArchivesSupport archives;
+
+    @Component
+    private DependenciesSupport dependencies;
 
     public void execute() throws MojoExecutionException {
         if (profiles == null || profiles.isEmpty()) {
@@ -191,10 +172,10 @@ public final class IncludeJarsMojo extends AbstractMojo {
                             throw new MojoExecutionException(String.format("Dependencies '%s' already included in the archive", id));
                         }
 
-                        final Collection<Artifact> dependencies = DependenciesSupport.resolve(repositorySystem,
-                                                                                              repositorySession,
-                                                                                              repositories,
-                                                                                              profile.getDependencies());
+                        final Collection<Artifact> dependencies = this.dependencies.resolve(repositorySystem,
+                                                                                            repositorySession,
+                                                                                            repositories,
+                                                                                            profile.getDependencies());
 
                         if (!dependencies.isEmpty()) {
                             for (final Artifact artifact : dependencies) {
@@ -210,7 +191,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
 
                         if (log.active()) {
                             log.detail(String.format("Profile '%s' archives:", id));
-                            DependenciesSupport.list(dependencies, "  ", log);
+                            this.dependencies.list(dependencies, "  ", log);
                         }
 
                         final String projectId = project.getArtifact().getId();
@@ -315,44 +296,12 @@ public final class IncludeJarsMojo extends AbstractMojo {
                         }
                     }
 
-                    DependenciesSupport.saveArtifact(project, file, baseName, classifier, DependenciesSupport.JAR_TYPE, log);
+                    dependencies.saveArtifact(project, file, baseName, classifier, DependenciesSupport.JAR_TYPE, log);
                 }
             }
         } catch (final IOException e) {
             throw new MojoExecutionException(String.format("Processing %s", packageFile), e);
         }
-    }
-
-    private void add(final Map<String, Collection<Artifact>> map, final String path, final Collection<Artifact> list) {
-        if (map.containsKey(path)) {
-            map.get(path).addAll(list);
-        } else {
-            map.put(path, list);
-        }
-    }
-
-    private <V> Map<String, V> clean(final Map<String, V> properties) {
-        final Map<String, V> copy = new HashMap<>(properties);
-
-        for (final JarManifest.Packaging packaging : JarManifest.Packaging.values()) {
-            copy.remove(packaging.profile);
-        }
-
-        return copy;
-    }
-
-    private Map<String, String> include(final JarManifest.Packaging enabled, final Map<String, String> properties) {
-        final Map<String, String> copy = new HashMap<>(properties);
-
-        for (final JarManifest.Packaging packaging : JarManifest.Packaging.values()) {
-            if (packaging != enabled) {
-
-                // profiles are turned *off* by having the corresponding property *defined*
-                copy.put(packaging.profile, "true");
-            }
-        }
-
-        return copy;
     }
 
     private File createTempFile() throws MojoExecutionException {

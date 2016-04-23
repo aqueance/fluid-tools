@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,6 +53,10 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
@@ -65,126 +68,96 @@ import org.eclipse.aether.repository.RemoteRepository;
  * JAR service provider, to process the JAR's manifest attributes.
  *
  * @author Tibor Varga
- * @goal standalone
- * @phase package
- * @threadSafe
  */
-@SuppressWarnings("UnusedDeclaration")
+@Mojo(name = "standalone", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
 public final class StandaloneJarMojo extends AbstractMojo {
 
     /**
      * Instructs the plugin, when set, to create a new JAR with the given classifier and attach it to the project. When not set, the project's JAR artifact
      * is overwritten.
-     *
-     * @parameter default-value=""
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter
     private String classifier;
 
     /**
      * Tells the plugin to remove from the list of archived packaged in the main one those that it unpacks into the root of the main archive. In essence,
      * if the packaged archives are used with a class loader that delegates to the launch class loader, you should set this to <code>true</code>.
-     *
-     * @parameter default-value="false"
      */
+    @Parameter(defaultValue = "false")
     private boolean compact;
 
     /**
      * Tells the plugin to make an executable application. An executable application has some launcher unpacked in its root. The default value of this
      * parameter is <code>true</code>. Unless you are making an archive that requires a separate launcher, leave this parameter at its default.
-     *
-     * @parameter default-value="true"
      */
+    @Parameter(defaultValue = "true")
     private boolean executable;
 
     /**
      * Tells the plugin to emit details about its operation. The default value of this parameter is <code>false</code>.
-     *
-     * @parameter default-value="${fluidity.maven.verbose}"
      */
+    @Parameter(property = "fluidity.maven.verbose")
     private boolean verbose;
 
     /**
      * The location of the compiled classes.
-     *
-     * @parameter property="project.build.directory"
-     * @required
-     * @readonly
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(property = "project.build.directory", required = true, readonly = true)
     private File outputDirectory;
 
     /**
      * The project artifact file name.
-     *
-     * @parameter property="standalone.archive.name" default-value="${project.build.finalName}.jar"
-     * @required
-     * @readonly
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(property = "standalone.archive.name", defaultValue = "${project.build.finalName}.jar", required = true, readonly = true)
     private String archiveName;
 
     /**
      * The project artifact's final name.
-     *
-     * @parameter property="project.build.finalName"
-     * @required
-     * @readonly
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(property = "project.build.finalName", required = true, readonly = true)
     private String finalName;
 
     /**
-     * @parameter property="plugin.groupId"
-     * @readonly
-     * @required
+     * The plugin's group ID.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(property = "plugin.groupId", required = true, readonly = true)
     private String pluginGroupId;
 
     /**
-     * @parameter property="plugin.artifactId"
-     * @readonly
-     * @required
+     * The plugin's artifact ID.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(property = "plugin.artifactId", required = true, readonly = true)
     private String pluginArtifactId;
 
     /**
      * The Maven project.
-     *
-     * @parameter property="project"
-     * @required
-     * @readonly
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(property = "project", required = true, readonly = true)
     private MavenProject project;
 
     /**
      * The current repository/network configuration of Maven.
-     *
-     * @parameter default-value="${repositorySystemSession}"
-     * @readonly
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
     private RepositorySystemSession repositorySession;
 
     /**
-     * The entry point to Aether, i.e. the component doing all the work.
-     *
-     * @component
+     * The project's remote repositories to use for the resolution of dependencies.
      */
-    @SuppressWarnings("UnusedDeclaration")
-    private RepositorySystem repositorySystem;
+    @Parameter(defaultValue = "${project.remoteProjectRepositories}", readonly = true)
+    private List<RemoteRepository> repositories;
 
     /**
-     * The project's remote repositories to use for the resolution of dependencies.
-     *
-     * @parameter default-value="${project.remoteProjectRepositories}"
-     * @readonly
+     * The entry point to Aether, i.e. the component doing all the work.
      */
-    @SuppressWarnings({ "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
-    private List<RemoteRepository> repositories;
+    @Component
+    private RepositorySystem repositorySystem;
+
+    @Component
+    private ArchivesSupport archives;
+
+    @Component
+    private DependenciesSupport dependencies;
 
     public void execute() throws MojoExecutionException {
         final File packageFile = new File(outputDirectory, archiveName);
@@ -216,10 +189,10 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
             final File file = createTempFile();
             try (final JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(file))) {
-                final String dependencyPath = Archives.META_INF.concat("/dependencies/");
 
-                final Collection<Artifact> compileDependencies = DependenciesSupport.compileDependencies(repositorySystem, repositorySession, repositories, project, true);
-                final Collection<Artifact> runtimeDependencies = DependenciesSupport.runtimeDependencies(repositorySystem, repositorySession, repositories, project, false);
+                final String dependencyPath = Archives.META_INF.concat("/dependencies/");
+                final Collection<Artifact> compileDependencies = dependencies.compileDependencies(repositorySystem, repositorySession, repositories, project, true);
+                final Collection<Artifact> runtimeDependencies = dependencies.runtimeDependencies(repositorySystem, repositorySession, repositories, project, false);
 
                 /*
                  * Manifest handlers use profiles to declare dependencies to include, exclude, or unpack in our standalone artifact.
@@ -243,7 +216,6 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
                 final String pluginKey = Plugin.constructKey(pluginGroupId, pluginArtifactId);
                 final Collection<Dependency> pluginDependencies = project.getPlugin(pluginKey).getDependencies();
-                final Artifact pluginArtifact = project.getPluginArtifactMap().get(pluginKey);
 
                 final String original = mainAttributes.getValue(JarManifest.CREATED_BY);
                 mainAttributes.putValue(JarManifest.CREATED_BY,
@@ -264,12 +236,12 @@ public final class StandaloneJarMojo extends AbstractMojo {
                     final JarManifest handler = handlers.get(0);
                     final Class<?> handlerClass = handler.getClass();
 
-                    final Artifact handlerArtifact = DependenciesSupport.dependencyArtifact(DependenciesSupport.dependency(handlerClass, pluginDependencies));
-                    final Collection<Artifact> includedClosure = DependenciesSupport.dependencyClosure(repositorySystem, included, repositories, handlerArtifact, false, false, null);
+                    final Artifact handlerArtifact = dependencies.dependencyArtifact(dependencies.dependency(handlerClass, pluginDependencies));
+                    final Collection<Artifact> includedClosure = dependencies.dependencyClosure(repositorySystem, included, repositories, handlerArtifact, false, false, null);
                     includedClosure.remove(handlerArtifact);
 
                     if (executable) {
-                        final Collection<Artifact> unpackedClosure = DependenciesSupport.dependencyClosure(repositorySystem, unpacked, repositories, handlerArtifact, false, false, null);
+                        final Collection<Artifact> unpackedClosure = dependencies.dependencyClosure(repositorySystem, unpacked, repositories, handlerArtifact, false, false, null);
                         unpackedClosure.remove(handlerArtifact);
                         unpackedDependencies.addAll(unpackedClosure);
                     }
@@ -336,7 +308,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
                                 if (log.active()) {
                                     log.detail("Included archives '%s':", name);
-                                    DependenciesSupport.list(includedClosure, "  ", log);
+                                    dependencies.list(includedClosure, "  ", log);
                                 }
                             } else {
                                 throw new MojoExecutionException(String.format("Manifest handler %s tried to specify the inclusion name more than once",
@@ -363,8 +335,8 @@ public final class StandaloneJarMojo extends AbstractMojo {
                 final Map<String, Attributes> attributesMap = new HashMap<>();
                 final Map<String, String[]> providerMap = new HashMap<>();
 
-                ArchivesSupport.load(attributesMap, providerMap, buffer, log, new DependencyFeed(policy, unpackedDependencies));
-                ArchivesSupport.include(attributesMap, manifest);
+                archives.load(attributesMap, providerMap, buffer, log, new DependencyFeed(policy, unpackedDependencies));
+                archives.include(attributesMap, manifest);
 
                 if (compact) {
                     includedDependencies.get(dependenciesName.get()).artifacts.removeAll(unpackedDependencies);
@@ -372,10 +344,10 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
                 if (log.active()) {
                     log.detail("Dependency archives:");
-                    DependenciesSupport.list(includedDependencies.get(dependenciesName.get()).artifacts, "  ", log);
+                    this.dependencies.list(includedDependencies.get(dependenciesName.get()).artifacts, "  ", log);
 
                     log.detail("Unpacked archives:");
-                    DependenciesSupport.list(unpackedDependencies, "  ", log);
+                    this.dependencies.list(unpackedDependencies, "  ", log);
                 }
 
                 // list the various dependencies in manifest attributes
@@ -424,15 +396,12 @@ public final class StandaloneJarMojo extends AbstractMojo {
                     Streams.store(outputStream, content, "UTF-8", buffer, false);
                 });
 
-                ArchivesSupport.expand(outputStream, buffer, providerMap, new DependencyFeed(policy, unpackedDependencies));
+                archives.expand(outputStream, buffer, providerMap, new DependencyFeed(policy, unpackedDependencies));
 
                 final String projectId = project.getArtifact().getId();
 
                 // copy the dependencies, including the original project artifact and those requested by manifest handlers
-                for (final Map.Entry<String, Inclusion> entry : includedDependencies.entrySet()) {
-                    final String name = entry.getKey();
-                    final Inclusion inclusion = entry.getValue();
-
+                for (final Inclusion inclusion : includedDependencies.values()) {
                     for (final Artifact artifact : inclusion.artifacts) {
                         final File dependency = artifact.getFile();
 
@@ -462,17 +431,9 @@ public final class StandaloneJarMojo extends AbstractMojo {
                 }
             }
 
-            DependenciesSupport.saveArtifact(project, file, String.format("%s/%s", outputDirectory, finalName), classifier, DependenciesSupport.JAR_TYPE, log);
+            dependencies.saveArtifact(project, file, String.format("%s/%s", outputDirectory, finalName), classifier, DependenciesSupport.JAR_TYPE, log);
         } catch (final IOException e) {
             throw new MojoExecutionException(String.format("Processing %s", packageFile), e);
-        }
-    }
-
-    private void add(final Map<String, Collection<Artifact>> map, final String path, final Collection<Artifact> list) {
-        if (map.containsKey(path)) {
-            map.get(path).addAll(list);
-        } else {
-            map.put(path, list);
         }
     }
 
@@ -532,12 +493,10 @@ public final class StandaloneJarMojo extends AbstractMojo {
      */
     private static class DependencyFeed implements ArchivesSupport.Feed {
 
-        private final SecurityPolicy policy;
         private final Iterator<Artifact> iterator;
         private final Collection<String> excluded = new HashSet<>();
 
         DependencyFeed(final SecurityPolicy policy, final Collection<Artifact> unpackedDependencies) throws IOException {
-            this.policy = policy;
             this.iterator = unpackedDependencies.iterator();
 
             for (final Artifact artifact : unpackedDependencies) {

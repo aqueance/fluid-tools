@@ -18,31 +18,22 @@ package org.fluidity.deployment.maven;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
 import org.fluidity.foundation.Archives;
-import org.fluidity.foundation.ServiceProviders;
-import org.fluidity.foundation.Streams;
-import org.fluidity.foundation.Utility;
 
 /**
  * Common JAR processing utilities for standalone archive processing plugins.
  *
  * @author Tibor Varga
  */
-public final class ArchivesSupport extends Utility {
+public interface ArchivesSupport {
 
-    public static final String META_INF = Archives.META_INF.concat("/");
-
-    private ArchivesSupport() { }
+    String META_INF = Archives.META_INF.concat("/");
 
     /**
      * Iterates through the {@link File}s returned by the given {@link Feed feed} and loads the manifest attributes and service provider files into the given
@@ -56,98 +47,22 @@ public final class ArchivesSupport extends Utility {
      *
      * @throws IOException when JAR processing fails.
      */
-    public static void load(final Map<String, Attributes> attributes,
-                            final Map<String, String[]> providers,
-                            final byte[] buffer,
-                            final Logger log,
-                            final Feed feed) throws IOException {
-        for (File input; (input = feed.next()) != null; ) {
-            Archives.read(true, input.toURI().toURL(), (url, entry) -> {
-
-                // read all entries except the MANIFEST
-                return !feed.include(entry) || entry.getName().equals(JarFile.MANIFEST_NAME) ? null : (_url, _entry, stream) -> {
-                    final String entryName = _entry.getName();
-
-                    if (!attributes.containsKey(entryName)) {
-                        if (entryName.equals(Archives.INDEX_NAME)) {
-                            log.warn(String.format("JAR index ignored in %s", _url));
-                        } else if (entryName.startsWith(Archives.META_INF) && entryName.toUpperCase().endsWith(".SF")) {
-                            throw new IOException(String.format("JAR signatures not supported in %s", _url));
-                        } else if (entryName.startsWith(ServiceProviders.LOCATION) && !_entry.isDirectory()) {
-                            final String[] list = Streams.load(stream, "UTF-8", buffer, false).split("[\n\r]+");
-                            final String[] present = providers.get(entryName);
-
-                            if (present == null) {
-                                providers.put(entryName, list);
-                            } else {
-                                final String[] combined = Arrays.copyOf(present, present.length + list.length);
-                                System.arraycopy(list, 0, combined, present.length, list.length);
-                                providers.put(entryName, combined);
-                            }
-                        } else {
-                            attributes.put(entryName, _entry.getAttributes());
-                        }
-                    } else if (!_entry.isDirectory()) {
-                        log.warn(String.format("Duplicate entry: %s", entryName));
-                    }
-
-                    return true;
-                };
-            });
-        }
-    }
+    void load(Map<String, Attributes> attributes, Map<String, String[]> providers, byte[] buffer, Logger log, Feed feed) throws IOException;
 
     /**
-     * Iterates through the {@link File}s returned by the given {@link Feed feed} and stores all entries found therein in the output JAR stream,
-     * except the JAR manifest, JAR indexes, signatures, and whatever else is not {@linkplain ArchivesSupport.Feed#include(JarEntry) included} by the
-     * <code>feed</code>. The service providers in the given map loaded by {@link #load(Map, Map, byte[], Logger, ArchivesSupport.Feed)} are saved as well.
+     * Iterates through the {@link File}s returned by the given {@link Feed feed} and stores all entries found therein in the output JAR stream, except the JAR
+     * manifest, JAR indexes, signatures, and whatever else is not {@linkplain ArchivesSupport.Feed#include(JarEntry) included} by the <code>feed</code>.
+     * The service providers in the given map loaded by {@link #load(Map, Map, byte[], Logger, ArchivesSupport.Feed)} are saved as well.
      *
      * @param output   the JAR output stream to add entries to.
-     * @param buffer   the buffer to use when {@linkplain Streams#copy(java.io.InputStream, java.io.OutputStream, byte[], boolean, boolean) copying} data.
+     * @param buffer   the buffer to use when {@linkplain org.fluidity.foundation.Streams#copy(java.io.InputStream, java.io.OutputStream, byte[], boolean,
+     *                 boolean) copying} data.
      * @param services the service provider map computed by {@link #load(Map, Map, byte[], Logger, ArchivesSupport.Feed)}.
      * @param feed     the provider of the list of JAR inputs to expand.
      *
      * @throws IOException when JAR processing fails.
      */
-    public static void expand(final JarOutputStream output, final byte[] buffer, final Map<String, String[]> services, final Feed feed) throws IOException {
-        final Set<String> copied = new HashSet<String>();
-
-        for (final Map.Entry<String, String[]> entry : services.entrySet()) {
-            final String entryName = entry.getKey();
-
-            if (!copied.contains(entryName)) {
-                copied.add(entryName);
-
-                final StringBuilder contents = new StringBuilder();
-
-                for (final String line : entry.getValue()) {
-                    contents.append(line).append('\n');
-                }
-
-                output.putNextEntry(new JarEntry(entryName));
-                Streams.store(output, contents.toString(), "UTF-8", buffer, false);
-            }
-        }
-
-        for (File input; (input = feed.next()) != null; ) {
-            Archives.read(true, input.toURI().toURL(), (url, entry) -> {
-                final String entryName = entry.getName();
-
-                final boolean done = copied.contains(entryName);
-                final boolean manifest = entryName.equals(JarFile.MANIFEST_NAME) || entryName.equals(META_INF);
-                final boolean index = entryName.equals(Archives.INDEX_NAME);
-                final boolean signature = entryName.startsWith(Archives.META_INF) && entryName.toUpperCase().endsWith(".SF");
-
-                return done || manifest || index || signature || !feed.include(entry) ? null : (_url, _entry, stream) -> {
-                    copied.add(_entry.getName());
-                    output.putNextEntry(_entry);
-                    Streams.copy(stream, output, buffer, false, false);
-
-                    return true;
-                };
-            });
-        }
-    }
+    void expand(JarOutputStream output, byte[] buffer, Map<String, String[]> services, Feed feed) throws IOException;
 
     /**
      * Adds the given JAR manifest entries to the given JAR manifest.
@@ -155,34 +70,15 @@ public final class ArchivesSupport extends Utility {
      * @param entries  the entries.
      * @param manifest the manifest.
      */
-    public static void include(final Map<String, Attributes> entries, final Manifest manifest) {
-        final Map<String, Attributes> attributes = manifest.getEntries();
-
-        for (final Map.Entry<String, Attributes> entry : entries.entrySet()) {
-            final Attributes value = entry.getValue();
-
-            if (value != null) {
-                final String key = entry.getKey();
-                final Attributes list = attributes.get(key);
-
-                if (list == null) {
-                    attributes.put(key, value);
-                } else {
-                    for (final Map.Entry<Object, Object> item : value.entrySet()) {
-                        list.put(item.getKey(), item.getValue());
-                    }
-                }
-            }
-        }
-    }
+    void include(Map<String, Attributes> entries, Manifest manifest);
 
     /**
-     * Provides input files to {@link ArchivesSupport#load(Map, Map, byte[], Logger, ArchivesSupport.Feed)} and {@link
-     * ArchivesSupport#expand(JarOutputStream, byte[], Map, ArchivesSupport.Feed)}.
+     * Provides input files to {@link ArchivesSupport#load(Map, Map, byte[], Logger, ArchivesSupport.Feed)} and {@link ArchivesSupport#expand(JarOutputStream,
+     * byte[], Map, ArchivesSupport.Feed)}.
      *
      * @author Tibor Varga
      */
-    public interface Feed {
+    interface Feed {
 
         /**
          * Returns the next JAR {@link File} to {@link ArchivesSupport#load(Map, Map, byte[], Logger, ArchivesSupport.Feed)} or {@link
