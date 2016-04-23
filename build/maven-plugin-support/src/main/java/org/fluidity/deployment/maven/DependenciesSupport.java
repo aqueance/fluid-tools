@@ -70,7 +70,6 @@ public interface DependenciesSupport {
     /**
      * Returns the transitive dependencies of the given artifact.
      *
-     * @param system       a Maven component of the respective type.
      * @param session      a Maven component of the respective type.
      * @param repositories a Maven component of the respective type.
      * @param artifact     the artifact to find the transitive dependencies of.
@@ -83,8 +82,7 @@ public interface DependenciesSupport {
      *
      * @throws MojoExecutionException when something went wrong.
      */
-    Collection<Artifact> dependencyClosure(RepositorySystem system,
-                                           RepositorySystemSession session,
+    Collection<Artifact> dependencyClosure(RepositorySystemSession session,
                                            List<RemoteRepository> repositories,
                                            Artifact artifact,
                                            boolean compile,
@@ -104,7 +102,6 @@ public interface DependenciesSupport {
      * Returns the transitive compile time dependencies of the given Maven project. Compile time dependencies include those with scope "compile", "provided",
      * and "system.
      *
-     * @param system       dependency injected Maven @component
      * @param session      dependency injected Maven @component
      * @param repositories dependency injected Maven @component
      * @param project      the Maven project to find transitive dependencies of.
@@ -114,17 +111,12 @@ public interface DependenciesSupport {
      *
      * @throws MojoExecutionException when anything goes wrong.
      */
-    Collection<Artifact> runtimeDependencies(RepositorySystem system,
-                                             RepositorySystemSession session,
-                                             List<RemoteRepository> repositories,
-                                             MavenProject project,
-                                             boolean optionals) throws MojoExecutionException;
+    Collection<Artifact> runtimeDependencies(RepositorySystemSession session, List<RemoteRepository> repositories, MavenProject project, boolean optionals) throws MojoExecutionException;
 
     /**
      * Returns the transitive run time dependencies of the given Maven project. Run time dependencies include those with scope "compile", "runtime", and
      * "system.
      *
-     * @param system       dependency injected Maven @component
      * @param session      dependency injected Maven @component
      * @param repositories dependency injected Maven @component
      * @param project      the Maven project to find transitive dependencies of.
@@ -134,11 +126,7 @@ public interface DependenciesSupport {
      *
      * @throws MojoExecutionException when anything goes wrong.
      */
-    Collection<Artifact> compileDependencies(RepositorySystem system,
-                                             RepositorySystemSession session,
-                                             List<RemoteRepository> repositories,
-                                             MavenProject project,
-                                             boolean optionals) throws MojoExecutionException;
+    Collection<Artifact> compileDependencies(RepositorySystemSession session, List<RemoteRepository> repositories, MavenProject project, boolean optionals) throws MojoExecutionException;
 
     /**
      * Save the given artifact. If the project already has a saved artifact and the given computed artifact name is the same as the name of the existing
@@ -156,7 +144,7 @@ public interface DependenciesSupport {
      */
     void saveArtifact(MavenProject project, File file, String finalName, String classifier, String packaging, Logger log) throws MojoExecutionException;
 
-    Collection<Artifact> resolve(RepositorySystem system, RepositorySystemSession session, List<RemoteRepository> repositories, List<Dependency> dependencies) throws MojoExecutionException;
+    Collection<Artifact> resolve(RepositorySystemSession session, List<RemoteRepository> repositories, List<Dependency> dependencies) throws MojoExecutionException;
 
     void list(Collection<Artifact> artifacts, String prefix, Logger log);
 }

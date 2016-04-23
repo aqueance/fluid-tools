@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,7 +50,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 
@@ -118,12 +116,6 @@ public final class IncludeJarsMojo extends AbstractMojo {
     private RepositorySystemSession repositorySession;
 
     /**
-     * The entry point to Aether, i.e. the component doing all the work.
-     */
-    @Component
-    private RepositorySystem repositorySystem;
-
-    /**
      * The project's remote repositories to use for the resolution of dependencies.
      */
     @Parameter(defaultValue = "${project.remoteProjectRepositories}", readonly = true)
@@ -172,10 +164,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
                             throw new MojoExecutionException(String.format("Dependencies '%s' already included in the archive", id));
                         }
 
-                        final Collection<Artifact> dependencies = this.dependencies.resolve(repositorySystem,
-                                                                                            repositorySession,
-                                                                                            repositories,
-                                                                                            profile.getDependencies());
+                        final Collection<Artifact> dependencies = this.dependencies.resolve(repositorySession, repositories, profile.getDependencies());
 
                         if (!dependencies.isEmpty()) {
                             for (final Artifact artifact : dependencies) {

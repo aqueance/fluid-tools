@@ -23,11 +23,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.inject.Inject;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.Lists;
@@ -78,6 +79,16 @@ final class DependenciesSupportImpl implements DependenciesSupport {
         return artifact.getGroupId() + ':' + artifact.getArtifactId();
     }
 
+    /**
+     * The entry point to Aether, i.e. the component doing all the work.
+     */
+    private final RepositorySystem system;
+
+    @Inject
+    public DependenciesSupportImpl(final RepositorySystem system) {
+        this.system = system;
+    }
+
     @Override
     public Dependency dependency(final Class<?> type, final Collection<Dependency> dependencies) throws MojoExecutionException {
         final String[] spec = projectId(type);
@@ -105,23 +116,23 @@ final class DependenciesSupportImpl implements DependenciesSupport {
     }
 
     @Override
-    public Collection<Artifact> dependencyClosure(final RepositorySystem system,
-                                                  final RepositorySystemSession session,
+    public Collection<Artifact> dependencyClosure(final RepositorySystemSession session,
                                                   final List<RemoteRepository> repositories,
                                                   final Artifact artifact,
                                                   final boolean compile,
                                                   final boolean optionals,
                                                   final Collection<Exclusion> exclusions) throws MojoExecutionException {
         artifact.setScope(JavaScopes.COMPILE);
-        return closure(system, session, repositories, new TransitiveDependencySelector(compile, optionals), !compile, aetherDependency(artifact, exclusions));
+        return closure(session, repositories, new TransitiveDependencySelector(compile, optionals), !compile, artifact, exclusions);
     }
 
-    private Collection<Artifact> closure(final RepositorySystem system,
-                                         final RepositorySystemSession session,
+    private Collection<Artifact> closure(final RepositorySystemSession session,
                                          final List<RemoteRepository> repositories,
                                          final DependencySelector selector,
                                          final boolean runtime,
-                                         final org.eclipse.aether.graph.Dependency root) throws MojoExecutionException {
+                                         final Artifact artifact,
+                                         final Collection<Exclusion> exclusions) throws MojoExecutionException {
+        final org.eclipse.aether.graph.Dependency root = aetherDependency(artifact, exclusions);
 
         // Guidelines for a possible upgrade path
         // http://labs.bsb.com/2012/10/using-aether-to-resolve-dependencies-in-a-maven-plugins/
@@ -158,21 +169,13 @@ final class DependenciesSupportImpl implements DependenciesSupport {
 
         final Collection<Artifact> dependencies = new HashSet<>();
 
-        for (final org.eclipse.aether.artifact.Artifact artifact : new ArtifactCollector(runtime, node).artifacts()) {
-            final Artifact mavenArtifact = mavenArtifact(artifact);
+        for (final org.eclipse.aether.artifact.Artifact original : new ArtifactCollector(runtime, node).artifacts()) {
+            final Artifact dependency = mavenArtifact(original);
 
-            if (!mavenArtifact.isResolved()) {
-                throw new MojoExecutionException(String.format("Could not resolve %s", mavenArtifact));
-            }
-
-            dependencies.add(mavenArtifact);
-        }
-
-        for (final Iterator<Artifact> results = dependencies.iterator(); results.hasNext(); ) {
-            final Artifact artifact = results.next();
-
-            if (POM_TYPE.equals(artifact.getType())) {
-                results.remove();
+            if (!dependency.isResolved()) {
+                throw new MojoExecutionException(String.format("Could not resolve %s", dependency));
+            } else if (!POM_TYPE.equals(dependency.getType())) {
+                dependencies.add(dependency);
             }
         }
 
@@ -287,26 +290,23 @@ final class DependenciesSupportImpl implements DependenciesSupport {
             }
         }
 
-        final org.eclipse.aether.artifact.Artifact artifact = aetherArtifact(original);
-        return new org.eclipse.aether.graph.Dependency(artifact, original.getScope(), original.isOptional(), exclusions == null ? null : exclusionList);
+        return new org.eclipse.aether.graph.Dependency(aetherArtifact(original), original.getScope(), original.isOptional(), exclusions == null ? null : exclusionList);
     }
 
     @Override
-    public Collection<Artifact> runtimeDependencies(final RepositorySystem system,
-                                                    final RepositorySystemSession session,
+    public Collection<Artifact> runtimeDependencies(final RepositorySystemSession session,
                                                     final List<RemoteRepository> repositories,
                                                     final MavenProject project,
                                                     final boolean optionals) throws MojoExecutionException {
-        return dependencyClosure(system, session, repositories, project.getArtifact(), false, optionals, null);
+        return dependencyClosure(session, repositories, project.getArtifact(), false, optionals, null);
     }
 
     @Override
-    public Collection<Artifact> compileDependencies(final RepositorySystem system,
-                                                    final RepositorySystemSession session,
+    public Collection<Artifact> compileDependencies(final RepositorySystemSession session,
                                                     final List<RemoteRepository> repositories,
                                                     final MavenProject project,
                                                     final boolean optionals) throws MojoExecutionException {
-        return dependencyClosure(system, session, repositories, project.getArtifact(), true, optionals, null);
+        return dependencyClosure(session, repositories, project.getArtifact(), true, optionals, null);
     }
 
     @Override
@@ -373,15 +373,12 @@ final class DependenciesSupportImpl implements DependenciesSupport {
     }
 
     @Override
-    public Collection<Artifact> resolve(final RepositorySystem system,
-                                        final RepositorySystemSession session,
-                                        final List<RemoteRepository> repositories,
-                                        final List<Dependency> dependencies) throws MojoExecutionException {
+    public Collection<Artifact> resolve(final RepositorySystemSession session, final List<RemoteRepository> repositories, final List<Dependency> dependencies) throws MojoExecutionException {
         final DependencySelector selector = new TransitiveDependencySelector(false, false);
         final Collection<Artifact> artifacts = new LinkedHashSet<>();
 
         for (final Dependency dependency : dependencies) {
-            artifacts.addAll(closure(system, session, repositories, selector, false, aetherDependency(dependencyArtifact(dependency), dependency.getExclusions())));
+            artifacts.addAll(closure(session, repositories, selector, false, dependencyArtifact(dependency), dependency.getExclusions()));
         }
 
         return artifacts;

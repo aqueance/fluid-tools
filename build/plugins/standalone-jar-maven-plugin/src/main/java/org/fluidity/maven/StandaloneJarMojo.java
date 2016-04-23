@@ -59,7 +59,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.DefaultRepositorySystemSession;
-import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 
@@ -147,12 +146,6 @@ public final class StandaloneJarMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.remoteProjectRepositories}", readonly = true)
     private List<RemoteRepository> repositories;
 
-    /**
-     * The entry point to Aether, i.e. the component doing all the work.
-     */
-    @Component
-    private RepositorySystem repositorySystem;
-
     @Component
     private ArchivesSupport archives;
 
@@ -191,8 +184,8 @@ public final class StandaloneJarMojo extends AbstractMojo {
             try (final JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(file))) {
 
                 final String dependencyPath = Archives.META_INF.concat("/dependencies/");
-                final Collection<Artifact> compileDependencies = dependencies.compileDependencies(repositorySystem, repositorySession, repositories, project, true);
-                final Collection<Artifact> runtimeDependencies = dependencies.runtimeDependencies(repositorySystem, repositorySession, repositories, project, false);
+                final Collection<Artifact> compileDependencies = dependencies.compileDependencies(repositorySession, repositories, project, true);
+                final Collection<Artifact> runtimeDependencies = dependencies.runtimeDependencies(repositorySession, repositories, project, false);
 
                 /*
                  * Manifest handlers use profiles to declare dependencies to include, exclude, or unpack in our standalone artifact.
@@ -237,11 +230,11 @@ public final class StandaloneJarMojo extends AbstractMojo {
                     final Class<?> handlerClass = handler.getClass();
 
                     final Artifact handlerArtifact = dependencies.dependencyArtifact(dependencies.dependency(handlerClass, pluginDependencies));
-                    final Collection<Artifact> includedClosure = dependencies.dependencyClosure(repositorySystem, included, repositories, handlerArtifact, false, false, null);
+                    final Collection<Artifact> includedClosure = dependencies.dependencyClosure(included, repositories, handlerArtifact, false, false, null);
                     includedClosure.remove(handlerArtifact);
 
                     if (executable) {
-                        final Collection<Artifact> unpackedClosure = dependencies.dependencyClosure(repositorySystem, unpacked, repositories, handlerArtifact, false, false, null);
+                        final Collection<Artifact> unpackedClosure = dependencies.dependencyClosure(unpacked, repositories, handlerArtifact, false, false, null);
                         unpackedClosure.remove(handlerArtifact);
                         unpackedDependencies.addAll(unpackedClosure);
                     }
