@@ -65,6 +65,8 @@ import org.eclipse.aether.repository.RemoteRepository;
 @SuppressWarnings("UnusedDeclaration")
 public final class IncludeJarsMojo extends AbstractMojo {
 
+    static final String name = "include";
+
     /**
      * The location of the compiled classes.
      *

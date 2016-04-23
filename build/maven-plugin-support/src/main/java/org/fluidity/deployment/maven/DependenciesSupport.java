@@ -18,6 +18,8 @@ package org.fluidity.deployment.maven;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -31,6 +33,7 @@ import java.util.Set;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.Lists;
+import org.fluidity.foundation.Proxies;
 import org.fluidity.foundation.Utility;
 
 import org.apache.maven.artifact.Artifact;
@@ -42,8 +45,12 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Exclusion;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.AbstractForwardingRepositorySystemSession;
+import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.ArtifactProperties;
+import org.eclipse.aether.artifact.DefaultArtifactType;
 import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.collection.DependencyCollectionContext;
 import org.eclipse.aether.collection.DependencyCollectionException;
@@ -52,11 +59,9 @@ import org.eclipse.aether.graph.DependencyFilter;
 import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.aether.graph.DependencyVisitor;
 import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.repository.WorkspaceReader;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
-import org.eclipse.aether.AbstractForwardingRepositorySystemSession;
-import org.eclipse.aether.artifact.ArtifactProperties;
-import org.eclipse.aether.artifact.DefaultArtifactType;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.graph.selector.StaticDependencySelector;
 
@@ -183,7 +188,7 @@ public final class DependenciesSupport extends Utility {
          */
 
         final CollectRequest collectRequest = new CollectRequest(root, new ArrayList<RemoteRepository>(repositories));
-        final DependencyFilterSession filter = new DependencyFilterSession(session, new DependencySelector() {
+        final DependencyFilterSession filter = new DependencyFilterSession(patch(session), new DependencySelector() {
             public boolean selectDependency(final org.eclipse.aether.graph.Dependency dependency) {
                 return true;  // always accept the root artifact
             }
@@ -488,6 +493,29 @@ public final class DependenciesSupport extends Utility {
                 log.detail(prefix.concat(artifact.getFile().getName()));
             }
         }
+    }
+
+    /*
+     * This class applies a hack to undo the hack introduced to Maven to speed up POM processing:
+     * https://github.com/apache/maven/commit/be3fb200326208ca4b8c41ebf16d5ae6b8049792#diff-1b94ec0f0a29b1dc6aae1f6ad855484bR307
+     */
+    // TODO: see if that hack has been removed: https://issues.apache.org/jira/browse/MNG-5899
+    private static RepositorySystemSession patch(final RepositorySystemSession original) {
+        final DefaultRepositorySystemSession session = new DefaultRepositorySystemSession(original);
+
+        // We simply provide a general workspace reader that does not cache parsed POMs,
+        // thereby allowing property changes to affect profile activations.
+
+        final WorkspaceReader reader = session.getWorkspaceReader();
+
+        session.setWorkspaceReader(Proxies.create(WorkspaceReader.class, new InvocationHandler() {
+            @Override
+            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+                return method.invoke(reader, args);
+            }
+        }));
+
+        return session;
     }
 
     /**

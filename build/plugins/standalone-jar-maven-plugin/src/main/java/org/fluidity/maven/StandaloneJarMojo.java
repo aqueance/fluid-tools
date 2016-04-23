@@ -55,10 +55,10 @@ import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
-import org.eclipse.aether.DefaultRepositorySystemSession;
 
 /**
  * Packages all transitive dependencies of the project to its JAR artifact. This plugin uses an implementation of the {@link JarManifest} interface, found as a
@@ -205,7 +205,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
             final Manifest manifest = Archives.manifest(false, packageFile.toURI().toURL());
 
             if (Archives.Nested.list(manifest).length > 0) {
-                throw new MojoExecutionException(String.format("Will not embed project artifact as it contains custom nested dependencies; configure the 'include' goal to follow this one"));
+                throw new MojoExecutionException(String.format("Will not embed project artifact as it contains custom nested dependencies; configure the '%s' goal to follow this one", IncludeJarsMojo.name));
             }
 
             final Attributes mainAttributes = manifest.getMainAttributes();

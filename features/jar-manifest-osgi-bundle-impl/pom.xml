@@ -57,6 +57,13 @@
             <dependencies>
 
                 <dependency>
+                    <groupId>${fluidity.deployment.groupId}</groupId>
+                    <artifactId>manifest-handler-api</artifactId>
+                    <version>${project.version}</version>
+                    <scope>provided</scope> <!-- provided by the invoking standalone-jar plugin -->
+                </dependency>
+
+                <dependency>
                     <groupId>org.codehaus.plexus</groupId>
                     <artifactId>plexus-interpolation</artifactId>
                     <scope>provided</scope> <!-- provided by the invoking standalone-jar plugin -->
@@ -96,13 +103,6 @@
                     <groupId>org.ow2.asm</groupId>
                     <artifactId>asm</artifactId>
                     <version>${asm.version}</version>
-                </dependency>
-
-                <dependency>
-                    <groupId>${fluidity.deployment.groupId}</groupId>
-                    <artifactId>manifest-handler-api</artifactId>
-                    <version>${project.version}</version>
-                    <scope>provided</scope> <!-- provided by the invoking standalone-jar plugin -->
                 </dependency>
 
             </dependencies>
