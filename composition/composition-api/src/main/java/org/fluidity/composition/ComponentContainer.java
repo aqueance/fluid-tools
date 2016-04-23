@@ -318,6 +318,7 @@ public interface ComponentContainer {
      *
      * @throws ComponentContainer.ResolutionException when dependency resolution fails.
      */
+    @SuppressWarnings("unchecked")
     <T> T complete(T component, Class<? super T>... api) throws ResolutionException;
 
     /**
@@ -462,6 +463,7 @@ public interface ComponentContainer {
          * @throws ComponentContainer.BindingException
          *          when component registration fails.
          */
+        @SuppressWarnings("unchecked")
         <T> void bindComponent(Class<T> type, Class<? super T>... interfaces) throws BindingException;
 
         /**
@@ -482,6 +484,7 @@ public interface ComponentContainer {
          * @throws ComponentContainer.BindingException
          *          when component registration fails.
          */
+        @SuppressWarnings("unchecked")
         <T> void bindInstance(T instance, Class<? super T>... interfaces) throws BindingException;
 
         /**
@@ -491,6 +494,7 @@ public interface ComponentContainer {
          * @param types the elements of the group.
          * @param <T>   the group interface type to bind.
          */
+        @SuppressWarnings("unchecked")
         <T> void bindComponentGroup(Class<T> group, Class<? extends T>... types);
 
         /**
@@ -527,6 +531,7 @@ public interface ComponentContainer {
          * @throws ComponentContainer.BindingException
          *          when component registration fails.
          */
+        @SuppressWarnings("unchecked")
         <T> Registry isolateComponent(Class<T> type, Class<? super T>... interfaces) throws BindingException;
     }
 

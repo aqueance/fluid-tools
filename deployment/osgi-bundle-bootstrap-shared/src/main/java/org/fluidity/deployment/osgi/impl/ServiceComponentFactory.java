@@ -55,6 +55,7 @@ final class ServiceComponentFactory implements ComponentFactory {
         this.api = Lists.asArray(Class.class, types);
     }
 
+    @SuppressWarnings("unchecked")
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
         final Service annotation = context.qualifier(Service.class, null);
         final Component.Reference reference = context.qualifier(Component.Reference.class, null);

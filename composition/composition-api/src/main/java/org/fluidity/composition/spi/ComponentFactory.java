@@ -388,6 +388,7 @@ public interface ComponentFactory {
          *          see {@link org.fluidity.composition.ComponentContainer.Registry#bindComponent(Class, Class...)
          *          ComponentContainer.Registry.bindComponent()}.
          */
+        @SuppressWarnings("unchecked")
         <T> void bindComponent(Class<T> implementation, Class<? super T>... interfaces) throws ComponentContainer.BindingException;
 
         /**
@@ -403,6 +404,7 @@ public interface ComponentFactory {
          *          see {@link org.fluidity.composition.ComponentContainer.Registry#bindInstance(Object, Class...)
          *          ComponentContainer.Registry.bindInstance()}.
          */
+        @SuppressWarnings("unchecked")
         <T> void bindInstance(T instance, Class<? super T>... interfaces) throws ComponentContainer.BindingException;
     }
 
@@ -550,6 +552,7 @@ public interface ComponentFactory {
              *          see {@link org.fluidity.composition.ComponentContainer.Registry#bindComponent(Class, Class...)
              *          ComponentContainer.Registry.bindComponent()}.
              */
+            @SuppressWarnings("unchecked")
             <T> void bindComponent(Class<T> implementation, Class<? super T>... interfaces) throws ComponentContainer.BindingException;
         }
 

@@ -175,6 +175,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
 
             log.debug("[%s] Discovering service dependencies", bundleName);
 
+            @SuppressWarnings("unchecked")
             final ComponentContainer pool = container.makeChildContainer(registry -> {
                 for (final Class<? extends BundleComponents.Managed> type : items) {
                     if (type.isAnnotationPresent(Component.Qualifiers.class)) {
@@ -294,7 +295,6 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
             return false;
         }
 
-        @SuppressWarnings("unchecked")
         private Components.Interfaces inspect(final Class<? extends BundleComponents.Managed> type) {
             final Component componentAnnotation = type.getAnnotation(Component.class);
             if (componentAnnotation != null && componentAnnotation.automatic()) {
@@ -461,7 +461,6 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
             startResolved();
         }
 
-        @SuppressWarnings("unchecked")
         private synchronized void startResolved() {
             final Set<ServiceDescriptor> servicesUp = activeServices();
             final Set<ComponentDescriptor> resolved = new HashSet<>();
@@ -480,6 +479,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
             if (!resolved.isEmpty()) {
                 log.debug("[%s] Starting components: %s", bundleName, resolved);
 
+                @SuppressWarnings("unchecked")
                 final OpenContainer child = container.makeChildContainer(registry -> {
                     registry.bindInstance(status);
 
@@ -495,6 +495,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
                     }
 
                     for (final ComponentDescriptor descriptor : resolved) {
+                        @SuppressWarnings("unchecked")
                         final Class<? extends BundleComponents.Managed> type = (Class<? extends BundleComponents.Managed>) descriptor.type;
 
                         for (final Class api : descriptor.interfaces()) {

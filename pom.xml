@@ -287,6 +287,7 @@
                         <target>1.8</target>
                         <encoding>${project.build.sourceEncoding}</encoding>
                         <compilerArgument>-Xlint:unchecked</compilerArgument>
+                        <compilerArgument>-Xdoclint:-reference</compilerArgument>
                     </configuration>
                 </plugin>
 

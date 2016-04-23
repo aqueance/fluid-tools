@@ -327,7 +327,8 @@ abstract class FactoryResolver extends AbstractResolver {
                 final SimpleContainer container = nested.newChildContainer(false);
 
                 bindings.bindComponents(new Registry() {
-                    public <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
+                    @SafeVarargs
+                    public final <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
                         container.bindComponent(Components.inspect(implementation, interfaces));
                     }
                 });
@@ -383,7 +384,6 @@ abstract class FactoryResolver extends AbstractResolver {
         return String.format("%s (via %s)", api.getName(), factoryClass().getName());
     }
 
-    @SuppressWarnings("unchecked")
     private static final class RegistryWrapper implements ComponentFactory.Registry {
 
         private final SimpleContainer container;
@@ -398,10 +398,12 @@ abstract class FactoryResolver extends AbstractResolver {
             this.traversal = traversal;
         }
 
+        @SuppressWarnings("unchecked")
         public <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
             container.bindComponent(bound(implementation, interfaces));
         }
 
+        @SuppressWarnings("unchecked")
         public <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
             if (instance != null) {
                 container.bindInstance(instance, bound((Class<T>) instance.getClass(), interfaces));

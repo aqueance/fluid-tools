@@ -77,14 +77,10 @@ public final class WebApplicationBootstrap {
             final List<String> params = new ArrayList<>();
 
             for (int i = 0; i < arguments.length; i++) {
-                String param = arguments[i];
+                final String param = arguments[i];
 
-                if (param.endsWith(".war")) {
-                    final File file = new File(param);
-                    assert file.exists() : file;
-
-                    managedApps.add(file);
-                } else if (param.equals("-http")) {
+                switch (param) {
+                case "-http":
                     final int j = i + 1;
 
                     if (arguments.length > j) {
@@ -99,10 +95,23 @@ public final class WebApplicationBootstrap {
                     } else {
                         httpPort[0] = 80;
                     }
-                } else if (param.equals("-extract")) {
+
+                    break;
+                case "-extract":
                     extract[0] = true;
-                } else {
-                    params.add(param);
+
+                    break;
+                default:
+                    if (param.endsWith(".war")) {
+                        final File file = new File(param);
+                        assert file.exists() : file;
+
+                        managedApps.add(file);
+                    } else {
+                        params.add(param);
+                    }
+
+                    break;
                 }
             }
 

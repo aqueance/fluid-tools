@@ -39,8 +39,6 @@ import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Security;
 import org.fluidity.foundation.spi.LogFactory;
 
-import static org.fluidity.foundation.Command.Process;
-
 /**
  * External access to a class loader specific <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#dependency-injection">dependency
  * injection</a> <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#dependency-injection-containers">container</a>. This utility class
@@ -251,7 +249,8 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p>
      * {@inheritDoc}
      */
-    public <T> T complete(final T component, final Class<? super T>... api) throws ResolutionException {
+    @SafeVarargs
+    public final <T> T complete(final T component, final Class<? super T>... api) throws ResolutionException {
         return loadedContainer().complete(component, api);
     }
 
