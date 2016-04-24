@@ -138,13 +138,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
      * The current repository/network configuration of Maven.
      */
     @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
-    private RepositorySystemSession repositorySession;
-
-    /**
-     * The project's remote repositories to use for the resolution of dependencies.
-     */
-    @Parameter(defaultValue = "${project.remoteProjectRepositories}", readonly = true)
-    private List<RemoteRepository> repositories;
+    private RepositorySystemSession session;
 
     @Component
     private ArchivesSupport archives;
@@ -167,6 +161,8 @@ public final class StandaloneJarMojo extends AbstractMojo {
             throw new MojoExecutionException(String.format("Multiple %s implementations found", JarManifest.class.getName()));
         }
 
+        final List<RemoteRepository> repositories = project.getRemoteProjectRepositories();
+
         try {
             final Manifest manifest = Archives.manifest(false, packageFile.toURI().toURL());
 
@@ -184,8 +180,8 @@ public final class StandaloneJarMojo extends AbstractMojo {
             try (final JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(file))) {
 
                 final String dependencyPath = Archives.META_INF.concat("/dependencies/");
-                final Collection<Artifact> compileDependencies = dependencies.compileDependencies(repositorySession, repositories, project, true);
-                final Collection<Artifact> runtimeDependencies = dependencies.runtimeDependencies(repositorySession, repositories, project, false);
+                final Collection<Artifact> compileDependencies = dependencies.compileDependencies(session, repositories, project, true);
+                final Collection<Artifact> runtimeDependencies = dependencies.runtimeDependencies(session, repositories, project, false);
 
                 /*
                  * Manifest handlers use profiles to declare dependencies to include, exclude, or unpack in our standalone artifact.
@@ -193,18 +189,18 @@ public final class StandaloneJarMojo extends AbstractMojo {
                  * Thus we need to manipulate the properties when doing dependency traversal to turn these profiles on and off.
                  */
 
-                final Map<String, String> systemProperties = clean(repositorySession.getSystemProperties());
-                final Map<String, String> userProperties = clean(repositorySession.getUserProperties());
-                final Map<String, Object> configProperties = clean(repositorySession.getConfigProperties());
+                final Map<String, String> systemProperties = clean(session.getSystemProperties());
+                final Map<String, String> userProperties = clean(session.getUserProperties());
+                final Map<String, Object> configProperties = clean(session.getConfigProperties());
 
-                final DefaultRepositorySystemSession included = new DefaultRepositorySystemSession(repositorySession);
-                included.setSystemProperties(include(JarManifest.Packaging.INCLUDE, systemProperties));
-                included.setUserProperties(userProperties);
+                final DefaultRepositorySystemSession included = new DefaultRepositorySystemSession(session);
+                included.setUserProperties(include(JarManifest.Packaging.INCLUDE, userProperties));
+                included.setSystemProperties(systemProperties);
                 included.setConfigProperties(configProperties);
 
-                final DefaultRepositorySystemSession unpacked = new DefaultRepositorySystemSession(repositorySession);
-                unpacked.setSystemProperties(include(JarManifest.Packaging.UNPACK, systemProperties));
-                unpacked.setUserProperties(userProperties);
+                final DefaultRepositorySystemSession unpacked = new DefaultRepositorySystemSession(session);
+                unpacked.setUserProperties(include(JarManifest.Packaging.UNPACK, userProperties));
+                unpacked.setSystemProperties(systemProperties);
                 unpacked.setConfigProperties(configProperties);
 
                 final String pluginKey = Plugin.constructKey(pluginGroupId, pluginArtifactId);

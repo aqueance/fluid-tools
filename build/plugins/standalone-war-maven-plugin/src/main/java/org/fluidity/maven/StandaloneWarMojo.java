@@ -139,13 +139,7 @@ public final class StandaloneWarMojo extends AbstractMojo {
      * The current repository/network configuration of Maven.
      */
     @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
-    private RepositorySystemSession repositorySession;
-
-    /**
-     * The project's remote repositories to use for the resolution of dependencies.
-     */
-    @Parameter(defaultValue = "${project.remoteProjectRepositories}", readonly = true)
-    private List<RemoteRepository> repositories;
+    private RepositorySystemSession session;
 
     @Component
     private ArchivesSupport archives;
@@ -160,23 +154,25 @@ public final class StandaloneWarMojo extends AbstractMojo {
             throw new MojoExecutionException(String.format("%s does not exist", packageFile));
         }
 
+        final List<RemoteRepository> repositories = project.getRemoteProjectRepositories();
+
         final String pluginKey = Plugin.constructKey(pluginGroupId, pluginArtifactId);
         final Artifact pluginArtifact = project.getPluginArtifactMap().get(pluginKey);
 
-        final Collection<Artifact> pluginDependencies = dependencies.dependencyClosure(repositorySession, repositories, pluginArtifact, false, false, null);
+        final Collection<Artifact> pluginDependencies = dependencies.dependencyClosure(session, repositories, pluginArtifact, false, false, null);
         final Artifact handlerDependency = dependencies.artifact(WebApplicationBootstrap.class, pluginDependencies);
         assert handlerDependency != null : WebApplicationBootstrap.class;
 
-        final Collection<Artifact> bootstrapDependencies = dependencies.dependencyClosure(repositorySession, repositories, handlerDependency, false, false, null);
+        final Collection<Artifact> bootstrapDependencies = dependencies.dependencyClosure(session, repositories, handlerDependency, false, false, null);
 
         final Set<Artifact> serverDependencies = new HashSet<>();
 
         for (final Dependency dependency : project.getPlugin(pluginKey).getDependencies()) {
             assert !dependency.isOptional() : dependency;
-            serverDependencies.addAll(dependencies.dependencyClosure(repositorySession, repositories, dependencies.dependencyArtifact(dependency), false, false, dependency.getExclusions()));
+            serverDependencies.addAll(dependencies.dependencyClosure(session, repositories, dependencies.dependencyArtifact(dependency), false, false, dependency.getExclusions()));
         }
 
-        serverDependencies.removeAll(dependencies.dependencyClosure(repositorySession, repositories, project.getArtifact(), false, false, null));
+        serverDependencies.removeAll(dependencies.dependencyClosure(session, repositories, project.getArtifact(), false, false, null));
         serverDependencies.removeAll(pluginDependencies);
         serverDependencies.remove(pluginArtifact);
 

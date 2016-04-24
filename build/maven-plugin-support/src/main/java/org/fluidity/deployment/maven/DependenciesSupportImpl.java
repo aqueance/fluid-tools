@@ -27,10 +27,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
 import org.fluidity.foundation.Archives;
+import org.fluidity.foundation.Deferred;
+import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Proxies;
 
@@ -51,15 +54,15 @@ import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.ArtifactProperties;
 import org.eclipse.aether.artifact.DefaultArtifactType;
 import org.eclipse.aether.collection.CollectRequest;
+import org.eclipse.aether.collection.CollectResult;
 import org.eclipse.aether.collection.DependencyCollectionContext;
-import org.eclipse.aether.collection.DependencyCollectionException;
 import org.eclipse.aether.collection.DependencySelector;
 import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.aether.graph.DependencyVisitor;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.repository.WorkspaceReader;
 import org.eclipse.aether.resolution.DependencyRequest;
-import org.eclipse.aether.resolution.DependencyResolutionException;
+import org.eclipse.aether.resolution.DependencyResult;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.graph.selector.StaticDependencySelector;
 
@@ -148,38 +151,37 @@ final class DependenciesSupportImpl implements DependenciesSupport {
          * http://git.eclipse.org/c/aether/aether-demo.git/tree/aether-demo-snippets/src/main/java/org/eclipse/aether/examples
          */
 
-        final CollectRequest collectRequest = new CollectRequest(root, new ArrayList<>(repositories));
-        final DependencyFilterSession filter = new DependencyFilterSession(patch(session), new DependencySelector() {
-            public boolean selectDependency(final org.eclipse.aether.graph.Dependency dependency) {
-                return true;  // always accept the root artifact
-            }
+        return Exceptions.wrap(Deferred.label("Finding transitive dependencies of %s", root), MojoExecutionException.class, () -> {
+            final DependencyFilterSession filter = new DependencyFilterSession(patch(session), new DependencySelector() {
+                public boolean selectDependency(final org.eclipse.aether.graph.Dependency dependency) {
+                    return true;  // always accept the root artifact
+                }
 
-            public DependencySelector deriveChildSelector(final DependencyCollectionContext context) {
-                return root.isOptional() ? NO_SELECTOR : selector;
-            }
+                public DependencySelector deriveChildSelector(final DependencyCollectionContext context) {
+                    return root.isOptional() ? NO_SELECTOR : selector;
+                }
+            });
+
+            final CollectRequest request = new CollectRequest(root, Collections.unmodifiableList(repositories));
+
+            final CollectResult result = system.collectDependencies(filter, request);
+            if (!result.getExceptions().isEmpty()) throw result.getExceptions().get(0);
+
+            final DependencyResult resolved = system.resolveDependencies(filter, new DependencyRequest(result.getRoot(), null));
+            if (!resolved.getCollectExceptions().isEmpty()) throw resolved.getCollectExceptions().get(0);
+
+            final Collection<Artifact> dependencies = new HashSet<>();
+
+            result.getRoot().accept(new UniqueArtifacts(dependency -> {
+                if (!dependency.isResolved()) {
+                    throw new IllegalArgumentException(String.format("Could not resolve %s", dependency));
+                } else if (!(POM_TYPE.equals(dependency.getType()) || (runtime && JavaScopes.PROVIDED.equals(dependency.getScope())))) {
+                    dependencies.add(dependency);
+                }
+            }));
+
+            return dependencies;
         });
-
-        final DependencyNode node;
-        try {
-            node = system.collectDependencies(filter, collectRequest).getRoot();
-            system.resolveDependencies(filter, new DependencyRequest(node, (dependency, path) -> true));
-        } catch (final DependencyCollectionException | DependencyResolutionException e) {
-            throw new MojoExecutionException(String.format("Finding transitive dependencies of %s", root), e);
-        }
-
-        final Collection<Artifact> dependencies = new HashSet<>();
-
-        for (final org.eclipse.aether.artifact.Artifact original : new ArtifactCollector(runtime, node).artifacts()) {
-            final Artifact dependency = mavenArtifact(original);
-
-            if (!dependency.isResolved()) {
-                throw new MojoExecutionException(String.format("Could not resolve %s", dependency));
-            } else if (!POM_TYPE.equals(dependency.getType())) {
-                dependencies.add(dependency);
-            }
-        }
-
-        return dependencies;
     }
 
     private static String[] projectId(final Class<?> type) throws MojoExecutionException {
@@ -216,9 +218,9 @@ final class DependenciesSupportImpl implements DependenciesSupport {
      *
      * @return the Maven artifact.
      */
-    private static Artifact mavenArtifact(final org.eclipse.aether.artifact.Artifact original) {
+    private static Artifact mavenArtifact(final org.eclipse.aether.artifact.Artifact original, final String scope) {
         final String setClassifier = original.getClassifier();
-        final String classifier = (setClassifier == null || setClassifier.length() == 0) ? null : setClassifier;
+        final String classifier = (setClassifier == null || setClassifier.isEmpty()) ? null : setClassifier;
 
         final String type = original.getProperty(ArtifactProperties.TYPE, original.getExtension());
         final DefaultArtifactHandler handler = new DefaultArtifactHandler(type);
@@ -232,6 +234,7 @@ final class DependenciesSupportImpl implements DependenciesSupport {
         artifact.setFile(file);
         artifact.setResolved(file != null);
 
+        artifact.setScope(scope);
         artifact.setDependencyTrail(Collections.singletonList(artifact.getId()));
 
         return artifact;
@@ -489,51 +492,34 @@ final class DependenciesSupportImpl implements DependenciesSupport {
     }
 
     /**
-     * Transitively removes dependencies with provided scope for the run time list.
+     * Streams a single instance of the artifacts in the dependency tree.
      *
      * @author Tibor Varga
      */
-    private static class ArtifactCollector implements DependencyVisitor {
+    private static class UniqueArtifacts implements DependencyVisitor {
 
-        private final Set<String> ignored = new HashSet<>();
+        private final Consumer<Artifact> collect;
         private final Set<String> visited = new HashSet<>();
-        private final List<org.eclipse.aether.artifact.Artifact> collected = new ArrayList<>();
 
-        private final boolean runtime;
-
-        ArtifactCollector(final boolean runtime, final DependencyNode node) {
-            this.runtime = runtime;
-            node.accept(this);
+        UniqueArtifacts(final Consumer<Artifact> collect) {
+            this.collect = collect;
         }
 
         public boolean visitEnter(final DependencyNode node) {
             final org.eclipse.aether.graph.Dependency dependency = node.getDependency();
-
             final org.eclipse.aether.artifact.Artifact artifact = dependency.getArtifact();
-            final String identity = identity(artifact);
 
-            if (!visited.add(identity)) {
-                return false;
+            final boolean accepted = visited.add(identity(artifact));
+
+            if (accepted) {
+                this.collect.accept(mavenArtifact(artifact, dependency.getScope()));
             }
 
-            if (runtime && JavaScopes.PROVIDED.equals(dependency.getScope())) {
-                ignored.add(identity);
-                return false;
-            }
-
-            if (!ignored.contains(identity)) {
-                collected.add(artifact);
-            }
-
-            return true;
+            return accepted;
         }
 
         public boolean visitLeave(final DependencyNode node) {
             return true;
-        }
-
-        private Collection<org.eclipse.aether.artifact.Artifact> artifacts() {
-            return collected;
         }
 
         private static String identity(final org.eclipse.aether.artifact.Artifact artifact) {

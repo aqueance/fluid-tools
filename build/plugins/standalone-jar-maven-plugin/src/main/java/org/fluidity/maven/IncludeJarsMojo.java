@@ -113,13 +113,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
      * The current repository/network configuration of Maven.
      */
     @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
-    private RepositorySystemSession repositorySession;
-
-    /**
-     * The project's remote repositories to use for the resolution of dependencies.
-     */
-    @Parameter(defaultValue = "${project.remoteProjectRepositories}", readonly = true)
-    private List<RemoteRepository> repositories;
+    private RepositorySystemSession session;
 
     @Component
     private ArchivesSupport archives;
@@ -141,6 +135,8 @@ public final class IncludeJarsMojo extends AbstractMojo {
         if (!packageFile.exists()) {
             throw new MojoExecutionException(String.format("%s does not exist", packageFile));
         }
+
+        final List<RemoteRepository> repositories = project.getRemoteProjectRepositories();
 
         final Logger log = Logger.initialize(getLog(), verbose);
 
@@ -164,7 +160,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
                             throw new MojoExecutionException(String.format("Dependencies '%s' already included in the archive", id));
                         }
 
-                        final Collection<Artifact> dependencies = this.dependencies.resolve(repositorySession, repositories, profile.getDependencies());
+                        final Collection<Artifact> dependencies = this.dependencies.resolve(session, repositories, profile.getDependencies());
 
                         if (!dependencies.isEmpty()) {
                             for (final Artifact artifact : dependencies) {
