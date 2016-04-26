@@ -23,6 +23,7 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -301,6 +302,50 @@ public class HandlerTest {
             assert connection.getContentType().equals("text/plain") : String.format("Content type of %s", url);
             assert connection.getLastModified() > 0 : String.format("Last modification date of %s", url);
         }
+    }
+
+    @Test(dataProvider = "caching")
+    public void testHeaders(final boolean caching) throws Exception {
+        final URL url = Handler.formatURL(container, "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
+        final URLConnection connection = Archives.connection(caching, url);
+
+        {
+            assert connection.getHeaderField(0).equals("text/plain") : String.format("Content type of %s", url);
+            assert Integer.valueOf(connection.getHeaderField(1)) != 0 : String.format("Content length of %s", url);
+            assert Long.valueOf(connection.getHeaderField(2)) > 0 : String.format("Last modification date of %s", url);
+            assert connection.getHeaderField(3) == null;
+        }
+
+        {
+            assert connection.getHeaderFieldKey(0).equals("content-type") : connection.getHeaderFieldKey(0);
+            assert connection.getHeaderFieldKey(1).equals("content-length") : connection.getHeaderFieldKey(1);
+            assert connection.getHeaderFieldKey(2).equals("last-modified") : connection.getHeaderFieldKey(2);
+            assert connection.getHeaderFieldKey(3) == null;
+        }
+
+        {
+            final Map<String, List<String>> fields = connection.getHeaderFields();
+
+            assert fields.size() == 3 : fields.size();
+            assert fields.get("content-type").get(0).equals("text/plain") : String.format("Content type of %s", url);
+            assert Integer.valueOf(fields.get("content-length").get(0)) != 0 : String.format("Content length of %s", url);
+            assert Long.valueOf(fields.get("last-modified").get(0)) > 0 : String.format("Last modification date of %s", url);
+        }
+    }
+
+    @Test(dataProvider = "caching")
+    public void testContent(final boolean caching) throws Exception {
+        final URL url = Handler.formatURL(container, "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
+        final URLConnection connection = Archives.connection(caching, url);
+
+        final Object content = connection.getContent();
+
+        assert content != null : url;
+        assert content instanceof InputStream : content.getClass();
+
+        final String value = Streams.load((InputStream) content, "UTF-8", new byte[128], true).replaceAll("\n", "");
+
+        assert value.equals("level 3") : value;
     }
 
     @Test

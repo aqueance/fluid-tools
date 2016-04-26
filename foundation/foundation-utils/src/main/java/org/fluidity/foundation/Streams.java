@@ -75,8 +75,8 @@ public final class Streams extends Utility {
     /**
      * Reads into a byte array all content from the given <code>stream</code>.
      *
-     * @param stream the stream to load the contents of.
-     * @param buffer the buffer to use.
+     * @param stream the stream to load the contents of; may not be <code>null</code>.
+     * @param buffer the buffer to use; may not be <code>null</code>.
      * @param close  closes the input stream if <code>true</code>.
      *
      * @return the contents of the given <code>stream</code>.
@@ -92,9 +92,9 @@ public final class Streams extends Utility {
     /**
      * Reads into a text string all content from the given <code>stream</code>.
      *
-     * @param stream  the stream to load the contents of.
-     * @param charset the character set of the stream.
-     * @param buffer  the buffer to use.
+     * @param stream  the stream to load the contents of; may not be <code>null</code>.
+     * @param charset the character set of the stream; may not be <code>null</code>.
+     * @param buffer  the buffer to use; may not be <code>null</code>.
      * @param close   closes the input stream if <code>true</code>.
      *
      * @return the contents of the given <code>stream</code>.
@@ -108,9 +108,9 @@ public final class Streams extends Utility {
     /**
      * Writes the given <code>data</code> to the given <code>stream</code>.
      *
-     * @param stream the stream to save to.
-     * @param data   the contents to save.
-     * @param buffer the buffer to use.
+     * @param stream the stream to save to; may not be <code>null</code>.
+     * @param data   the contents to save; may not be <code>null</code>.
+     * @param buffer the buffer to use; may not be <code>null</code>.
      * @param close  closes the output stream if <code>true</code>.
      *
      * @throws IOException thrown when writing fails.
@@ -122,10 +122,10 @@ public final class Streams extends Utility {
     /**
      * Writes the given <code>text</code> to the given <code>stream</code>.
      *
-     * @param stream  the stream to save to.
-     * @param text    the contents to save.
-     * @param charset the character set of the <code>text</code>.
-     * @param buffer  the buffer to use.
+     * @param stream  the stream to save to; may not be <code>null</code>.
+     * @param text    the contents to save; may not be <code>null</code>.
+     * @param charset the character set of the <code>text</code>; may not be <code>null</code>.
+     * @param buffer  the buffer to use; may not be <code>null</code>.
      * @param close   closes the output stream if <code>true</code>.
      *
      * @throws IOException thrown when writing fails.

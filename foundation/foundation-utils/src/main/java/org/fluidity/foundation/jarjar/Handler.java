@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -407,30 +408,35 @@ public final class Handler extends URLStreamHandler {
 
         private static final String CONTENT_LENGTH = "content-length";
         private static final String CONTENT_TYPE = "content-type";
-        private static final String UNKNOWN_TYPE = "application/octet-stream";
         private static final String LAST_MODIFIED = "last-modified";
+        private static final String UNKNOWN_TYPE = "application/octet-stream";
+
+        private static final String[] FIELDS = new String[] { CONTENT_TYPE, CONTENT_LENGTH, LAST_MODIFIED };
 
         private final URLConnection root;
         private final String archive;
-        private final Deferred.Reference<Map<String, Object>> headers;
+
+        private final Deferred.Reference<Map<String, List<String>>> headers;
+        private final Deferred.Reference<InputStream> inputStream;
 
         Connection(final URL url) throws IOException {
             super(url);
 
             // the host part of our root URL itself is an URL
-            archive = enclosedURL(getURL());
+            this.archive = enclosedURL(getURL());
 
-            final URL enclosed = new URL(archive);
+            final URL enclosed = new URL(this.archive);
             assert !PROTOCOL.equals(enclosed.getProtocol()) : getURL();
 
-            root = enclosed.openConnection();
-            headers = Deferred.shared(new Deferred.Factory<Map<String, Object>>() {
+            this.root = enclosed.openConnection();
+
+            this.headers = Deferred.shared(new Deferred.Factory<Map<String, List<String>>>() {
                 @Override
-                public Map<String, Object> create() {
-                    return Exceptions.wrap(new Process<Map<String, Object>, Exception>() {
+                public Map<String, List<String>> create() {
+                    return Exceptions.wrap(new Process<Map<String, List<String>>, Exception>() {
                         @Override
-                        public Map<String, Object> run() throws Exception {
-                            final Map<String, Object> headers = new HashMap<String, Object>();
+                        public Map<String, List<String>> run() throws Exception {
+                            final Map<String, List<String>> headers = new HashMap<String, List<String>>();
 
                             final URL _url = getURL();
                             final URL _enclosing = Archives.containing(_url);
@@ -444,14 +450,14 @@ public final class Handler extends URLStreamHandler {
 
                                 public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
                                     final String type = URLConnection.getFileNameMap().getContentTypeFor(resource);
-                                    headers.put(CONTENT_TYPE, type == null ? UNKNOWN_TYPE : type);
+                                    headers.put(CONTENT_TYPE, Collections.singletonList(type == null ? UNKNOWN_TYPE : type));
 
-                                    headers.put(LAST_MODIFIED, entry.getTime());
+                                    headers.put(LAST_MODIFIED, Collections.singletonList(String.valueOf(entry.getTime())));
 
                                     long size = entry.getSize();
 
                                     if (size != -1) {
-                                        headers.put(CONTENT_LENGTH, String.valueOf(size));
+                                        headers.put(CONTENT_LENGTH, Collections.singletonList(String.valueOf(size)));
                                     } else {
                                         final byte[] buffer = new byte[4096];
 
@@ -460,7 +466,7 @@ public final class Handler extends URLStreamHandler {
                                             size += length;
                                         }
 
-                                        headers.put(CONTENT_LENGTH, String.valueOf(size));
+                                        headers.put(CONTENT_LENGTH, Collections.singletonList(String.valueOf(size)));
                                     }
 
                                     return false;
@@ -469,6 +475,73 @@ public final class Handler extends URLStreamHandler {
 
 
                             return Collections.unmodifiableMap(headers);
+                        }
+                    });
+                }
+            });
+
+            this.inputStream = Deferred.shared(new Deferred.Factory<InputStream>() {
+                @Override
+                public InputStream create() {
+                    return Exceptions.wrap(new Process<InputStream, IOException>() {
+                        @Override
+                        public InputStream run() throws IOException {
+                            if (getUseCaches()) {
+                                final byte[] contents = Cache.contents(url);
+
+                                if (contents == null) {
+                                    throw new FileNotFoundException(url.toExternalForm());
+                                } else {
+                                    return new ByteArrayInputStream(contents);
+                                }
+                            } else {
+                                final byte[] buffer = new byte[16384];
+                                final InputStream found[] = { null };
+
+                                Archives.read(root.getInputStream(), url, new Archives.Entry() {
+
+                                    // each successive path is nested in the archive at the previous index
+                                    private final String[] paths = Cache.path(url).split(DELIMITER);
+
+                                    // the first path is ignored since that is the enclosing archive
+                                    private int index = 1;
+                                    private String file = paths[index];
+                                    private String directory = directory(file);
+
+                                    public boolean matches(final URL url, final JarEntry entry) throws IOException {
+                                        final String name = entry.getName();
+
+                                        if (entry.isDirectory() && name.equals(directory)) {
+                                            throw new IOException(String.format("Nested entry '%s' is a directory, URL is invalid: %s", name, url.toExternalForm()));
+                                        }
+
+                                        return file.equals(name);
+                                    }
+
+                                    public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
+                                        if (++index == paths.length) {
+                                            found[0] = new ByteArrayInputStream(Streams.copy(stream, new ByteArrayOutputStream(), buffer, false, false).toByteArray());
+                                        } else {
+                                            file = paths[index];
+                                            directory = directory(file);
+
+                                            Archives.read(stream, url, this);
+                                        }
+
+                                        return false;
+                                    }
+
+                                    private String directory(final String name) {
+                                        return name.endsWith("/") ? name : name.concat("/");
+                                    }
+                                });
+
+                                if (found[0] == null) {
+                                    throw new FileNotFoundException(url.toExternalForm());
+                                } else {
+                                    return found[0];
+                                }
+                            }
                         }
                     });
                 }
@@ -493,65 +566,14 @@ public final class Handler extends URLStreamHandler {
 
         @Override
         public InputStream getInputStream() throws IOException {
-            if (!getDoInput()) {
-                throw new IllegalStateException(String.format("Input stream disabled on %s", url));
-            }
-
-            if (getUseCaches()) {
-                final byte[] contents = Cache.contents(url);
-
-                if (contents == null) {
-                    throw new FileNotFoundException(url.toExternalForm());
-                } else {
-                    return new ByteArrayInputStream(contents);
+            if (getDoInput()) {
+                try {
+                    return inputStream.get();
+                } catch (final Exceptions.Wrapper wrapper) {
+                    throw wrapper.rethrow(IOException.class);
                 }
             } else {
-                final byte[] buffer = new byte[16384];
-                final InputStream found[] = { null };
-
-                Archives.read(root.getInputStream(), url, new Archives.Entry() {
-
-                    // each successive path is nested in the archive at the previous index
-                    private final String[] paths = Cache.path(url).split(DELIMITER);
-
-                    // the first path is ignored since that is the enclosing archive
-                    private int index = 1;
-                    private String file = paths[index];
-                    private String directory = directory(file);
-
-                    public boolean matches(final URL url, final JarEntry entry) throws IOException {
-                        final String name = entry.getName();
-
-                        if (entry.isDirectory() && name.equals(directory)) {
-                            throw new IOException(String.format("Nested entry '%s' is a directory, URL is invalid: %s", name, url.toExternalForm()));
-                        }
-
-                        return file.equals(name);
-                    }
-
-                    public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
-                        if (++index == paths.length) {
-                            found[0] = new ByteArrayInputStream(Streams.copy(stream, new ByteArrayOutputStream(), buffer, false, false).toByteArray());
-                        } else {
-                            file = paths[index];
-                            directory = directory(file);
-
-                            Archives.read(stream, url, this);
-                        }
-
-                        return false;
-                    }
-
-                    private String directory(final String name) {
-                        return name.endsWith("/") ? name : name.concat("/");
-                    }
-                });
-
-                if (found[0] == null) {
-                    throw new FileNotFoundException(url.toExternalForm());
-                } else {
-                    return found[0];
-                }
+                throw new IllegalStateException(String.format("Input stream disabled on %s", url));
             }
         }
 
@@ -564,13 +586,30 @@ public final class Handler extends URLStreamHandler {
 
         @Override
         public String getHeaderField(final String name) {
-            return (String) headers.get().get(name);
+            final List<String> list = headers.get().get(name);
+            return list == null ? null : list.get(0);
         }
 
         @Override
-        public long getLastModified() {
-            final Long lastModified = (Long) headers.get().get(LAST_MODIFIED);
-            return lastModified == null ? -1 : lastModified;
+        public long getHeaderFieldDate(final String name, final long defaultValue) {
+            final List<String> list = headers.get().get(name);
+            return list == null ? defaultValue : Long.valueOf(list.get(0));
+        }
+
+        @Override
+        public String getHeaderFieldKey(final int n) {
+            return n < 0 ? null : n < FIELDS.length ? FIELDS[n] : null;
+        }
+
+        @Override
+        public String getHeaderField(final int n) {
+            final String header = getHeaderFieldKey(n);
+            return header == null ? null : getHeaderField(header);
+        }
+
+        @Override
+        public Map<String, List<String>> getHeaderFields() {
+            return headers.get();
         }
     }
 
