@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,9 @@ import java.util.Set;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Containers;
+import org.fluidity.composition.container.ClassDiscovery;
 import org.fluidity.deployment.osgi.BundleComponents;
 import org.fluidity.deployment.osgi.Service;
-import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.NoLogFactory;

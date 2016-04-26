@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.composition.container;
 
 /**
  * Partially implements the <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#service-providers">service provider</a> discovery
@@ -44,7 +44,6 @@ package org.fluidity.foundation;
  *
  * @author Tibor Varga
  */
-@SuppressWarnings("JavadocReference")
 public interface ClassDiscovery {
 
     /**

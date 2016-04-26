@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,13 @@
 package org.fluidity.composition.container.tests;
 
 import org.fluidity.composition.MutableContainer;
+import org.fluidity.composition.container.ClassDiscovery;
 import org.fluidity.composition.container.ComponentCache;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.container.DependencyInjector;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.container.spi.DependencyGraph;
-import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.testing.Simulator;

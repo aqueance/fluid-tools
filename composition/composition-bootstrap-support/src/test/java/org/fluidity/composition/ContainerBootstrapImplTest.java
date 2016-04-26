@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,12 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.fluidity.composition.container.ClassDiscovery;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.composition.spi.EmptyPackageBindings;
 import org.fluidity.composition.spi.PackageBindings;
-import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.NoLogFactory;
