@@ -35,6 +35,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.container.spi.ContextNode;
+import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.DependencyResolver;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Lists;
@@ -338,7 +339,15 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public Object initialize(final Object component, final ContextDefinition context, final Traversal traversal) {
-        return injector.fields(component, traversal, dependencyResolver(domain), new InstanceDescriptor(component), context);
+        final Class<?> type = component.getClass();
+
+        traversal.follow(component, type, type, context, new DependencyGraph.Node.Reference() {
+            public DependencyGraph.Node resolve() {
+                return new ResolvedNode(type, injector.fields(component, traversal, dependencyResolver(domain), new InstanceDescriptor(component), context), context.create());
+            }
+        });
+
+        return component;
     }
 
     public Object invoke(final Object component, final Method method, final ContextDefinition context, final Object[] arguments, final boolean explicit)
