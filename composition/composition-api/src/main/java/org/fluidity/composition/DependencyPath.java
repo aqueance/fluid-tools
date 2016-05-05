@@ -83,22 +83,5 @@ public interface DependencyPath {
          * @return the resolved type at this point in the dependency path, or the referenced interface if not yet known; never <code>null</code>.
          */
         Class<?> type();
-
-        /**
-         * Returns the annotations defined for this element.
-         *
-         * @return the annotations defined for this element; never <code>null</code>.
-         */
-        Set<Annotation> annotations();
-
-        /**
-         * Returns, if defined, the annotation with the given class at this element.
-         *
-         * @param type the annotation type to find.
-         * @param <T>  the annotation type.
-         *
-         * @return the annotation with the given type defined at this element or <code>null</code> if not found.
-         */
-        <T extends Annotation> T annotation(Class<T> type);
     }
 }

@@ -22,8 +22,6 @@ import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -102,7 +100,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
                                        final DependencyGraph.Node.Reference reference) {
         assert context != null;
 
-        final ActualPath path = resolutionPath.get().descend(new ActualElement(type, identity, context, null));
+        final ActualPath path = resolutionPath.get().descend(new ActualElement(type, identity, context));
 
         if (path.repeating && observer != null) {
             observer.circular(path);
@@ -360,16 +358,10 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         public DependencyGraph.Node node;
         public AtomicReference<Object> cache = new AtomicReference<Object>();
 
-        private Set<Annotation> annotations = new HashSet<Annotation>();
-
-        ActualElement(final Class<?> api, final Object identity, final ContextDefinition definition, final Annotation[] annotations) {
+        ActualElement(final Class<?> api, final Object identity, final ContextDefinition definition) {
             this.api = api;
             this.identity = identity;
             this.definition = definition;
-
-            if (annotations != null) {
-                this.annotations.addAll(Arrays.asList(annotations));
-            }
         }
 
         @Override
@@ -403,21 +395,6 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
         public Class<?> type() {
             return type == null ? api : type;
-        }
-
-        public Set<Annotation> annotations() {
-            return Collections.unmodifiableSet(annotations);
-        }
-
-        @SuppressWarnings("unchecked")
-        public <T extends Annotation> T annotation(final Class<T> type) {
-            for (final Annotation annotation : annotations()) {
-                if (type.isAssignableFrom(annotation.getClass())) {
-                    return (T) annotation;
-                }
-            }
-
-            return null;
         }
     }
 
