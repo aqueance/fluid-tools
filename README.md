@@ -42,4 +42,4 @@ Once that command completes, the documentation starting page will be `target/sit
 A short [Getting Started guide](https://github.com/aqueance/fluid-tools/wiki/Getting-Started) is provided to get you started with Fluid Tools, while the [User Guide](https://github.com/aqueance/fluid-tools/wiki/User-Guide---Introduction) covers the full spectrum of what you can do with Fluid Tools.
 
 ### History
-The brief history and context for this project are described our wiki [home page](https://github.com/aqueance/fluid-tools/wiki/Home).
+The brief history and context for this project are described on our wiki [home page](https://github.com/aqueance/fluid-tools/wiki/Home).
