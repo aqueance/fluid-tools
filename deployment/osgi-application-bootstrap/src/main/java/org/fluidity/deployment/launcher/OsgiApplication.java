@@ -25,7 +25,6 @@ import java.security.Permission;
 import java.security.PermissionCollection;
 import java.security.Policy;
 import java.security.PrivilegedAction;
-import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.security.ProtectionDomain;
 import java.security.Provider;

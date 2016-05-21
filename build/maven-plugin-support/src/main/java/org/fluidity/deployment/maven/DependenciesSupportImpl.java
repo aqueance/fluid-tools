@@ -389,10 +389,9 @@ final class DependenciesSupportImpl implements DependenciesSupport {
 
     @Override
     public void list(final Collection<Artifact> artifacts, final String prefix, final Logger log) {
-        if (log.active()) {
-            for (final Artifact artifact : artifacts) {
-                log.detail(prefix.concat(artifact.getFile().getName()));
-            }
+        assert log.active();
+        for (final Artifact artifact : artifacts) {
+            log.detail(prefix.concat(artifact.getFile().getName()));
         }
     }
 

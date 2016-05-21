@@ -25,7 +25,6 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Exclusion;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
-import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 
@@ -144,7 +143,25 @@ public interface DependenciesSupport {
      */
     void saveArtifact(MavenProject project, File file, String finalName, String classifier, String packaging, Logger log) throws MojoExecutionException;
 
+    /**
+     * Attempts to find each artifact in the given list of dependencies in a Maven repository.
+     *
+     * @param session      required by Maven to traverse dependencies.
+     * @param repositories the reposotories used by the Maven build.
+     * @param dependencies the list of dependencies to resolve.
+     *
+     * @return a collection of artifacts that may or may not be resolved.
+     *
+     * @throws MojoExecutionException when anything goes wrong.
+     */
     Collection<Artifact> resolve(RepositorySystemSession session, List<RemoteRepository> repositories, List<Dependency> dependencies) throws MojoExecutionException;
 
+    /**
+     * Lists the given artifact files in the Maven log.
+     *
+     * @param artifacts the artifacts to list.
+     * @param prefix    the prefix to prepend to each artifact file name.
+     * @param log       the logger to emit the list to.
+     */
     void list(Collection<Artifact> artifacts, String prefix, Logger log);
 }
