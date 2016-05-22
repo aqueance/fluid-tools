@@ -29,7 +29,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * settings interface.
  * <p>
  * The configuration is backed by a {@linkplain PropertyProvider property provider} component that, if implemented, will be queried for data. The properties
- * queried are determined by {@linkplain Configuration.Prefix context annotations} of the configured component up to the point of its dependency reference.
+ * queried are determined by {@linkplain Configuration.Prefix context qualifiers} of the configured component up to the point of its dependency reference.
  * <h3>Usage</h3>
  * A configuration is a group of settings consumed by the configured component. The settings are defined by the methods of a custom <em>settings
  * interface</em>, which is specified as the type parameter of the <code>Configuration</code> interface.

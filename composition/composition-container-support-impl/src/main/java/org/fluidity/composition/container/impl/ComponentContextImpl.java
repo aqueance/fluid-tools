@@ -53,7 +53,7 @@ final class ComponentContextImpl implements ComponentContext {
     }
 
     @SuppressWarnings({ "unchecked", "SuspiciousSystemArraycopy" })
-    public <T extends Annotation> T[] annotations(final Class<T> type) {
+    public <T extends Annotation> T[] qualifiers(final Class<T> type) {
         final Annotation[] array = annotations.get(type);
 
         if (array == null) {
@@ -66,8 +66,8 @@ final class ComponentContextImpl implements ComponentContext {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Annotation> T annotation(final Class<T> type, final Class<?> caller) {
-        final Annotation[] annotations = annotations(type);
+    public <T extends Annotation> T qualifier(final Class<T> type, final Class<?> caller) {
+        final Annotation[] annotations = qualifiers(type);
 
         if (annotations != null && annotations.length > 0) {
             return (T) annotations[annotations.length - 1];
@@ -79,7 +79,7 @@ final class ComponentContextImpl implements ComponentContext {
     }
 
     public boolean defines(final Class<? extends Annotation> type) {
-        final Annotation[] annotations = annotations(type);
+        final Annotation[] annotations = qualifiers(type);
         return annotations != null && annotations.length > 0;
     }
 

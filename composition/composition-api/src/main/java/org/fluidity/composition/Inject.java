@@ -55,5 +55,5 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.PARAMETER })
-@Component.Context(collect = Component.Context.Collection.NONE)
+@Component.Qualifiers(compose = Component.Qualifiers.Composition.NONE)
 public @interface Inject { }

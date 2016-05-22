@@ -190,8 +190,8 @@ public final class ComponentContextTests extends AbstractContainerTests {
         final ComponentContext context = ContextConsumer1.context;
         assert context != null;
 
-        final Setting1 setting1 = context.annotation(Setting1.class, null);
-        final Setting2 setting2 = context.annotation(Setting2.class, null);
+        final Setting1 setting1 = context.qualifier(Setting1.class, null);
+        final Setting2 setting2 = context.qualifier(Setting2.class, null);
 
         assert setting1 != null;
         assert setting2 != null;
@@ -211,8 +211,8 @@ public final class ComponentContextTests extends AbstractContainerTests {
         final ComponentContext context = ContextConsumer2.context;
         assert context != null;
 
-        final Setting1 setting1 = context.annotation(Setting1.class, null);
-        final Setting3 setting3 = context.annotation(Setting3.class, null);
+        final Setting1 setting1 = context.qualifier(Setting1.class, null);
+        final Setting3 setting3 = context.qualifier(Setting3.class, null);
 
         assert setting1 != null;
         assert setting3 != null;
@@ -309,12 +309,12 @@ public final class ComponentContextTests extends AbstractContainerTests {
         assert context3 != null;
         assert context4 != null;
 
-        final Setting1 setting11 = context1.annotation(Setting1.class, null);
-        final Setting1 setting21 = context2.annotation(Setting1.class, null);
-        final Setting2 setting12 = context1.annotation(Setting2.class, null);
-        final Setting2 setting22 = context3.annotation(Setting2.class, null);
-        final Setting3 setting13 = context2.annotation(Setting3.class, null);
-        final Setting3 setting23 = context4.annotation(Setting3.class, null);
+        final Setting1 setting11 = context1.qualifier(Setting1.class, null);
+        final Setting1 setting21 = context2.qualifier(Setting1.class, null);
+        final Setting2 setting12 = context1.qualifier(Setting2.class, null);
+        final Setting2 setting22 = context3.qualifier(Setting2.class, null);
+        final Setting3 setting13 = context2.qualifier(Setting3.class, null);
+        final Setting3 setting23 = context4.qualifier(Setting3.class, null);
 
         assert setting11 == null;       // @Setting1 is ignored and not redefined
         assert setting21 == null;       // @Setting1 is ignored and not redefined
@@ -333,13 +333,13 @@ public final class ComponentContextTests extends AbstractContainerTests {
     private static class GroupMember1 implements GroupApi { }
 
     @SuppressWarnings("UnusedDeclaration")
-    @Component.Context(Setting1.class)
+    @Component.Qualifiers(Setting1.class)
     private static class GroupMember2 implements GroupApi {
 
         public final String setting;
 
         private GroupMember2(final ComponentContext context) {
-            final Setting1 annotation = context.annotation(Setting1.class, null);
+            final Setting1 annotation = context.qualifier(Setting1.class, null);
             setting = annotation == null ? null : annotation.value();
         }
     }
@@ -376,9 +376,9 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         @SuppressWarnings("UnusedParameters")
         public FirstComponent(final ThirdComponent cached, final @Setting2("second") SecondComponent second, final ComponentContext context) {
-            settings1 = context.annotations(Setting1.class);
-            settings2 = context.annotations(Setting2.class);
-            settings3 = context.annotations(Setting3.class);
+            settings1 = context.qualifiers(Setting1.class);
+            settings2 = context.qualifiers(Setting2.class);
+            settings3 = context.qualifiers(Setting3.class);
             dependency = second;
         }
     }
@@ -410,14 +410,14 @@ public final class ComponentContextTests extends AbstractContainerTests {
         public final Setting3[] settings3;
 
         private ThirdComponent(final ComponentContext context) {
-            settings1 = context.annotations(Setting1.class);
-            settings2 = context.annotations(Setting2.class);
-            settings3 = context.annotations(Setting3.class);
+            settings1 = context.qualifiers(Setting1.class);
+            settings2 = context.qualifiers(Setting2.class);
+            settings3 = context.qualifiers(Setting3.class);
         }
     }
 
     @Component(api = SecondComponent.class)
-    @Component.Context(Setting2.class)
+    @Component.Qualifiers(Setting2.class)
     private static final class SecondFactory implements ComponentFactory {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
             final Dependency<?>[] arguments = dependencies.discover(SecondComponent.class);
@@ -427,16 +427,16 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
                     // direct instantiation to bypass the container when instantiating ThirdComponent
                     registry.bindInstance(new SecondComponent((ThirdComponent) arguments[0].instance(),
-                                                              context.annotations(Setting1.class),
-                                                              context.annotations(Setting2.class),
-                                                              context.annotations(Setting3.class)));
+                                                              context.qualifiers(Setting1.class),
+                                                              context.qualifiers(Setting2.class),
+                                                              context.qualifiers(Setting3.class)));
                 }
             };
         }
     }
 
     @Component(api = ThirdComponent.class)
-    @Component.Context({ Setting1.class, Setting3.class })
+    @Component.Qualifiers({ Setting1.class, Setting3.class })
     private static final class ThirdFactory implements ComponentFactory {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
             dependencies.discover(ThirdComponent.class);
@@ -490,14 +490,14 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     }
 
-    @Component.Context(Setting1.class)
+    @Component.Qualifiers(Setting1.class)
     @Component(automatic = false)
     private static class ContextAware1Impl implements ContextAware {
 
         private final String setting;
 
         public ContextAware1Impl(final ComponentContext context) {
-            final Setting1 setting = context.annotation(Setting1.class, null);
+            final Setting1 setting = context.qualifier(Setting1.class, null);
             final String value = setting == null ? null : setting.value();
             this.setting = value == null ? "missing-value" : value;
         }
@@ -507,14 +507,14 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
-    @Component.Context(Setting2.class)
+    @Component.Qualifiers(Setting2.class)
     @Component(automatic = false)
     private static class ContextAware2Impl implements ContextAware {
 
         private final String setting;
 
         public ContextAware2Impl(final ComponentContext context) {
-            final Setting2 setting = context.annotation(Setting2.class, null);
+            final Setting2 setting = context.qualifier(Setting2.class, null);
             final String value = setting == null ? null : setting.value();
             this.setting = value == null ? "missing-value" : value;
         }
@@ -524,14 +524,14 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
-    @Component.Context(Setting1.class)
+    @Component.Qualifiers(Setting1.class)
     @Component(automatic = false)
     private static class ContextAwareComponent1Impl implements ContextAwareComponent1 {
 
         private final String setting;
 
         public ContextAwareComponent1Impl(final ComponentContext context) {
-            final Setting1 setting = context.annotation(Setting1.class, null);
+            final Setting1 setting = context.qualifier(Setting1.class, null);
             final String value = setting == null ? null : setting.value();
             this.setting = value == null ? "missing-value" : value;
         }
@@ -541,14 +541,14 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
-    @Component.Context(Setting2.class)
+    @Component.Qualifiers(Setting2.class)
     @Component(automatic = false)
     private static class ContextAwareComponent2Impl implements ContextAwareComponent2 {
 
         private final String setting;
 
         public ContextAwareComponent2Impl(final ComponentContext context) {
-            final Setting2 setting = context.annotation(Setting2.class, null);
+            final Setting2 setting = context.qualifier(Setting2.class, null);
             final String value = setting == null ? null : setting.value();
             this.setting = value == null ? "missing-value" : value;
         }
@@ -615,7 +615,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Component(api = ContextAware.class, automatic = false)
-    @Component.Context(Setting1.class)
+    @Component.Qualifiers(Setting1.class)
     private static class ContextAwareVariants1 implements ComponentFactory {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
             return new Instance() {
@@ -623,7 +623,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
                     registry.bindComponent(NotContextAware1Impl.class);
                     registry.bindInstance(new ContextAware.Settings() {
                         public String setting() {
-                            final Setting1 setting = context.annotation(Setting1.class, null);
+                            final Setting1 setting = context.qualifier(Setting1.class, null);
                             final String value = setting == null ? null : setting.value();
                             return value == null ? "missing-value" : value;
                         }
@@ -634,7 +634,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Component(api = ContextAware.class, automatic = false)
-    @Component.Context(Setting2.class)
+    @Component.Qualifiers(Setting2.class)
     private static class ContextAwareVariants2 implements ComponentFactory {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
             return new Instance() {
@@ -642,7 +642,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
                     registry.bindComponent(NotContextAware2Impl.class);
                     registry.bindInstance(new ContextAware.Settings() {
                         public String setting() {
-                            final Setting2 setting = context.annotation(Setting2.class, null);
+                            final Setting2 setting = context.qualifier(Setting2.class, null);
                             final String value = setting == null ? null : setting.value();
                             return value == null ? "missing-value" : value;
                         }
@@ -653,7 +653,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Component(api = OrdinaryComponent1.class, automatic = false)
-    @Component.Context(Setting1.class)
+    @Component.Qualifiers(Setting1.class)
     private static class OrdinaryComponentVariants1 implements ComponentFactory {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
             return new Instance() {
@@ -661,7 +661,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
                     registry.bindComponent(OrdinaryComponent1Impl.class);
                     registry.bindInstance(new ContextAware.Settings() {
                         public String setting() {
-                            final Setting1 setting = context.annotation(Setting1.class, null);
+                            final Setting1 setting = context.qualifier(Setting1.class, null);
                             final String value = setting == null ? null : setting.value();
                             return value == null ? "missing-value" : value;
                         }
@@ -672,7 +672,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Component(api = OrdinaryComponent2.class, automatic = false)
-    @Component.Context(Setting2.class)
+    @Component.Qualifiers(Setting2.class)
     private static class OrdinaryComponentVariants2 implements ComponentFactory {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
             return new Instance() {
@@ -680,7 +680,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
                     registry.bindComponent(OrdinaryComponent2Impl.class);
                     registry.bindInstance(new ContextAware.Settings() {
                         public String setting() {
-                            final Setting2 setting = context.annotation(Setting2.class, null);
+                            final Setting2 setting = context.qualifier(Setting2.class, null);
                             final String value = setting == null ? null : setting.value();
                             return value == null ? "missing-value" : value;
                         }
@@ -848,30 +848,30 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Setting3("setting-3")
-    @Component.Context(ignore = Setting1.class)
+    @Component.Qualifiers(ignore = Setting1.class)
     private static class ContextProvider4 {
 
         @Inject
-        @Component.Context(ignore = { Setting2.class, Setting3.class })
+        @Component.Qualifiers(ignore = { Setting2.class, Setting3.class })
         public ContextConsumer1 consumer1;
 
         @Inject
-        @Component.Context(ignore = { Setting2.class, Setting3.class })
+        @Component.Qualifiers(ignore = { Setting2.class, Setting3.class })
         public ContextConsumer2 consumer2;
 
         @Inject
         @Setting2("setting-2-n")
-        @Component.Context(ignore = { Setting2.class, Setting3.class })
+        @Component.Qualifiers(ignore = { Setting2.class, Setting3.class })
         public ContextConsumer1 consumer3;
 
         @Inject
-        @Component.Context(ignore = { Setting2.class, Setting3.class })
+        @Component.Qualifiers(ignore = { Setting2.class, Setting3.class })
         @Setting3("setting-3-n")
         public ContextConsumer2 consumer4;
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    @Component.Context({ Setting1.class, Setting2.class })
+    @Component.Qualifiers({ Setting1.class, Setting2.class })
     private static class ContextConsumer1 {
 
         public static ComponentContext context;
@@ -884,7 +884,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    @Component.Context({ Setting1.class, Setting3.class })
+    @Component.Qualifiers({ Setting1.class, Setting3.class })
     private static class ContextConsumer2 {
 
         public static ComponentContext context;

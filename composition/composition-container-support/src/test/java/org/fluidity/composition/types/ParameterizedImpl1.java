@@ -19,5 +19,5 @@ package org.fluidity.composition.types;
 import org.fluidity.composition.Component;
 
 @Component
-@Component.Context(Component.Reference.class)
+@Component.Qualifiers(Component.Reference.class)
 public final class ParameterizedImpl1 implements ParameterizedApi1 { }

@@ -27,7 +27,7 @@ import org.fluidity.foundation.spi.LogFactory;
  * @author Tibor Varga
  */
 @Component(api = Log.class)
-@Component.Context(Component.Reference.class)
+@Component.Qualifiers(Component.Reference.class)
 final class LogComponentFactory implements ComponentFactory {
 
     private final LogFactory factory;
@@ -40,7 +40,7 @@ final class LogComponentFactory implements ComponentFactory {
         return new Instance() {
             @SuppressWarnings("unchecked")
             public void bind(final Registry registry) throws Exception {
-                final Component.Reference reference = context.annotation(Component.Reference.class, Log.class);
+                final Component.Reference reference = context.qualifier(Component.Reference.class, Log.class);
                 registry.bindInstance(factory.createLog(reference.parameter(0)), Log.class);
             }
         };

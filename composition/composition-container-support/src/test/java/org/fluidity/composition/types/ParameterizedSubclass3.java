@@ -21,5 +21,5 @@ import java.io.Serializable;
 import org.fluidity.composition.Component;
 
 @Component
-@Component.Context(Component.Reference.class)
+@Component.Qualifiers(Component.Reference.class)
 public final class ParameterizedSubclass3 extends AbstractParameterizedImpl0<Serializable> { }

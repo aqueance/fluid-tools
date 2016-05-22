@@ -56,7 +56,7 @@ import org.osgi.framework.ServiceRegistration;
  * @author Tibor Varga
  */
 @Component
-@Component.Context(Component.Reference.class)
+@Component.Qualifiers(Component.Reference.class)
 final class BundleComponentContainerImpl<T> implements BundleComponentContainer<T> {
 
     private final BundleContext context;
@@ -174,8 +174,8 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
                 @SuppressWarnings("unchecked")
                 public void bindComponents(final ComponentContainer.Registry registry) {
                     for (final Class<? extends BundleComponents.Managed> type : items) {
-                        if (type.isAnnotationPresent(Component.Context.class)) {
-                            log.warning("[%s] Managed component %s accepts context annotations; the received context will always be empty", bundleName, type);
+                        if (type.isAnnotationPresent(Component.Qualifiers.class)) {
+                            log.warning("[%s] Managed component %s accepts qualifiers; the received context will always be empty", bundleName, type);
                         }
 
                         final List<Class<? extends BundleComponents.Managed>> interfaces = new ArrayList<Class<? extends BundleComponents.Managed>>();

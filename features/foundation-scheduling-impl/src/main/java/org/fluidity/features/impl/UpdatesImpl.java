@@ -33,7 +33,7 @@ final class UpdatesImpl implements Updates {
 
     private final long delay;
 
-    UpdatesImpl(final Scheduler scheduler, @Component.Context(ignore = Configuration.Prefix.class) final Configuration<Settings> configuration) {
+    UpdatesImpl(final Scheduler scheduler, @Component.Qualifiers(ignore = Configuration.Prefix.class) final Configuration<Settings> configuration) {
         delay = configuration.settings().period();
 
         if (delay > 0) {

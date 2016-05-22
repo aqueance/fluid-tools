@@ -393,7 +393,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             final Object value = nodes[i].instance(traversal);
 
             if (value instanceof ComponentContext) {
-                final Component.Reference reference = ((ComponentContext) value).annotation(Component.Reference.class, null);
+                final Component.Reference reference = ((ComponentContext) value).qualifier(Component.Reference.class, null);
 
                 if (reference != null) {
                     final Type[] variables = Generics.unresolved((reference).type());

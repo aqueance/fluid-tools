@@ -35,7 +35,7 @@ import org.fluidity.foundation.Lists;
  * @author Tibor Varga
  */
 @Component(automatic = false)
-@Component.Context({ Service.class, Component.Reference.class })
+@Component.Qualifiers({ Service.class, Component.Reference.class })
 final class ServiceComponentFactory implements ComponentFactory {
 
     private final Map<String, ServiceDescriptor> services;
@@ -56,8 +56,8 @@ final class ServiceComponentFactory implements ComponentFactory {
     }
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-        final Service annotation = context.annotation(Service.class, null);
-        final Component.Reference reference = context.annotation(Component.Reference.class, null);
+        final Service annotation = context.qualifier(Service.class, null);
+        final Component.Reference reference = context.qualifier(Component.Reference.class, null);
         final Class<?> type = annotation.api();
         final ServiceDescriptor descriptor = services.get(String.format("%s:%s",
                                                                         type == Object.class ? Generics.rawType(reference.type()) : type,

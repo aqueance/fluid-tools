@@ -47,7 +47,7 @@ final class SchedulerImpl implements Scheduler {
     private final Log log;
 
     SchedulerImpl(final ContainerTermination termination,
-                  final @Component.Context(ignore = Configuration.Prefix.class) Configuration<Settings> configuration,
+                  final @Component.Qualifiers(ignore = Configuration.Prefix.class) Configuration<Settings> configuration,
                   final Log<SchedulerImpl> log) {
         this.configuration = configuration;
         this.log = log;

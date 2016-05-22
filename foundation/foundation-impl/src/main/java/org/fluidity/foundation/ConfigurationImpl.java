@@ -46,7 +46,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * @author Tibor Varga
  */
 @Component
-@Component.Context({ Configuration.Prefix.class, Component.Reference.class })
+@Component.Qualifiers({ Configuration.Prefix.class, Component.Reference.class })
 final class ConfigurationImpl<T> implements Configuration<T> {
 
     private final PropertyProvider provider;
@@ -63,8 +63,8 @@ final class ConfigurationImpl<T> implements Configuration<T> {
         this.provider = provider;
 
         @SuppressWarnings("unchecked")
-        final Class<T> api = (Class<T>) context.annotation(Component.Reference.class, Configuration.class).parameter(0);
-        this.settings = Proxies.create(api, new PropertyLoader<T>(api, propertyContexts(context.annotations(Prefix.class)), defaults, provider));
+        final Class<T> api = (Class<T>) context.qualifier(Component.Reference.class, Configuration.class).parameter(0);
+        this.settings = Proxies.create(api, new PropertyLoader<T>(api, propertyContexts(context.qualifiers(Prefix.class)), defaults, provider));
     }
 
     public T settings() {
@@ -90,7 +90,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
     /*
      * Computes the property prefixes that will be traversed for any property in order until a value is found in the underlying property provider.
      *
-     * Assuming N context annotations, c1, c2, c3, &hellip;, cN-2, cN-1, cN, the property prefixes will be as follows:
+     * Assuming N qualifier annotations, c1, c2, c3, &hellip;, cN-2, cN-1, cN, the property prefixes will be as follows:
      *  - c1.c2.c3 &hellip; .cN-2.cN-1.cN.
      *  - c2.c3 &hellip; .cN-2.cN-1.cN.
      *  - c3. &hellip; .cN-2.cN-1.cN.
@@ -467,7 +467,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
             } else if (target == List.class) {
                 collection = new ArrayList();
             } else {
-                throw new IllegalArgumentException(String.format("Collection type %s not supported (it is neither Set, List nor Map)",
+                throw new IllegalArgumentException(String.format("Collection type %s not supported (it is neither Set, List, nor Map)",
                                                                  Strings.formatClass(false, true, target)));
             }
 

@@ -33,7 +33,7 @@ import org.fluidity.foundation.Strings;
  * @author Tibor Varga
  */
 @Component
-@Component.Context(Component.Reference.class)
+@Component.Qualifiers(Component.Reference.class)
 final class ContainerTerminationJobs<T> implements ContainerTermination.Jobs<T> {
 
     private final List<Command.Job<Exception>> jobs = new ArrayList<Command.Job<Exception>>();
@@ -47,7 +47,7 @@ final class ContainerTerminationJobs<T> implements ContainerTermination.Jobs<T> 
 
     ContainerTerminationJobs(final Log<ContainerTerminationJobs> log, final ComponentContext context) {
         this.log = log;
-        this.caller = context.annotation(Component.Reference.class, ContainerTermination.Jobs.class).parameter(0);
+        this.caller = context.qualifier(Component.Reference.class, ContainerTermination.Jobs.class).parameter(0);
     }
 
     public void flush() {

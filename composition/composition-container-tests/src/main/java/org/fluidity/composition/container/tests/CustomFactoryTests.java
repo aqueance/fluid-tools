@@ -279,17 +279,17 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         class Main { }
 
         @Component(api = Secondary.class, automatic = false)
-        @Component.Context(Component.Reference.class)
+        @Component.Qualifiers(Component.Reference.class)
         class Secondary implements Serializable {
             public Secondary(final ComponentContext context) {
                 switch (variant) {
                 case 0:
                 case 1:
                 case 2:
-                    assert context.annotation(Component.Reference.class, null).type() == Secondary.class : context;
+                    assert context.qualifier(Component.Reference.class, null).type() == Secondary.class : context;
                     break;
                 case 3:
-                    assert context.annotation(Component.Reference.class, null).type() == Serializable.class : context;
+                    assert context.qualifier(Component.Reference.class, null).type() == Serializable.class : context;
                     break;
                 default:
                     assert false : variant;
@@ -393,7 +393,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
     public @interface Name {
 
         String value();
@@ -456,14 +456,14 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    @Component.Context(Name.class)
+    @Component.Qualifiers(Name.class)
     private static class NamedComponent {
 
         public final String name;
 
         @SuppressWarnings("UnusedDeclaration")
         private NamedComponent(final ComponentContext context) {
-            this.name = context.annotation(Name.class, NamedComponent.class).value();
+            this.name = context.qualifier(Name.class, NamedComponent.class).value();
         }
     }
 
@@ -478,7 +478,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         private final String name;
 
         protected NamedGroupMember(final ComponentContext context) {
-            this.name = context.annotation(Name.class, getClass()).value();
+            this.name = context.qualifier(Name.class, getClass()).value();
         }
 
         public String name() {
@@ -486,7 +486,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         }
     }
 
-    @Component.Context(Name.class)
+    @Component.Qualifiers(Name.class)
     private final static class NamedGroupMember1 extends NamedGroupMember {
 
         NamedGroupMember1(final ComponentContext context) {
@@ -494,7 +494,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         }
     }
 
-    @Component.Context(Name.class)
+    @Component.Qualifiers(Name.class)
     private final static class NamedGroupMember2 extends NamedGroupMember {
 
         NamedGroupMember2(final ComponentContext context) {
@@ -502,7 +502,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         }
     }
 
-    @Component.Context(Name.class)
+    @Component.Qualifiers(Name.class)
     private final static class NamedGroupMember3 extends NamedGroupMember {
 
         NamedGroupMember3(final ComponentContext context) {
@@ -869,14 +869,14 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     private static class CustomDependency<T> { }
 
     @Component(api = CustomDependency.class)
-    @Component.Context(Component.Reference.class)
+    @Component.Qualifiers(Component.Reference.class)
     private static class CustomDependencyFactory implements ComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
             assert context.defines(Component.Reference.class);
-            assert context.annotations(Component.Reference.class) != null;
+            assert context.qualifiers(Component.Reference.class) != null;
 
-            final Component.Reference annotation = context.annotation(Component.Reference.class, getClass());
+            final Component.Reference annotation = context.qualifier(Component.Reference.class, getClass());
             final Type reference = annotation.type();
             final Class<?> parameter = annotation.parameter(0);
 

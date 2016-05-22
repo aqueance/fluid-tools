@@ -30,9 +30,9 @@ import org.fluidity.composition.ComponentGroup;
  * The list of interceptors applied is determined by the context at the dependency reference, which also determines the order in which the interceptors are
  * invoked.
  * <p>
- * If present, the {@linkplain org.fluidity.composition.Component.Context @Component.Context} annotation of the interceptor is consulted to determine
- * what dependency references will the interceptor be invoked for: it will be invoked for those dependency references that have all listed context annotations
- * present. Context annotations used by an interceptor have no effect on the context passed to the replaced component.
+ * If present, the {@linkplain org.fluidity.composition.Component.Qualifiers @Component.Qualifiers} annotation of the interceptor is consulted to determine
+ * what dependency references will the interceptor be invoked for: it will be invoked for those dependency references that have all listed qualifier annotations
+ * present. Qualifier annotations used by an interceptor have no effect on the context passed to the replaced component.
  * <p>
  * The interceptor may also elect not to discriminate between the dependencies by their context, in which case it will be invoked for all dependency
  * references.
@@ -41,7 +41,7 @@ import org.fluidity.composition.ComponentGroup;
  * tool to work with {@linkplain Type parameterized types}.
  * <h3>Usage</h3>
  * <pre>
- * {@linkplain org.fluidity.composition.Component.Context @Component.Context}(<span class="hl2">MyAnnotation</span>.class)
+ * {@linkplain org.fluidity.composition.Component.Qualifiers @Component.Qualifiers}(<span class="hl2">MyAnnotation</span>.class)
  * final class MyInterceptor implements <span class="hl1">ComponentInterceptor</span> {
  *   &hellip;
  * }
@@ -71,7 +71,7 @@ public interface ComponentInterceptor<T> {
      * The interceptor cannot invoke {@link ComponentInterceptor.Dependency#create()} in this method.
      *
      * @param reference  the fully specified reference to the dependency, including type parameters, if any.
-     * @param context    the component context at the dependency reference, with none of the context annotations accepted by the interceptor missing.
+     * @param context    the component context at the dependency reference, with none of the qualifier annotations accepted by the interceptor missing.
      * @param dependency the dependency to intercept; never <code>null</code>.
      *
      * @return the replaced dependency; may be <code>null</code>.

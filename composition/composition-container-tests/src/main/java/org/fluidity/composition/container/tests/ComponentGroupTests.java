@@ -368,7 +368,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         }
 
         public final Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            final Type reference = context.annotation(Component.Reference.class, type).type();
+            final Type reference = context.qualifier(Component.Reference.class, type).type();
 
             assert reference != null;
             assert !Generics.rawType(reference).isArray() : reference;
@@ -384,15 +384,15 @@ public final class ComponentGroupTests extends AbstractContainerTests {
     }
 
     @Component(api = DynamicFilter1.class)
-    @Component.Context(Component.Reference.class)
+    @Component.Qualifiers(Component.Reference.class)
     private static final class DynamicFilter1Factory extends DynamicFilterFactory { }
 
     @Component(api = DynamicFilter2.class)
-    @Component.Context(Component.Reference.class)
+    @Component.Qualifiers(Component.Reference.class)
     private static final class DynamicFilter2Factory extends DynamicFilterFactory { }
 
     @Component(api = DynamicFilter3.class)
-    @Component.Context(Component.Reference.class)
+    @Component.Qualifiers(Component.Reference.class)
     private static final class DynamicFilter3Factory extends DynamicFilterFactory { }
 
     @Component(automatic = false)

@@ -241,7 +241,7 @@ public class InterceptorFilterImplTest extends Simulator {
 
             final Map<Class<? extends Annotation>, Annotation[]> active = new HashMap<Class<? extends Annotation>, Annotation[]>(annotations);
 
-            final Component.Context specified = type.getAnnotation(Component.Context.class);
+            final Component.Qualifiers specified = type.getAnnotation(Component.Qualifiers.class);
             if (specified != null) {
                 active.keySet().retainAll(Arrays.asList(specified.value()));
             } else {
@@ -259,37 +259,37 @@ public class InterceptorFilterImplTest extends Simulator {
         }
     }
 
-    @Component.Context({ Annotation1.class, Annotation5.class })
+    @Component.Qualifiers({ Annotation1.class, Annotation5.class })
     private static class ComponentInterceptor1 extends EmptyInterceptor {}
 
-    @Component.Context(Annotation2.class)
+    @Component.Qualifiers(Annotation2.class)
     private static class ComponentInterceptor2 extends EmptyInterceptor {}
 
-    @Component.Context(Annotation3.class)
+    @Component.Qualifiers(Annotation3.class)
     private static class ComponentInterceptor3 extends EmptyInterceptor {}
 
-    @Component.Context(Annotation4.class)
+    @Component.Qualifiers(Annotation4.class)
     private static class ComponentInterceptor4 extends EmptyInterceptor {}
 
     private static class ComponentInterceptor5 extends EmptyInterceptor {}
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
     private @interface Annotation1 {}
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
     private @interface Annotation2 {}
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
     private @interface Annotation3 {}
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
     private @interface Annotation4 {}
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
     private @interface Annotation5 {}
 }

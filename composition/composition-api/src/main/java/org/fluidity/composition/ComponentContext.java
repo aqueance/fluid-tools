@@ -23,28 +23,28 @@ import java.util.Set;
  * The <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Composition#consuming-context">run-time context</a> for a component instance. This is
  * the object that components may receive as a dependency to encapsulate the context in which they were instantiated.
  * <p>
- * A context represents configuration at the point of reference to a component, which it elects to receive using the
- * {@link Component.Context @Component.Context} annotation. The context is defined by the referring components using custom, user defined, annotations, and are
- * consumed by referred to components that list the custom annotations' type in their <code>@Component.Context</code> annotation.
+ * A context represents configuration at the point of reference to a component, which it elects to receive using the {@link
+ * Component.Qualifiers @Component.Qualifiers} annotation. The context is defined by the referring components using custom, user defined, annotations, and are
+ * consumed by referred to components that list the custom annotations' type in their <code>@Component.Qualifiers</code> annotation.
  * <p>
- * Since contexts offer a static configuration mechanism, components with other means of configuration can be adapted to context based configuration
- * using a {@link org.fluidity.composition.spi.ComponentFactory ComponentFactory}, which essentially translates the configuration embedded in the instantiation
- * context to configuration understood by the component being adapted.
+ * Since contexts offer a static configuration mechanism, components with other means of configuration can be adapted to context based configuration using a
+ * {@link org.fluidity.composition.spi.ComponentFactory ComponentFactory}, which essentially translates the configuration embedded in the instantiation context
+ * to configuration understood by the component being adapted.
  * <h3>Usage</h3>
  * <pre>
  * &#64;Retention(RetentionPolicy.RUNTIME)
- * public @interface <span class="hl2">MyContext1</span> { &hellip; }
+ * public @interface <span class="hl2">MyQualifier1</span> { &hellip; }
  * </pre>
  * <pre>
  * &#64;Retention(RetentionPolicy.RUNTIME)
- * public @interface <span class="hl2">MyContext2</span> { &hellip; }
+ * public @interface <span class="hl2">MyQualifier2</span> { &hellip; }
  * </pre>
  * <pre>
- * <span class="hl2">&#64;MyContext1</span>
+ * <span class="hl2">&#64;MyQualifier1</span>
  * {@linkplain Component @Component}
  * public final class ContextProvider {
  *
- *     ContextProvider(final <span class="hl2">&#64;MyContext2</span> dependency) {
+ *     ContextProvider(final <span class="hl2">&#64;MyQualifier2</span> dependency) {
  *         &hellip;
  *     }
  *
@@ -53,16 +53,16 @@ import java.util.Set;
  * </pre>
  * <pre>
  * {@linkplain Component @Component}
- * <span class="hl1">{@linkplain Component.Context @Component.Context}</span>({ <span class="hl2">MyContext1</span>.class,  <span class="hl2">MyContext2</span>.class })
+ * <span class="hl1">{@linkplain Component.Qualifiers @Component.Qualifiers}</span>({ <span class="hl2">MyQualifier1</span>.class,  <span class="hl2">MyQualifier2</span>.class })
  * final class <span class="hl3">Dependency</span> {
  *
  *     <span class="hl3">Dependency</span>(final <span class="hl1">ComponentContext</span> context) {
  *
- *         // all MyContext1 annotations in the instantiation path of this object
- *         <span class="hl2">MyContext1</span>[] context1s = context.<span class="hl1">annotations</span>(<span class="hl2">MyContext1</span>.class);
+ *         // all MyQualifier1 annotations in the instantiation path of this object
+ *         <span class="hl2">MyQualifier1</span>[] context1s = context.<span class="hl1">annotations</span>(<span class="hl2">MyQualifier1</span>.class);
  *
- *         // the last MyContext2 annotation in the instantiation path of this object
- *         <span class="hl2">MyContext2</span> context2 = context.<span class="hl1">annotation</span>(<span class="hl2">MyContext2</span>.class, <span class="hl3">Dependency</span>.class);
+ *         // the last MyQualifier2 annotation in the instantiation path of this object
+ *         <span class="hl2">MyQualifier2</span> context2 = context.<span class="hl1">annotation</span>(<span class="hl2">MyQualifier2</span>.class, <span class="hl3">Dependency</span>.class);
  *     }
  * }
  * </pre>
@@ -72,22 +72,22 @@ import java.util.Set;
 public interface ComponentContext {
 
     /**
-     * Returns all instances of the given context annotation type in the instantiation path of the component that received this object in its constructor.
+     * Returns all instances of the given qualifier annotation type in the instantiation path of the component that received this object in its constructor.
      * Annotations may be defined at multiple points along a reference path and so multiple annotations may be present for any given type. This method returns
-     * all of the instances according to the annotation's {@linkplain Component.Context#collect() accumulation} setting in the
+     * all of the instances according to the annotation's {@linkplain Component.Qualifiers#compose() accumulation} setting in the
      * order they were encountered in the reference path.
      *
      * @param type the annotation type to return instances of.
      * @param <T>  the annotation type.
      *
-     * @return all context annotations of the given type, or an empty array or <code>null</code> if none present.
+     * @return all qualifier annotations of the given type, or an empty array or <code>null</code> if none present.
      *
      * @see #defines(Class)
      */
-    <T extends Annotation> T[] annotations(Class<T> type);
+    <T extends Annotation> T[] qualifiers(Class<T> type);
 
     /**
-     * Returns the last instance of the given context annotation type in the instantiation path of the component that received this object in its constructor.
+     * Returns the last instance of the given qualifier annotation type in the instantiation path of the component that received this object in its constructor.
      * If an optional <code>caller</code> argument is supplied and no annotation of the given type is found, an exception mentioning the given
      * <code>caller</code> is thrown.
      *
@@ -95,16 +95,16 @@ public interface ComponentContext {
      * @param caller the optional caller to mention in the exception thrown when no annotation of the given type is present; may be <code>null</code>.
      * @param <T>    the annotation type.
      *
-     * @return the last context annotation of the given type or <code>null</code> if none present.
+     * @return the last qualifier annotation of the given type or <code>null</code> if none present.
      *
      * @throws ComponentContainer.ResolutionException
      *          when the <code>caller</code> parameter is not <code>null</code> and no annotation of the given <code>type</code> is found.
      * @see #defines(Class)
      */
-    <T extends Annotation> T annotation(Class<T> type, Class<?> caller) throws ComponentContainer.ResolutionException;
+    <T extends Annotation> T qualifier(Class<T> type, Class<?> caller) throws ComponentContainer.ResolutionException;
 
     /**
-     * Tells whether the context contains an annotation of the given type.
+     * Tells whether the context contains a qualifier annotation of the given type.
      *
      * @param type the annotation type to check the existence of instances of.
      *
@@ -113,9 +113,9 @@ public interface ComponentContext {
     boolean defines(Class<? extends Annotation> type);
 
     /**
-     * Returns the set of annotation types the context contains instances of.
+     * Returns the set of qualifier annotation types the context contains instances of.
      *
-     * @return the set of annotation types the context contains instances of.
+     * @return the set of qualifier annotation types the context contains instances of.
      */
     Set<Class<? extends Annotation>> types();
 

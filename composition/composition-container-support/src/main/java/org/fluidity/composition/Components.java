@@ -223,7 +223,7 @@ public final class Components extends Utility {
      * @return <code>true</code> if the given class accepts the {@link Component.Reference} annotation as context; <code>false</code> otherwise.
      */
     public static boolean isParameterized(final Class<?> type) {
-        final Component.Context context = type.getAnnotation(Component.Context.class);
+        final Component.Qualifiers context = type.getAnnotation(Component.Qualifiers.class);
 
         if (context != null) {
             for (final Class<? extends Annotation> accepted : context.value()) {

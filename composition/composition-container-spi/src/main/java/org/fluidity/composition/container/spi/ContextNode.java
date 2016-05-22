@@ -19,7 +19,7 @@ package org.fluidity.composition.container.spi;
 import java.lang.annotation.Annotation;
 
 /**
- * A node in a dependency graph where context annotations may be accepted and/or provided. An object implementing this interface is created for every component
+ * A node in a dependency graph where qualifier annotations may be accepted and/or provided. An object implementing this interface is created for every component
  * class in a container and these objects help in the management of
  * <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#component-context">component context</a> when resolving dependencies.
  * <h3>Usage</h3>
@@ -30,9 +30,9 @@ import java.lang.annotation.Annotation;
 public interface ContextNode {
 
     /**
-     * Returns the class that may accept context annotations at this node.
+     * Returns the class that may accept qualifier annotations at this node.
      *
-     * @return the class that may accept context annotations at this node; may be <code>null</code>.
+     * @return the class that may accept qualifier annotations at this node; may be <code>null</code>.
      */
     Class<?> contextConsumer();
 

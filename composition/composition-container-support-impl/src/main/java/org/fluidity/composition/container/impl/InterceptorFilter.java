@@ -20,26 +20,26 @@ import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.spi.ComponentInterceptor;
 
 /**
- * Internal interface to filter and sort {@link ComponentInterceptor interceptors} based on context annotations.
+ * Internal interface to filter and sort {@link ComponentInterceptor interceptors} based on qualifier annotations.
  *
  * @author Tibor Varga
  */
 interface InterceptorFilter {
 
     /**
-     * Returns only those interceptors from the provided ones whose context annotations are all present in the <em>defined</em> context set. The returned
-     * interceptors are sorted by the relative declaration distance of their context annotation that is closest to the current dependency reference.
+     * Returns only those interceptors from the provided ones whose qualifier annotations are all present in the <em>defined</em> context set. The returned
+     * interceptors are sorted by the relative declaration distance of their qualifier annotation that is closest to the current dependency reference.
      * <p>
-     * For example, let contexts <code>@A, @B, @C, and @D</code> be defined in that order along the dependency path, and three interceptors be given with the
+     * For example, let qualifiers <code>@A, @B, @C, and @D</code> be defined in that order along the dependency path, and three interceptors be given with the
      * following annotations, respectively:<ul>
      * <li><code>A, C</code></li>
      * <li><code>B, D</code></li>
      * <li><code>D, E</code></li>
      * </ul>
-     * In the above case, the first two interceptors will be returned in reverse order, because the nearest context annotation of the second descriptor,
-     * <code>D</code>, is closer to the current reference than the nearest context annotation of the first descriptor, <code>C</code>.
+     * In the above case, the first two interceptors will be returned in reverse order, because the nearest qualifier annotation of the second descriptor,
+     * <code>D</code>, is closer to the current reference than the nearest qualifier annotation of the first descriptor, <code>C</code>.
      *
-     * @param context     the current context definition.
+     * @param context      the current context definition.
      * @param interceptors the interceptors to filter and sort; may be <code>null</code>.
      *
      * @return the filtered and sorted list of interceptors; possible empty, <code>null</code> only if the descriptor parameter was <code>null</code>

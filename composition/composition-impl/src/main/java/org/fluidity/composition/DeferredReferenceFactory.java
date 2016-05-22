@@ -29,12 +29,12 @@ import org.fluidity.foundation.Generics;
  * @author Tibor Varga
  */
 @Component(api = Deferred.Reference.class)
-@Component.Context(Component.Reference.class)
+@Component.Qualifiers(Component.Reference.class)
 @SuppressWarnings("UnusedDeclaration")
 final class DeferredReferenceFactory implements ComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-        final Dependency<?> dependency = dependencies.resolve(null, Generics.typeParameter(context.annotation(Component.Reference.class, null).type(), 0), null);
+        final Dependency<?> dependency = dependencies.resolve(null, Generics.typeParameter(context.qualifier(Component.Reference.class, null).type(), 0), null);
 
         final Deferred.Reference<Object> reference = Deferred.local(new Deferred.Factory<Object>() {
             public Object create() {

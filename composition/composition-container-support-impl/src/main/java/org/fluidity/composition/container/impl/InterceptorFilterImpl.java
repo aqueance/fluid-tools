@@ -81,9 +81,9 @@ final class InterceptorFilterImpl implements InterceptorFilter {
      */
     private static class Descriptor implements Comparable<Descriptor> {
 
-        private static String collection = Methods.get(Component.Context.class, new Methods.Invoker<Component.Context>() {
-            public void invoke(final Component.Context capture) throws Exception {
-                capture.collect();
+        private static String composition = Methods.get(Component.Qualifiers.class, new Methods.Invoker<Component.Qualifiers>() {
+            public void invoke(final Component.Qualifiers capture) throws Exception {
+                capture.compose();
             }
         })[0].getName();
 
@@ -96,20 +96,20 @@ final class InterceptorFilterImpl implements InterceptorFilter {
         Descriptor(final ComponentInterceptor interceptor, final Map<Class<? extends Annotation>, Integer> indexes) {
             this.type = interceptor.getClass();
 
-            final Component.Context context = this.type.getAnnotation(Component.Context.class);
+            final Component.Qualifiers context = this.type.getAnnotation(Component.Qualifiers.class);
 
             this.context = context == null ? Collections.<Class<? extends Annotation>>emptyList() : Arrays.asList(context.value());
 
             for (final Class<? extends Annotation> annotation : this.context) {
-                final Component.Context specification = annotation.getAnnotation(Component.Context.class);
+                final Component.Qualifiers specification = annotation.getAnnotation(Component.Qualifiers.class);
 
-                if (specification == null || specification.collect() != Component.Context.Collection.IMMEDIATE) {
-                    throw new IllegalArgumentException(String.format("Context annotation type %s used by component interceptor %s must have a @%s(%s = %s) annotation",
+                if (specification == null || specification.compose() != Component.Qualifiers.Composition.IMMEDIATE) {
+                    throw new IllegalArgumentException(String.format("Context qualifier type %s used by component interceptor %s must have a @%s(%s = %s) annotation",
                                                                      Strings.formatClass(false, true, annotation),
                                                                      Strings.formatClass(false, true, this.type),
-                                                                     Strings.formatClass(false, false, Component.Context.class),
-                                                                     collection,
-                                                                     Component.Context.Collection.IMMEDIATE.name()));
+                                                                     Strings.formatClass(false, false, Component.Qualifiers.class),
+                                                                     composition,
+                                                                     Component.Qualifiers.Composition.IMMEDIATE.name()));
                 }
             }
 

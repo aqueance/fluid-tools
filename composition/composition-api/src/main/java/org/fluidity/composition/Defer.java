@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.PARAMETER, ElementType.FIELD})
-@Component.Context(collect = Component.Context.Collection.IMMEDIATE)
+@Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
 public @interface Defer {
 
     /**

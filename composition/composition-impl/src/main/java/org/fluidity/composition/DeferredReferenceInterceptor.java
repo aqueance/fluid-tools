@@ -33,7 +33,7 @@ import org.fluidity.foundation.Security;
  *
  * @author Tibor Varga
  */
-@Component.Context(Defer.class)
+@Component.Qualifiers(Defer.class)
 @SuppressWarnings("UnusedDeclaration")
 final class DeferredReferenceInterceptor implements ComponentInterceptor {
 
@@ -44,7 +44,7 @@ final class DeferredReferenceInterceptor implements ComponentInterceptor {
             }
         };
 
-        final Deferred.Reference<?> deferred = context.annotation(Defer.class, null).shared() ? Deferred.shared(factory) : Deferred.local(factory);
+        final Deferred.Reference<?> deferred = context.qualifier(Defer.class, null).shared() ? Deferred.shared(factory) : Deferred.local(factory);
 
         return new Dependency() {
             public Object create() {

@@ -37,7 +37,7 @@ import org.fluidity.composition.Component;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
-@Component.Context(collect = Component.Context.Collection.IMMEDIATE)
+@Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
 public @interface Service {
 
     /**

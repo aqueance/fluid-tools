@@ -308,7 +308,7 @@ public class DependencyInjectorImplTest extends Simulator {
 
                 expectCallbacks();
 
-                EasyMock.expect(created.annotation(Component.Reference.class, null)).andReturn(null);
+                EasyMock.expect(created.qualifier(Component.Reference.class, null)).andReturn(null);
 
                 assert component == verify(new Work<SpecialDependent>() {
                     public SpecialDependent run() throws Exception {

@@ -47,7 +47,7 @@ import org.fluidity.foundation.Generics;
  *
  * @author Tibor Varga
  */
-@Component.Context(Service.class)
+@Component.Qualifiers(Service.class)
 @SuppressWarnings("UnusedDeclaration")
 final class ServiceImportInterceptor implements ComponentInterceptor {
 

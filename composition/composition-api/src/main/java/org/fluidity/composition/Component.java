@@ -59,7 +59,7 @@ import java.lang.reflect.Type;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Component.Context(collect = Component.Context.Collection.NONE)
+@Component.Qualifiers(compose = Component.Qualifiers.Composition.NONE)
 public @interface Component {
 
     /**
@@ -137,25 +137,25 @@ public @interface Component {
     Class<?> scope() default Object.class;
 
     /**
-     * Lists the <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#component-context">context annotations</a> accepted by the
+     * Lists the <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#component-context">context qualifiers</a> accepted by the
      * annotated component class. These annotations distinguish instances of the same component class from one another. Such a annotation could, for instance,
      * specify a database identifier for a database access component, etc. The component receives, as a {@link ComponentContext} argument of its constructor,
      * the instances of its accepted annotations prevalent at the point of reference to the component.
      * <p>
-     * A special context is the parameterized type of the dependency reference to the context dependent component, {@link
+     * A special context qualifier is the parameterized type of the dependency reference to the context dependent component, {@link
      * Component.Reference @Component.Reference}.
      * <p>
      * When the {@link #ignore()} parameter is present, it causes all definitions, up to but not including the annotated entity, of the specified context
-     * annotations to be ignored by the annotated entity.
+     * qualifiers to be ignored by the annotated entity.
      * <p>
-     * When applied to an annotation type, the {@link #collect} parameter determines how multiple instances of the context annotation are handled.
+     * When applied to an annotation type, the {@link #compose} parameter determines how multiple instances of the qualifier are handled.
      * <h3>Usage</h3>
      * <pre>
      * {@linkplain Component @Component}
-     * <span class="hl2">&#64;MyContext</span>("1")
+     * <span class="hl2">&#64;MyQualifier</span>("1")
      * public final class MyComponent {
      *
-     *   MyComponent(final <span class="hl2">&#64;MyContext</span>("2") <span class="hl3">MyDependency</span> dependency) {
+     *   MyComponent(final <span class="hl2">&#64;MyQualifier</span>("2") <span class="hl3">MyDependency</span> dependency) {
      *     &hellip;
      *   }
      *
@@ -164,11 +164,11 @@ public @interface Component {
      * </pre>
      * <pre>
      * {@linkplain Component @Component}
-     * <span class="hl1">&#64;Component.Context</span>(<span class="hl2">MyContext</span>.class)
+     * <span class="hl1">&#64;Component.Qualifiers</span>(<span class="hl2">MyQualifier</span>.class)
      * final class MyDependencyImpl implements <span class="hl3">MyDependency</span> {
      *
      *   MyDependencyImpl(final {@linkplain ComponentContext} context) {
-     *     final <span class="hl2">MyContext</span>[] annotations = context.annotations(<span class="hl2">MyContext</span>.class);
+     *     final <span class="hl2">MyQualifier</span>[] annotations = context.qualifiers(<span class="hl2">MyQualifier</span>.class);
      *     &hellip;
      *   }
      *
@@ -182,20 +182,20 @@ public @interface Component {
     @Inherited
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER, ElementType.ANNOTATION_TYPE })
-    @Component.Context(collect = Context.Collection.NONE)
-    @interface Context {
+    @Component.Qualifiers(compose = Qualifiers.Composition.NONE)
+    @interface Qualifiers {
 
         /**
-         * Lists the context annotations that configure the annotated class.
+         * Lists the qualifiers that configure the annotated class.
          * <p>
          * This parameter is used only at class level.
          *
-         * @return a list of context annotation classes.
+         * @return a list of annotation classes.
          */
         Class<? extends Annotation>[] value() default { };
 
         /**
-         * Specifies what context annotations should be ignored up to this point in the instantiation path. This parameter can be used when annotating fields
+         * Specifies what qualifiers should be ignored up to this point in the instantiation path. This parameter can be used when annotating fields
          * and constructor parameters as well as classes.
          *
          * @return an array of annotation classes to ignore.
@@ -203,59 +203,59 @@ public @interface Component {
         Class<? extends Annotation>[] ignore() default {};
 
         /**
-         * When applied to an annotation type, this parameter determines how multiple instances of the context annotation are handled.
+         * When applied to a qualifier annotation type, this parameter determines how multiple instances of the qualifier are handled.
          *
-         * @return the context's multiplicity specifier.
+         * @return the qualifier annotation's composition specifier.
          */
-        Collection collect() default Collection.ALL;
+        Composition compose() default Composition.ALL;
 
         /**
-         * Defines how a chain of occurrences of the same context annotation along an instantiation path is handled. Used in {@link
-         * Component.Context#collect @Component.Context(collect = &hellip;)}.
+         * Defines how a chain of occurrences of the same qualifiers along an instantiation path is handled. Used in {@link
+         * Qualifiers#compose @Component.Qualifiers(compose = &hellip;)}.
          * <h3>Usage</h3>
          * <pre>
          * {@linkplain Documented @Documented}
          * {@linkplain java.lang.annotation.Retention @Retention}(RetentionPolicy.RUNTIME)
          * {@linkplain Target @Target}({ ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD })
-         * {@linkplain Component.Context @Component.Context}(<span class="hl1">collect = Component.Context.Collection.DIRECT</span>)
-         * public &#64;interface <span class="hl2">SomeContext</span> { }
+         * {@linkplain Qualifiers @Component.Qualifiers}(<span class="hl1">compose = Component.Qualifiers.Composition.DIRECT</span>)
+         * public &#64;interface <span class="hl2">SomeQualifier</span> { }
          * </pre>
          */
-        enum Collection {
+        enum Composition {
 
             /**
-             * All unique instances of the context annotation along the instantiation path are passed to the component that accepts that context annotation.
-             * Identical instances of a context annotation are collapsed into the first occurrence.
+             * All unique instances of the qualifier along the instantiation path are passed to the component that accepts that qualifier. Identical instances
+             * of a qualifier are collapsed into the first occurrence.
              */
             ALL,
 
             /**
-             * Only the last instance of the context annotation is passed to the component that accepts that context annotation.
+             * Only the last instance of the qualifier is passed to the component that accepts that qualifier.
              */
             LAST,
 
             /**
-             * The only instance of the context annotation passed to the component that accepts that context annotation is the one annotating the class, the
-             * injected constructor or method, the injected dependency reference to that component and is closest among these to the dependency reference.
-             * Further restrictions can be made using the {@link Target @Target} annotation.
+             * The only instance of the qualifier passed to the component that accepts that qualifier is the one annotating the class, the injected constructor
+             * or method, the injected dependency reference to that component and is closest among these to the dependency reference. Further restrictions can
+             * be made using the {@link Target @Target} annotation.
              */
             IMMEDIATE,
 
             /**
-             * No instance of this annotation will ever be passed to components as context.
+             * No instance of this qualifier annotation will ever form the context of a components.
              */
             NONE
         }
     }
 
     /**
-     * <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Composition#working-with-component-contexts">Context annotation</a> that captures the
+     * <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Composition#working-with-component-contexts">Qualifier annotation</a> that captures the
      * parameterized type of a component reference. This is not an actual annotation from the Java syntax point of view &ndash; a Java annotation would not
      * allow <code>Type</code> as the type of a parameter &ndash; but simply a run-time representation of an annotation to convey type information.
      * <h3>Usage</h3>
      * <pre>
      * {@linkplain Component @Component}
-     * {@linkplain Component.Context @Component.Context}(<span class="hl1">Component.Reference</span>.class)
+     * {@linkplain Qualifiers @Component.Qualifiers}(<span class="hl1">Component.Reference</span>.class)
      * final class <span class="hl2">MyComponent</span>&lt;T&gt; {
      *
      *   &#47;**
@@ -264,7 +264,7 @@ public @interface Component {
      *   private final Class&lt;?&gt; type;
      *
      *   MyComponent(final {@linkplain ComponentContext} context) {
-     *     final <span class="hl1">Component.Reference</span> reference = context.annotation(<span class="hl1">Component.Reference</span>.class, null);
+     *     final <span class="hl1">Component.Reference</span> reference = context.qualifier(<span class="hl1">Component.Reference</span>.class, null);
      *     this.type = reference.parameter(0);
      *     &hellip;
      *   }
@@ -287,7 +287,7 @@ public @interface Component {
      *
      * @author Tibor Varga
      */
-    @Component.Context(collect = Context.Collection.IMMEDIATE)
+    @Component.Qualifiers(compose = Qualifiers.Composition.IMMEDIATE)
     interface Reference extends Annotation {
 
         /**

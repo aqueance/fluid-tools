@@ -139,66 +139,66 @@ public class ContextDefinitionImplTest {
     }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(collect = Component.Context.Collection.ALL)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.ALL)
     public @interface Accumulated {
 
         String value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(collect = Component.Context.Collection.LAST)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.LAST)
     public @interface Inherited {
 
         String value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
     public @interface Immediate {
 
         String value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(collect = Component.Context.Collection.NONE)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.NONE)
     public @interface None {
 
         String value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(collect = Component.Context.Collection.ALL)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.ALL)
     public @interface Annotation1 { }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(collect = Component.Context.Collection.ALL)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.ALL)
     public @interface Annotation2 { }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(collect = Component.Context.Collection.ALL)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.ALL)
     public @interface Annotation3 { }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(collect = Component.Context.Collection.ALL)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.ALL)
     public @interface Annotation4 { }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(collect = Component.Context.Collection.ALL)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.ALL)
     public @interface Annotation5 { }
 
-    @Component.Context(value = Accumulated.class)
+    @Component.Qualifiers(value = Accumulated.class)
     private static class Consumer1 { }
 
-    @Component.Context(value = Inherited.class)
+    @Component.Qualifiers(value = Inherited.class)
     private static class Consumer2 { }
 
-    @Component.Context(value = Immediate.class)
+    @Component.Qualifiers(value = Immediate.class)
     private static class Consumer3 { }
 
-    @Component.Context(value = None.class)
+    @Component.Qualifiers(value = None.class)
     private static class Consumer4 { }
 
-    @Component.Context(value = { Accumulated.class, Inherited.class, Immediate.class, None.class })
+    @Component.Qualifiers(value = { Accumulated.class, Inherited.class, Immediate.class, None.class })
     private static class ConsumerAll { }
 
     private static class ConsumerNone { }

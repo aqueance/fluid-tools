@@ -45,7 +45,7 @@ import org.fluidity.foundation.ServiceProviders;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited
-@Component.Context(collect = Component.Context.Collection.NONE)
+@Component.Qualifiers(compose = Component.Qualifiers.Composition.NONE)
 @SuppressWarnings("JavadocReference")
 public @interface ServiceProvider {
 

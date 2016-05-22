@@ -39,11 +39,11 @@ import org.fluidity.foundation.Security;
  * @author Tibor Varga
  */
 @Component(api = DynamicConfiguration.class)
-@Component.Context(Component.Reference.class)
+@Component.Qualifiers(Component.Reference.class)
 final class DynamicConfigurationFactory implements ComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-        final Component.Reference reference = context.annotation(Component.Reference.class, DynamicConfiguration.class);
+        final Component.Reference reference = context.qualifier(Component.Reference.class, DynamicConfiguration.class);
         final Class<?> api = reference.parameter(0);
 
         dependencies.discover(DynamicConfigurationImpl.class);
@@ -65,7 +65,7 @@ final class DynamicConfigurationFactory implements ComponentFactory {
     }
 
     @Component(automatic = false)
-    @Component.Context(Component.Reference.class)
+    @Component.Qualifiers(Component.Reference.class)
     private static class DynamicConfigurationImpl<T> implements DynamicConfiguration<T> {
 
         private final Deferred.Reference<Updates.Snapshot<T>> snapshot;

@@ -155,12 +155,12 @@ public class TypeParameterTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    @Component.Context(Component.Reference.class)
+    @Component.Qualifiers(Component.Reference.class)
     @SuppressWarnings("UnusedDeclaration")
     private static class TypedComponent1a<T> {
 
         private TypedComponent1a(final ComponentContext context) {
-            final Component.Reference reference = context.annotation(Component.Reference.class, getClass());
+            final Component.Reference reference = context.qualifier(Component.Reference.class, getClass());
             assert reference != null;
 
             final Type type = reference.type();
@@ -173,12 +173,12 @@ public class TypeParameterTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    @Component.Context(Component.Reference.class)
+    @Component.Qualifiers(Component.Reference.class)
     @SuppressWarnings("UnusedDeclaration")
     private static class TypedComponent1b<T> {
 
         private TypedComponent1b(final ComponentContext context, final T serializable) {
-            final Component.Reference reference = context.annotation(Component.Reference.class, getClass());
+            final Component.Reference reference = context.qualifier(Component.Reference.class, getClass());
             assert reference != null;
 
             final Type type = reference.type();
@@ -248,7 +248,7 @@ public class TypeParameterTests extends AbstractContainerTests {
     public interface TypedComponent<T> { }
 
     @Component
-    @Component.Context(Component.Reference.class)
+    @Component.Qualifiers(Component.Reference.class)
     private static class TypedContextAware<T> implements TypedComponent<T> {
 
         public TypedContextAware(final T dependency) {
@@ -265,7 +265,7 @@ public class TypeParameterTests extends AbstractContainerTests {
     }
 
     @Component
-    @Component.Context(Component.Reference.class)
+    @Component.Qualifiers(Component.Reference.class)
     private static class TypedResolved1 implements TypedComponent<Serializable> { }
 
     @Component

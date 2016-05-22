@@ -65,7 +65,7 @@ public class DeferredDependencyTest {
     private static class PlainDependency {}
 
     @Component
-    @Component.Context(Data.class)
+    @Component.Qualifiers(Data.class)
     private static class ContextDependency {
 
         public final ComponentContext context;
@@ -77,7 +77,7 @@ public class DeferredDependencyTest {
     }
 
     @Component
-    @Component.Context(Component.Reference.class)
+    @Component.Qualifiers(Component.Reference.class)
     @SuppressWarnings("UnusedDeclaration")
     private static class ReferenceDependency<T> {
 
@@ -112,11 +112,11 @@ public class DeferredDependencyTest {
             assert deferred2.get() == instance2;
             assert deferred1.get() != deferred2.get();
 
-            assert "1".equals(deferred1.get().context.annotation(Data.class, null).value());
-            assert "1".equals(instance1.context.annotation(Data.class, null).value());
+            assert "1".equals(deferred1.get().context.qualifier(Data.class, null).value());
+            assert "1".equals(instance1.context.qualifier(Data.class, null).value());
 
-            assert "2".equals(deferred2.get().context.annotation(Data.class, null).value());
-            assert "2".equals(instance2.context.annotation(Data.class, null).value());
+            assert "2".equals(deferred2.get().context.qualifier(Data.class, null).value());
+            assert "2".equals(instance2.context.qualifier(Data.class, null).value());
         }
     }
 
@@ -137,11 +137,11 @@ public class DeferredDependencyTest {
             assert deferred2.get() == instance2;
             assert (ReferenceDependency) deferred1.get() != deferred2.get();
 
-            assert String.class.equals(deferred1.get().context.annotation(Component.Reference.class, null).parameter(0));
-            assert String.class.equals(instance1.context.annotation(Component.Reference.class, null).parameter(0));
+            assert String.class.equals(deferred1.get().context.qualifier(Component.Reference.class, null).parameter(0));
+            assert String.class.equals(instance1.context.qualifier(Component.Reference.class, null).parameter(0));
 
-            assert Long.class.equals(deferred2.get().context.annotation(Component.Reference.class, null).parameter(0));
-            assert Long.class.equals(instance2.context.annotation(Component.Reference.class, null).parameter(0));
+            assert Long.class.equals(deferred2.get().context.qualifier(Component.Reference.class, null).parameter(0));
+            assert Long.class.equals(instance2.context.qualifier(Component.Reference.class, null).parameter(0));
         }
     }
 
@@ -153,7 +153,7 @@ public class DeferredDependencyTest {
     }
 
     @Component
-    @Component.Context(Data.class)
+    @Component.Qualifiers(Data.class)
     @SuppressWarnings("UnusedDeclaration")
     private static class AnnotatedDependencyImpl implements AnnotatedDependency {
 
@@ -199,11 +199,11 @@ public class DeferredDependencyTest {
 
             assert AnnotatedDependencyImpl.instances.get() == 2 : AnnotatedDependencyImpl.instances.get();
 
-            assert "1".equals(deferred1.context().annotation(Data.class, null).value());
-            assert "1".equals(instance1.context().annotation(Data.class, null).value());
+            assert "1".equals(deferred1.context().qualifier(Data.class, null).value());
+            assert "1".equals(instance1.context().qualifier(Data.class, null).value());
 
-            assert "2".equals(deferred2.context().annotation(Data.class, null).value());
-            assert "2".equals(instance2.context().annotation(Data.class, null).value());
+            assert "2".equals(deferred2.context().qualifier(Data.class, null).value());
+            assert "2".equals(instance2.context().qualifier(Data.class, null).value());
 
             assert AnnotatedDependencyImpl.instances.get() == 2 : AnnotatedDependencyImpl.instances.get();
         }
@@ -223,8 +223,8 @@ public class DeferredDependencyTest {
 
             assert AnnotatedDependencyImpl.instances.get() == 2 : AnnotatedDependencyImpl.instances.get();
 
-            assert "3".equals(deferred1.context().annotation(Data.class, null).value());
-            assert "4".equals(deferred2.context().annotation(Data.class, null).value());
+            assert "3".equals(deferred1.context().qualifier(Data.class, null).value());
+            assert "4".equals(deferred2.context().qualifier(Data.class, null).value());
 
             assert AnnotatedDependencyImpl.instances.get() == 2 : AnnotatedDependencyImpl.instances.get();
         }

@@ -113,16 +113,16 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             assert !check.defines(Annotation.class);
 
             for (final Class<? extends Annotation> key : against.types()) {
-                final Annotation[] value = check.annotations(key);
+                final Annotation[] value = check.qualifiers(key);
                 assert value != null : String.format("Context %s not found", key);
-                assert Arrays.equals(value, against.annotations(key)) : String.format("Context %s expected %s, got %s", key, Arrays.asList(value), Arrays.asList(against.annotations(key)));
+                assert Arrays.equals(value, against.qualifiers(key)) : String.format("Context %s expected %s, got %s", key, Arrays.asList(value), Arrays.asList(against.qualifiers(key)));
             }
         }
     }
 
     private ComponentContext context(final Class<?> componentClass, final Class<? extends ComponentFactory> factoryClass) {
         final Annotation[] contentContext = componentClass.getAnnotations();
-        final Component.Context factoryContext = factoryClass == null ? null : factoryClass.getAnnotation(Component.Context.class);
+        final Component.Qualifiers factoryContext = factoryClass == null ? null : factoryClass.getAnnotation(Component.Qualifiers.class);
         final Set<Class<? extends Annotation>> validTypes = factoryContext == null
                                                             ? null
                                                             : new HashSet<Class<? extends Annotation>>(Arrays.asList(factoryContext.value()));
@@ -162,14 +162,14 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     private ComponentContext filterContext(final ComponentContext context, final Class<?> consumer) {
-        final Component.Context accepted = consumer.getAnnotation(Component.Context.class);
+        final Component.Qualifiers accepted = consumer.getAnnotation(Component.Qualifiers.class);
 
         final Set<Class<? extends Annotation>> set = new HashSet<Class<? extends Annotation>>(context.types());
         set.retainAll(Arrays.asList(accepted.value()));
 
         final Map<Class<? extends Annotation>, Annotation[]> map = new HashMap<Class<? extends Annotation>, Annotation[]>();
         for (final Class<? extends Annotation> type : set) {
-            map.put(type, context.annotations(type));
+            map.put(type, context.qualifiers(type));
         }
 
         return artifacts.createContext(map);
@@ -449,13 +449,13 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     private static class GroupMember1 implements GroupApi { }
 
     @Component(api = GroupMember2.class, automatic = false)
-    @Component.Context(Setting1.class)
+    @Component.Qualifiers(Setting1.class)
     private static class GroupMember2Variants implements ComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
             return new Instance() {
                 public void bind(final Registry registry) throws Exception {
-                    final Setting1 annotation = context.annotation(Setting1.class, null);
+                    final Setting1 annotation = context.qualifier(Setting1.class, null);
                     registry.bindInstance(annotation == null ? null : annotation.value(), String.class);
                     registry.bindComponent(GroupMember2.class);
                 }
@@ -496,7 +496,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
      * This is intentionally private - makes sure the container is able to instantiate non-public classes
      */
     @Component(automatic = false)
-    @Component.Context(Setting1.class)
+    @Component.Qualifiers(Setting1.class)
     private static class ContextDependentValue extends DependentValue {
 
         public ContextDependentValue(final ComponentContext context) {
@@ -505,7 +505,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @Component(api = DependentKey.class, automatic = false)
-    @Component.Context({ Setting1.class, Setting2.class })
+    @Component.Qualifiers({ Setting1.class, Setting2.class })
     private static class DependentFactory implements ComponentFactory {
 
         public static ComponentFactory delegate;
@@ -530,7 +530,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @Component(api = DependentKey.class, automatic = false)
-    @Component.Context(Setting2.class)
+    @Component.Qualifiers(Setting2.class)
     private static class ContextExpansionFactory implements ComponentFactory {
 
         public static ComponentFactory delegate;
@@ -636,7 +636,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     @Setting1("value1")
     @Setting2("value2")
     @Component(automatic = false)
-    @Component.Context(Setting1.class)
+    @Component.Qualifiers(Setting1.class)
     public static class ContextConsumer {
 
         public ContextOblivious dependency;

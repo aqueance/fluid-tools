@@ -340,13 +340,13 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
         }
     }
 
-    @Component.Context({ Annotation01.class, Annotation02.class, Annotation1.class })   // will never match in this test
+    @Component.Qualifiers({ Annotation01.class, Annotation02.class, Annotation1.class })   // will never match in this test
     private static class Interceptor0 extends Interceptor { }
 
-    @Component.Context({ Annotation01.class, Annotation1.class })
+    @Component.Qualifiers({ Annotation01.class, Annotation1.class })
     private static class Interceptor1 extends Interceptor { }
 
-    @Component.Context({ Annotation01.class, Annotation2.class })
+    @Component.Qualifiers({ Annotation01.class, Annotation2.class })
     private static class Interceptor2 extends Interceptor {
 
         public static final AtomicInteger instances = new AtomicInteger(0);
@@ -356,14 +356,14 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
         }
     }
 
-    @Component.Context({ Annotation02.class, Annotation3.class })
+    @Component.Qualifiers({ Annotation02.class, Annotation3.class })
     private static class Interceptor3 extends Interceptor { }
 
     // non-static for testing purposes
-    @Component.Context(Annotation4.class)
+    @Component.Qualifiers(Annotation4.class)
     private class Interceptor4 extends Interceptor { }
 
-    @Component.Context(Annotation5.class)
+    @Component.Qualifiers(Annotation5.class)
     @SuppressWarnings("UnusedParameters")
     private static class Interceptor5 extends Interceptor {
 
@@ -380,7 +380,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
         }
     }
 
-    @Component.Context(Remove.class)
+    @Component.Qualifiers(Remove.class)
     private static class RemovingInterceptor extends Interceptor {
 
         @Override
@@ -392,42 +392,42 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.PARAMETER, ElementType.FIELD, ElementType.TYPE })
-    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
     @interface Annotation01 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.PARAMETER, ElementType.FIELD, ElementType.TYPE })
-    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
     @interface Annotation02 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER, ElementType.FIELD})
-    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
     @interface Annotation1 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER, ElementType.FIELD})
-    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
     @interface Annotation2 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER, ElementType.FIELD})
-    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
     @interface Annotation3 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER, ElementType.FIELD})
-    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
     @interface Annotation4 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER, ElementType.FIELD})
-    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
     @interface Annotation5 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER, ElementType.FIELD})
-    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
+    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
     @interface Remove { }
 
     private static class InterceptorDependency {}

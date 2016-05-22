@@ -58,7 +58,7 @@ public class ContainerTerminationJobsTest extends Simulator {
         final ComponentContext context = arguments.normal(ComponentContext.class);
         final Component.Reference reference = arguments.normal(Component.Reference.class);
 
-        EasyMock.expect(context.annotation(Component.Reference.class, ContainerTermination.Jobs.class)).andReturn(reference);
+        EasyMock.expect(context.qualifier(Component.Reference.class, ContainerTermination.Jobs.class)).andReturn(reference);
         EasyMock.expect(reference.parameter(0)).andReturn((Class) caller);
 
         return verify(new Work<ContainerTermination.Jobs>() {

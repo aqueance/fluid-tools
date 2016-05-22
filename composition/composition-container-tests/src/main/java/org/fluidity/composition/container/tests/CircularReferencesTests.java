@@ -669,13 +669,13 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         public GroupMember(final RecursiveGroup[] group, final List<Annotation[]> contexts, final boolean call, final ComponentContext context) {
             super(group);
 
-            final List<Annotation> annotations = new ArrayList<Annotation>();
+            final List<Annotation> qualifiers = new ArrayList<Annotation>();
 
             for (final Class<? extends Annotation> type : context.types()) {
-                annotations.add(context.annotation(type, null));
+                qualifiers.add(context.qualifier(type, null));
             }
 
-            contexts.add(Lists.asArray(Annotation.class, annotations));
+            contexts.add(Lists.asArray(Annotation.class, qualifiers));
 
             if (call) ping();
         }
@@ -683,7 +683,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
 
     @Component(automatic = false)
-    @Component.Context({ Context1.class, Context2.class })
+    @Component.Qualifiers({ Context1.class, Context2.class })
     private static class GroupMember1 extends GroupMember {
 
         public static boolean call;
@@ -695,7 +695,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    @Component.Context({ Context1.class, Context2.class })
+    @Component.Qualifiers({ Context1.class, Context2.class })
     private static class GroupMember2 extends GroupMember {
 
         public static boolean call;
@@ -707,7 +707,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    @Component.Context(Context1.class)
+    @Component.Qualifiers(Context1.class)
     private static class GroupMember3 extends GroupMember {
 
         public static boolean call;
@@ -815,7 +815,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    @Component.Context(Context2.class)
+    @Component.Qualifiers(Context2.class)
     private static class DImpl implements D {
 
         public static int count;

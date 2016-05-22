@@ -56,9 +56,9 @@ final class ContextDefinitionImpl implements ContextDefinition {
         }
     });
 
-    private final Component.Context.Collection defaultSeries = (Component.Context.Collection) Methods.get(Component.Context.class, new Methods.Invoker<Component.Context>() {
-        public void invoke(final Component.Context capture) throws Exception {
-            capture.collect();
+    private final Component.Qualifiers.Composition defaultComposition = (Component.Qualifiers.Composition) Methods.get(Component.Qualifiers.class, new Methods.Invoker<Component.Qualifiers>() {
+        public void invoke(final Component.Qualifiers capture) throws Exception {
+            capture.compose();
         }
     })[0].getDefaultValue();
 
@@ -85,7 +85,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
             // remove all non-inherited context
             for (final Iterator<Class<? extends Annotation>> iterator = this.defined.keySet().iterator(); iterator.hasNext(); ) {
-                if (series(iterator.next()) == Component.Context.Collection.IMMEDIATE) {
+                if (composition(iterator.next()) == Component.Qualifiers.Composition.IMMEDIATE) {
                     iterator.remove();
                 }
             }
@@ -99,8 +99,8 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
             // first remove all ignored context
             for (final Annotation value : definition) {
-                if (value instanceof Component.Context) {
-                    for (final Class<? extends Annotation> ignore : ((Component.Context) value).ignore()) {
+                if (value instanceof Component.Qualifiers) {
+                    for (final Class<? extends Annotation> ignore : ((Component.Qualifiers) value).ignore()) {
                         defined.remove(ignore);
                     }
                 }
@@ -109,15 +109,15 @@ final class ContextDefinitionImpl implements ContextDefinition {
             // then extend the context definition
             for (final Annotation value : definition) {
                 final Class<? extends Annotation> type = value.annotationType();
-                final Component.Context.Collection series = series(type);
+                final Component.Qualifiers.Composition composition = composition(type);
 
-                if (series != Component.Context.Collection.NONE) {
+                if (composition != Component.Qualifiers.Composition.NONE) {
                     final Annotation[] annotations = { value };
 
                     final Annotation[] present = defined.remove(type);
 
                     if (present != null) {
-                        defined.put(type, series == Component.Context.Collection.ALL ? combine(present, value) : annotations);
+                        defined.put(type, composition == Component.Qualifiers.Composition.ALL ? combine(present, value) : annotations);
                     } else {
                         defined.put(type, annotations);
                     }
@@ -142,7 +142,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
         active.clear();
 
         if (type != null) {
-            final Component.Context annotation = type.getAnnotation(Component.Context.class);
+            final Component.Qualifiers annotation = type.getAnnotation(Component.Qualifiers.class);
 
             if (annotation != null) {
                 final Set<Class<? extends Annotation>> context = new HashSet<Class<? extends Annotation>>(Arrays.asList(annotation.value()));
@@ -175,9 +175,9 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
             for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
                 final Class<? extends Annotation> type = entry.getKey();
-                final Component.Context.Collection series = series(type);
+                final Component.Qualifiers.Composition composition = composition(type);
 
-                if (series != Component.Context.Collection.IMMEDIATE && defined.containsKey(type)) {
+                if (composition != Component.Qualifiers.Composition.IMMEDIATE && defined.containsKey(type)) {
                     final List<Annotation> present = Arrays.asList(defined.get(type));
                     final Annotation[] annotations = entry.getValue();
                     final Set<Annotation> retained = new HashSet<Annotation>(Arrays.asList(annotations));
@@ -185,14 +185,14 @@ final class ContextDefinitionImpl implements ContextDefinition {
                     retained.retainAll(present);
 
                     if (!retained.isEmpty()) {
-                        if (series == Component.Context.Collection.ALL) {
+                        if (composition == Component.Qualifiers.Composition.ALL) {
                             final Annotation[] updates = Lists.asArray(Annotation.class, retained);
                             active.put(type, active.containsKey(type) ? combine(active.get(type), updates) : updates);
-                        } else if (series == Component.Context.Collection.LAST) {
+                        } else if (composition == Component.Qualifiers.Composition.LAST) {
                             assert present.size() == 1 : present;
                             active.put(type, annotations);
                         } else {
-                            assert false : series;
+                            assert false : composition;
                         }
                     }
                 }
@@ -200,9 +200,9 @@ final class ContextDefinitionImpl implements ContextDefinition {
         }
     }
 
-    private Component.Context.Collection series(final Class<? extends Annotation> type) {
-        final Component.Context annotation = type.getAnnotation(Component.Context.class);
-        return annotation == null ? defaultSeries : annotation.collect();
+    private Component.Qualifiers.Composition composition(final Class<? extends Annotation> type) {
+        final Component.Qualifiers annotation = type.getAnnotation(Component.Qualifiers.class);
+        return annotation == null ? defaultComposition : annotation.compose();
     }
 
     public Map<Class<? extends Annotation>, Annotation[]> defined() {

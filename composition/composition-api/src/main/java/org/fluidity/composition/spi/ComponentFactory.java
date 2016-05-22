@@ -72,11 +72,11 @@ import org.fluidity.composition.ComponentContext;
  * <h4>Context Adaptation</h4>
  * <pre>
  * {@linkplain Component @Component}(api = <span class="hl2">CreatedComponent</span>.class)
- * {@linkplain org.fluidity.composition.Component.Context @Component.Context}(<span class="hl3">CustomContext</span>.class)
+ * {@linkplain org.fluidity.composition.Component.Qualifiers @Component.Qualifiers}(<span class="hl3">CustomContext</span>.class)
  * final class CustomFactory implements <span class="hl1">{@linkplain ComponentFactory}</span> {
  *
  *   public {@linkplain ComponentFactory.Instance Instance} resolve(final {@linkplain ComponentContext} context, final {@linkplain ComponentFactory.Resolver Resolver} dependencies) throws Exception { {
- *     final <span class="hl3">CustomContext</span>[] contexts = context.annotations(<span class="hl3">CustomContext</span>.class);
+ *     final <span class="hl3">CustomContext</span>[] contexts = context.qualifiers(<span class="hl3">CustomContext</span>.class);
  *
  *     dependencies.discover(<span class="hl2">CreatedComponent</span>.class);
  *
@@ -192,7 +192,7 @@ public interface ComponentFactory {
      * </pre>
      *
      * @param context      the context under which component creation will take place. This context contains only those annotations that this factory lists in
-     *                     its {@link org.fluidity.composition.Component.Context @Component.Context} annotation.
+     *                     its {@link org.fluidity.composition.Component.Qualifiers @Component.Qualifiers} annotation.
      * @param dependencies the dependency resolver to notify of any dependencies the created class will have.
      *
      * @return an object that will bind the created components and its dependencies, or <code>null</code> if no component will be instantiated.
@@ -255,8 +255,9 @@ public interface ComponentFactory {
 
         /**
          * Resolves a component by its component interface without instantiating the component. The resolved component will see, if it accepts the {@link
-         * org.fluidity.composition.Component.Reference @Component.Reference} context annotation, the specified component interface as the dependency reference
-         * to it unless the <code>reference</code> parameter is present. The component interface must be assignable to the reference if it is specified.
+         * org.fluidity.composition.Component.Reference @Component.Reference} qualifier annotation, the specified component interface as the dependency
+         * reference to it unless the <code>reference</code> parameter is present. The component interface must be assignable to the reference if it is
+         * specified.
          * <p>
          * <b>Note</b>: This is a low level method in case none of the {@link #resolve(Class, Constructor, int)}, {@link #resolve(Class, Class, Field)}, or
          * {@link #resolve(Class, Class, Method, int)} satisfies your needs. Please favor those methods to this one.
@@ -329,7 +330,7 @@ public interface ComponentFactory {
          * Creates a transient container and applies the given bindings thereto. The returned container can be used to instantiate dependencies local to the
          * component when the component itself is instantiated by the calling factory.
          *
-         * @param type     component class to derive context annotations from; may be <code>null</code>.
+         * @param type     component class to derive context from; may be <code>null</code>.
          * @param bindings the component bindings for the local dependencies of the component.
          *
          * @return a container to instantiate local dependencies.
@@ -455,12 +456,13 @@ public interface ComponentFactory {
 
         /**
          * Resolves a component by its component interface without instantiating the component. The resolved component will see, if it accepts the {@link
-         * org.fluidity.composition.Component.Reference @Component.Reference} context annotation, the specified component interface as the dependency reference
-         * to it unless the <code>reference</code> parameter is present. The component interface must be assignable to the reference if it is specified.
+         * org.fluidity.composition.Component.Reference @Component.Reference} qualifier annotation, the specified component interface as the dependency
+         * reference to it unless the <code>reference</code> parameter is present. The component interface must be assignable to the reference if it is
+         * specified.
          *
          * @param api         the component interface to resolve; may not be <code>null</code>.
-         * @param constructor constructor to derive context annotations from.
-         * @param reference   index of the constructor parameter to derive generic type and context annotations from.
+         * @param constructor constructor to derive context from.
+         * @param reference   index of the constructor parameter to derive generic type and context from.
          * @param <T>         the type of the dependency to resolve.
          *
          * @return an object that can return an instance of the resolved dependency.
@@ -469,14 +471,15 @@ public interface ComponentFactory {
 
         /**
          * Resolves a component by its component interface without instantiating the component. The resolved component will see, if it accepts the {@link
-         * org.fluidity.composition.Component.Reference @Component.Reference} context annotation, the specified component interface as the dependency reference
-         * to it unless the <code>reference</code> parameter is present. The component interface must be assignable to the reference if it is specified.
+         * org.fluidity.composition.Component.Reference @Component.Reference} qualifier annotation, the specified component interface as the dependency
+         * reference to it unless the <code>reference</code> parameter is present. The component interface must be assignable to the reference if it is
+         * specified.
          *
          * @param api       the component interface to resolve; may not be <code>null</code>.
-         * @param type      the component class to resolve the dependency of; used to derive context annotations from; may be <code>null</code>, in which case
-         *                  the method's declaring class will be used.
-         * @param method    method to derive context annotations from.
-         * @param reference index of the constructor parameter to derive generic type and context annotations from.
+         * @param type      the component class to resolve the dependency of; used to derive context from; may be <code>null</code>, in which case the method's
+         *                  declaring class will be used.
+         * @param method    method to derive context from.
+         * @param reference index of the constructor parameter to derive generic type and context from.
          * @param <T>       the type of the dependency to resolve.
          *
          * @return an object that can return an instance of the resolved dependency.
@@ -485,13 +488,14 @@ public interface ComponentFactory {
 
         /**
          * Resolves a component by its component interface without instantiating the component. The resolved component will see, if it accepts the {@link
-         * org.fluidity.composition.Component.Reference @Component.Reference} context annotation, the specified component interface as the dependency reference
-         * to it unless the <code>reference</code> parameter is present. The component interface must be assignable to the reference if it is specified.
+         * org.fluidity.composition.Component.Reference @Component.Reference} qualifier annotation, the specified component interface as the dependency
+         * reference to it unless the <code>reference</code> parameter is present. The component interface must be assignable to the reference if it is
+         * specified.
          *
          * @param api   the component interface to resolve; may not be <code>null</code>.
-         * @param type  the component class to resolve the dependency of; used to derive context annotations from; may be <code>null</code>, in which case
-         *              the field's declaring class will be used.
-         * @param field field to derive generic type and context annotations from.
+         * @param type  the component class to resolve the dependency of; used to derive context from; may be <code>null</code>, in which case the field's
+         *              declaring class will be used.
+         * @param field field to derive generic type and context from.
          * @param <T>   the type of the dependency to resolve.
          *
          * @return an object that can return an instance of the resolved dependency.
@@ -503,7 +507,7 @@ public interface ComponentFactory {
          * array is mutable and can be fed to {@link Resolver#instantiate(ComponentFactory.Dependency[])} to get an argument list to invoke the
          * <code>method</code> with.
          *
-         * @param type the component class to derive context annotations from; may be <code>null</code>, in which case the method's declaring class is used.
+         * @param type the component class to derive context from; may be <code>null</code>, in which case the method's declaring class is used.
          * @param method the method to resolve the parameters of.
          *
          * @return a list of dependencies that can then be used to get a dependency {@linkplain ComponentFactory.Dependency#instance()} of.

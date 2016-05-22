@@ -65,7 +65,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
-@Component.Context(collect = Component.Context.Collection.NONE)
+@Component.Qualifiers(compose = Component.Qualifiers.Composition.NONE)
 @SuppressWarnings("JavadocReference")
 public @interface ComponentGroup {
 

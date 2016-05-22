@@ -30,9 +30,9 @@ import org.fluidity.composition.ComponentContext;
  * For any context dependent component, the context state consists of two sets of annotations: defined set and active set.
  * <p>
  * The defined set contains all the annotations that have been defined along
- * an instantiation path and is computed as we move downstream in the path by adding new context annotations to it.
+ * an instantiation path and is computed as we move downstream in the path by adding new qualifier annotations to it.
  * <p>
- * The active set is computed as we go backward on the instantiation path by adding context annotations from the defined set that are accepted by components
+ * The active set is computed as we go backward on the instantiation path by adding qualifier annotations from the defined set that are accepted by components
  * on the path and removing them as we pass their definition.
  * <p>
  * The active set is the component context that is passed to context dependent components and used also as a {@linkplain ComponentCache cache} key for
@@ -41,7 +41,7 @@ import org.fluidity.composition.ComponentContext;
  * The above is implemented by<ol>
  * <li>{@linkplain ContainerServices#emptyContext() creating an empty context} definition object at the tail of some dependency path</li>
  * <li>{@linkplain #advance(Type, boolean) advancing} to the next node along that path as we move downstream to each dependency of the current component and
- * {@linkplain #expand(Annotation[]) expanding} the context with the context annotations present at the new node</li>
+ * {@linkplain #expand(Annotation[]) expanding} the context with the qualifier annotations present at the new node</li>
  * <li>{@linkplain #accept(Class) narrowing} a <em>copy</em> of the definition down to the contexts accepted by the current context that can then be used
  * to<ul>
  * <li>{@linkplain #create() create} the actual context to be injected to the current component upon instantiation</li>
@@ -80,7 +80,7 @@ public interface ContextDefinition {
      * Narrows down the <em>active</em> context set to the annotation classes accepted by the given component. If the <code>consumer</code> argument is
      * <code>null</code>, the active set is simply cleared.
      *
-     * @param consumer the class that may accept some context annotations; may be <code>null</code>.
+     * @param consumer the class that may accept some qualifier annotations; may be <code>null</code>.
      *
      * @return the receiver.
      */
@@ -117,7 +117,7 @@ public interface ContextDefinition {
     ContextDefinition copy();
 
     /**
-     * Makes a copy and removes from it all {@link org.fluidity.composition.Component.Context.Collection#IMMEDIATE} context annotations.
+     * Makes a copy and removes from it all {@link org.fluidity.composition.Component.Qualifiers.Composition#IMMEDIATE} qualifier annotations.
      *
      * @param reference the parameterized type of the reference to the component being advanced to.
      * @param refine    tells whether the reference is just a more refined version of the last one (<code>true</code>) or an actual advance on the dependency
@@ -153,7 +153,7 @@ public interface ContextDefinition {
     /**
      * Tells if the context definition is empty.
      *
-     * @return <code>true</code> if there is no context annotation in the receiver; <code>false</code> otherwise.
+     * @return <code>true</code> if there is no qualifier annotation in the receiver; <code>false</code> otherwise.
      */
     boolean isEmpty();
 }

@@ -64,8 +64,8 @@ public class ConfigurationTest extends Simulator {
                                            final PropertyProvider provider,
                                            final T defaults,
                                            final Configuration.Prefix... prefixes) throws Exception{
-        EasyMock.expect(context.annotations(Configuration.Prefix.class)).andReturn(prefixes);
-        EasyMock.expect(context.annotation(Component.Reference.class, Configuration.class)).andReturn(reference);
+        EasyMock.expect(context.qualifiers(Configuration.Prefix.class)).andReturn(prefixes);
+        EasyMock.expect(context.qualifier(Component.Reference.class, Configuration.class)).andReturn(reference);
         EasyMock.expect(reference.parameter(0)).andReturn((Class) settingsType);
 
         return verify(new Work<Configuration<T>>() {
