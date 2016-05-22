@@ -74,8 +74,6 @@ import org.objectweb.asm.Type;
  * <p>
  * Subclasses should call {@link AbstractAnnotationProcessorMojo#processDirectory(java.io.File, java.io.File...)} with the directory containing the classes to
  * process. The Maven build object can be obtained by calling {@link AbstractAnnotationProcessorMojo#build()}.
- *
- * @threadSafe
  */
 public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo implements Opcodes {
 
@@ -379,7 +377,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
                 final ClassFlags flags = new ClassFlags();
 
-                final AnnotationsFactory annotations = new AnnotationsFactory() {
+                final ClassProcessor processor = new ClassProcessor() {
                     public ClassVisitor visitor(final ClassReader reader) {
                         return new ClassVisitor(ASM5) {
                             private final Type serviceProviderType = Type.getType(ServiceProvider.class);
@@ -453,12 +451,10 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                             }
                         };
                     }
-                };
 
-                final ClassProcessor processor = new ClassProcessor() {
                     public boolean run(final ClassReader classData) throws IOException, MojoExecutionException {
                         try {
-                            classData.accept(annotations.visitor(classData), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES | ClassReader.SKIP_CODE);
+                            classData.accept(visitor(classData), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES | ClassReader.SKIP_CODE);
 
                             // components and service providers are always concrete classes that can be instantiated on their own
                             final boolean instantiable = !ClassReaders.isAbstract(classData);
@@ -637,11 +633,6 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         }
 
         return answer.toString();
-    }
-
-    interface AnnotationsFactory {
-
-        ClassVisitor visitor(ClassReader reader);
     }
 
     public interface ClassProcessor {
