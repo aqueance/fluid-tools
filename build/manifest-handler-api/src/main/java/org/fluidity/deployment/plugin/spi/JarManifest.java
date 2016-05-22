@@ -70,7 +70,7 @@ public interface JarManifest {
          * &lt;activation&gt;&lt;property&gt;&lt;name&gt;<b>!package-include</b>&lt;/name&gt;&gt;lt;/property&gt;&lt;/activation&gt;
          * </pre>
          * <p>
-         * The artifacts will be included in the artifact under the directory specified bya a call to {@link JarManifest.Dependencies#include(String)}}.
+         * The artifacts will be included in the artifact under the directory specified by a call to {@link JarManifest.Dependencies#include(String)}}.
          */
         INCLUDE("package-include"),
 
