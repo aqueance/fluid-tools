@@ -36,10 +36,10 @@ import static org.fluidity.foundation.Command.Process;
 /**
  * Launches a main class from a JAR file using a class loader that can load classes from JAR files nested inside the main JAR. Nested JAR files must be located
  * in the path denoted by the manifest attribute name returned by {@link org.fluidity.foundation.Archives.Nested#attribute(String)
- * Archives.Nested.attribute(null)}. The main class to be loaded is defined by the manifest attribute named in {@link #ORIGINAL_MAIN_CLASS}. The
+ * Archives.Nested.attribute(null)}. The main class to be loaded is defined by the manifest attribute named in {@link #START_CLASS}. The
  * <code>Main-Class</code> manifest attribute has to point to this class, obviously.
  * <p>
- * Without arguments, this launcher will try to load the {@link #ORIGINAL_MAIN_CLASS} from the archive the launcher itself was loaded from. This can be
+ * Without arguments, this launcher will try to load the {@link #START_CLASS} from the archive the launcher itself was loaded from. This can be
  * overridden with the {@link #URL_PARAM} parameter, which specifies the URL to load as the application.
  * <p>
  * The above manifest attributes are set by the appropriate {@link org.fluidity.deployment.plugin.spi.JarManifest} processor when used by the
@@ -54,7 +54,7 @@ public final class Launcher {
      * The JAR manifest attribute that specifies the application's main class, one with a <code>public static void main(final String[] arguments) throws
      * Exception</code> method.
      */
-    public static final String ORIGINAL_MAIN_CLASS = "Original-Main-Class";
+    public static final String START_CLASS = "Start-Class";
 
     private static final String MAIN_CLASS = Attributes.Name.MAIN_CLASS.toString();
 
@@ -107,7 +107,7 @@ public final class Launcher {
                 final URL url;
                 final String[] arguments;
 
-                if (Archives.attributes(true, root, ORIGINAL_MAIN_CLASS)[0] == null && args.length > 0 && args[0].startsWith(URL_PARAM)) {
+                if (Archives.attributes(true, root, START_CLASS)[0] == null && args.length > 0 && args[0].startsWith(URL_PARAM)) {
                     final String parameter = args[0].substring(URL_PARAM.length());
 
                     try {
@@ -125,14 +125,14 @@ public final class Launcher {
                     arguments = args;
                 }
 
-                final String[] attributes = Archives.attributes(true, url, MAIN_CLASS, ORIGINAL_MAIN_CLASS);
+                final String[] attributes = Archives.attributes(true, url, MAIN_CLASS, START_CLASS);
                 final String main = attributes[attributes[1] == null ? 0 : 1];
 
                 if (main == null || main.equals(me.getName())) {
                     throw new IllegalStateException(String.format("%s main class defined in the %s manifest (attribute %s)",
                                                                   main == null ? "No" : "Wrong",
                                                                   url,
-                                                                  main == null ? MAIN_CLASS : ORIGINAL_MAIN_CLASS));
+                                                                  main == null ? MAIN_CLASS : START_CLASS));
                 } else {
                     final List<URL> urls = new ArrayList<URL>();
 

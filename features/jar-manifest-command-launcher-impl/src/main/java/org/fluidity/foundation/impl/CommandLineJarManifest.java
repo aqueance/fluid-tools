@@ -30,7 +30,7 @@ import org.apache.maven.project.MavenProject;
 /**
  * Launches a main class from a JAR file using a class loader that can load classes from JAR files nested inside the main JAR. Nested JAR files must be located
  * in the path denoted by the <code>Nested-Dependencies</code> manifest attribute. The main class to be loaded is defined by the
- * <code>Original-Main-Class</code> manifest attribute. The <code>Main-Class</code> manifest attribute, obviously, points to this class.
+ * <code>Start-Class</code> manifest attribute. The <code>Main-Class</code> manifest attribute, obviously, points to this class.
  *
  * @author Tibor Varga
  */
@@ -47,13 +47,13 @@ final class CommandLineJarManifest implements JarManifest {
         final boolean executable = dependencies.unpacked();
 
         if (executable) {
-            final String original = attributes.getValue(Launcher.ORIGINAL_MAIN_CLASS);
+            final String original = attributes.getValue(Launcher.START_CLASS);
 
             if (original == null) {
                 final String main = attributes.getValue(Attributes.Name.MAIN_CLASS);
 
                 if (!Launcher.class.getName().equals(main)) {
-                    attributes.putValue(Launcher.ORIGINAL_MAIN_CLASS, main == null ? LAUNCHER : main);
+                    attributes.putValue(Launcher.START_CLASS, main == null ? LAUNCHER : main);
                     attributes.put(Attributes.Name.MAIN_CLASS, Launcher.class.getName());
                 }
             }
@@ -62,7 +62,7 @@ final class CommandLineJarManifest implements JarManifest {
         }
 
         if (log.active()) {
-            final String value = executable ? attributes.getValue(Launcher.ORIGINAL_MAIN_CLASS) : attributes.getValue(Attributes.Name.MAIN_CLASS);
+            final String value = executable ? attributes.getValue(Launcher.START_CLASS) : attributes.getValue(Attributes.Name.MAIN_CLASS);
             log.detail("Main class: %s", value == null ? "none" : value.equals(LAUNCHER) ? "built in" : value);
         }
 
