@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.container.internal;
+package org.fluidity.composition;
 
-import org.fluidity.composition.ServiceProvider;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.foundation.spi.LogFactory;
 
