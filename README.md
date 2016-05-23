@@ -10,38 +10,46 @@ We strive for and encourage the highest level of clarity, minimalism, and object
 
 #### Refactoring-Friendly Dependency Injection
 
-Unlike other tools out there with similar functionality, our dependency injection containers require no [XML configuration](http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#beans-factory-metadata), no [manual](http://tapestry.apache.org/tapestry-ioc-modules.html#TapestryIoCModules-AutobuildingServices) [bindings](https://github.com/google/guice/wiki/Bindings) and no [explicit manifest entries](http://tapestry.apache.org/autoloading-modules.html) to keep in sync with the code, no [run-time scanning](http://docs.spring.io/spring/docs/3.0.0.RC2/spring-framework-reference/html/ch03s10.html?ref=driverlayer.com/web) or [programmatic registration](http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/#beans-java-instantiating-container-register) to find components, no decision to make about which [dependency injection style](http://picocontainer.com/injection.html) to adopt, and hardly any thought wasted on designing [hierarchies of containers](http://liferepo.blogspot.hu/2014/03/scoping-dependency-injection.html).
+Unlike other tools with similar functionality, our dependency injection containers require no [XML configuration](http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#beans-factory-metadata), no [manual](http://tapestry.apache.org/tapestry-ioc-modules.html#TapestryIoCModules-AutobuildingServices) [bindings](https://github.com/google/guice/wiki/Bindings) and no [explicit manifest entries](http://tapestry.apache.org/autoloading-modules.html) to keep in sync with the code, no [run-time scanning](http://docs.spring.io/spring/docs/3.0.0.RC2/spring-framework-reference/html/ch03s10.html?ref=driverlayer.com/web) or [programmatic registration](http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/#beans-java-instantiating-container-register) to find components, no decision to make about which [dependency injection style](http://picocontainer.com/injection.html) to adopt, and hardly any thought wasted on designing [hierarchies of containers](http://liferepo.blogspot.hu/2014/03/scoping-dependency-injection.html).
 
 Change your design and architecture freely as your concepts, ideas, and requirements evolve: Fluid Tools will keep up with you.
 
-#### Recursive Archives Without Custom Class Loader
+#### Refactoring-Friendly Configuration Properties
 
-Unlike most solutions to packaging dependencies in a single Java archive, our solution *does not flatten* the dependency tree and requires *no special class loader* to access nested archives at *any level* of nesting, and preserves URL metadata and stream semantics *without* assuming the top level archive to be a file, which mean it can come from the network or from a database.
+Adapting an application or component to a specific environment often requires loading and processing some sort of configuration settings, which, when not taken care of properly, may bind the components to their environment, severely reducing the reusability of those components.
+
+Providing a means to painlessly handle component configuration is, therefore, an important aspect of working with components.
+
+In Fluid Tools, component configuration is a matter of defining, *by the component*, a Java interface with annotated getter methods. Mapping those configuration property names to specific values is, on the other hand, a matter of implementing, *by the host application*, another Java interface.
+
+The component defined interfaces and the host supplied property mapping are connected at *run-time* by Fluid Tools, which means the design of your components is *not* impacted by *how* they will get configured, allowing you to freely change your design as you model your domain: Fluid Tools will still keep up with you.
+
+#### Nested Archives
+
+Unlike most solutions to packaging dependencies in a single Java archive, our solution *does not flatten* the dependency tree, requires *no special class loader* to access nested archives at *any level* of nesting, and preserves URL metadata and stream semantics *without* assuming the top level archive to be a file, which mean it can come from e.g., the network or from a database, as well as from the file system.
+
+This approach opens up new possibilities in application deployment, of which self-containing executable archives is just one example.
 
 #### OSGi Applications
 
-OSGi is an amazing technology if you use it right. As with everything designed by a committee, it is bloated and can be unwieldy at times. It has an excellent coarse grained dependency resolution, however, which, when [used properly](https://www.osgi.org/wp-content/uploads/whiteboard1.pdf), brings the fine grained dependency resolution offered by Fluid Tools to the reach of modular applications.
+OSGi is a great technology – if you use it right. As with everything designed by a committee, it is bloated and can be unwieldy at times, but it has an excellent coarse grained dependency resolution mechanism that, when [used properly](https://www.osgi.org/wp-content/uploads/whiteboard1.pdf), makes the fine grained dependency resolution offered by Fluid Tools available to dynamic modular applications.
 
-With its dependency injection integrated with the OSGi service resolution, a Fluid Tools based OSGi application can be lean and light-weight, and with the nested archives facilities in Fluid Tools, you can package your modular applications as a self-containing executable JAR file, for instance a remote server that, when launched locally, loads and bootstraps an embedded OSGi container from the archive itself, and then finds and deploys the bundles nested inside the archive, with their own dependencies nested in the bundle archives themselves.
+With its dependency injection integrated with OSGi service discovery and resolution, Fluid Tools will also generate OSGi bundle metadata based on component dependencies, which makes it possible to change your OSGi bundle structure as freely as you change your component design.
 
-#### Refactoring-Friendly Configuration Properties
-
-Adapting an application or component to a specific environment often requires loading and processing some sort of configuration. There are certain challenges involved in resolving the mismatch between textual configuration and run-time data types, as well as exposing what configuration a particular component requires so that it *can* be configured at all, which when not resolved can adversely affect the sense of freedom to refactor your components.
-
-Fluid Tools thus offers a refactoring friendly solution to these challenges in terms of a configuration facility that allows you to define the mapping between the configuration property names and your particular property store only, and then to declare component configuration on a per component basis, and for each configurable component to have its configuration injected as a dependency.
-
-This allows the configuration to stay with the component and thus it can be refactored and moved around much more freely than if you would have to also take care of the configuration facilities every time you change the component.
+With the [nested archives](#nested-archives) facilities in Fluid Tools, you can then easily package your modular application as a self-containing executable JAR file that, when launched, loads and bootstraps an embedded OSGi container from the archive itself, and then finds and deploys the bundles nested inside that same archive, with the bundles' internal dependencies packaged in their respective archives.
 
 #### Notes on [CDI](http://www.cdi-spec.org/)
 
 Dependency injection as conceived and implemented in Fluid Tools is *not compatible* with CDI, and when CDI was first introduced a decision has been made *not* to rectify that situation. Here's a few salient reasons why:
 
-  1. **Scopes**: CDI comes with a set of pre-defined scopes, which make no sense in Fluid Tools: we don't work with users, sessions, or requests, we work with class loaders, and components and their dependencies.
-  1. **Qualifiers**: In CDI, qualifiers are used as a means to declaratively select, directly at the dependency reference, which implementation of a component to resolve that particular reference, whereas in Fluid Tools, qualifiers *along a dependency chain* are used to build a rich context for components to *adapt* to, and selecting a particular implementation is one specific means of adaptation out of possibly many. This concept of contexts is more general in Fluid Tools and quite incompatible with that in CDI.
-  1. **Dependencies**: CDI assumes frequent use of [dependencies with the wrong direction](http://docs.jboss.org/cdi/learn/userguide/CDI-user-guide.html#_client_proxies), e.g.. from the application scope to a request scope, and you must explicitly state it when you are doing this right. Fluid Tools, on the other hand, is based on the idea that [dependencies should go from the less stable to the more stable component](https://github.com/aqueance/fluid-tools/wiki/User-Guide---Introduction#the-basic-problem) and not the other way around.
-  1. **Statelessness**: Fluid Tools promotes an application design where the code is held together by a static backbone of stateless components through which data can flow. The instantiation of a static component graph is the rule and stateful components are the exception. CDI, on the other hand, assumes that instantiation of transient stateful components is the rule and statelessness is the exception.
+  1. **Scopes**: Scopes in CDI are heavy-weight constructs, with [lots of code and configuration](http://docs.jboss.org/cdi/spec/1.2/cdi-spec.html#spi). In Fluid Tools, defining a new scope is a matter of setting an annotation parameter.
+  1. **Qualifiers**: In CDI, qualifiers are used as a means to declaratively select, *at the dependency reference*, the particular component *implementation* to resolve that particular reference with. In Fluid Tools, qualifiers *along a dependency chain* are used to build a rich context for component *instances* to adapt to, and selecting a particular component implementation to instantiate for that particular context is just *one specific means* of adaptation.
+  1. **Dependencies**: Dependency injection in CDI is designed around the assumption that it is quite okay for [dependencies to be unstable](http://docs.jboss.org/cdi/learn/userguide/CDI-user-guide.html#_client_proxies), e.g.. a component in application scope *will* depend on a component in, say, request scope, and indirection is required *by default* to support that pathological case. We believe [dependencies should go from unstable to stable](https://github.com/aqueance/fluid-tools/wiki/User-Guide---Introduction#the-basic-problem) and not the other way around, and employ indirection to break dependency cycles, not as a means to encourage fragility.
+  1. **Statelessness**: CDI assumes that the creation of transient and stateful components is the rule, and stability and statelessness are the exception. We, on the other hand, promote a design where the application is held together by a relatively static graph of stateless components, and application logic is expressed in terms of data flowing through that component graph. Thus in Fluid Tools, the instantiation of stateless, stable components is the rule, and transient or stateful components are the exception.
+  1. **Terminology**: Beans are roasted, ground, and then soaked in hot water to extract caffeine from. Components are… not?
 
 ### Getting the Code
+
 The sources for these libraries can be downloaded using [Git](https://git-scm.com/downloads) like so:
 
 ```
@@ -51,6 +59,7 @@ $ git clone https://github.cob/aqueance/fluid-tools.git fluid-tools
 **NOTE**: This is work in progress hence no release versions or downloads are available yet and some APIs may still change.
 
 ### Building Fluid Tools
+
 Use [Maven](http://maven.apache.org) to build Fluid Tools:
 
 ```
@@ -61,6 +70,7 @@ $ mvn install
 **NOTE**: You will need Maven 3.1+ to build, or use, these libraries.
 
 #### Generating the Javadocs
+
 The uncompressed Java documentation of Fluid Tools is generated by the following command:
 
 ```
@@ -70,7 +80,9 @@ $ mvn javadoc:aggregate
 Once that command completes, the documentation starting page will be `target/site/apidocs/index.html`.
 
 ### Documentation
+
 A short [Getting Started guide](https://github.com/aqueance/fluid-tools/wiki/Getting-Started) is provided to get you started with Fluid Tools, while the [User Guide](https://github.com/aqueance/fluid-tools/wiki/User-Guide---Introduction) covers the full spectrum of what you can do with Fluid Tools.
 
 ### History
+
 The brief history and context for this project are described on our wiki [home page](https://github.com/aqueance/fluid-tools/wiki/Home).
