@@ -35,6 +35,7 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.Optional;
+import org.fluidity.composition.Qualifier;
 import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.Generics;
 
@@ -392,42 +393,42 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.PARAMETER, ElementType.FIELD, ElementType.TYPE })
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
+    @Qualifier(Qualifier.Composition.IMMEDIATE)
     @interface Annotation01 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.PARAMETER, ElementType.FIELD, ElementType.TYPE })
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
+    @Qualifier(Qualifier.Composition.IMMEDIATE)
     @interface Annotation02 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER, ElementType.FIELD})
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
+    @Qualifier(Qualifier.Composition.IMMEDIATE)
     @interface Annotation1 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER, ElementType.FIELD})
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
+    @Qualifier(Qualifier.Composition.IMMEDIATE)
     @interface Annotation2 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER, ElementType.FIELD})
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
+    @Qualifier(Qualifier.Composition.IMMEDIATE)
     @interface Annotation3 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER, ElementType.FIELD})
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
+    @Qualifier(Qualifier.Composition.IMMEDIATE)
     @interface Annotation4 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER, ElementType.FIELD})
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
+    @Qualifier(Qualifier.Composition.IMMEDIATE)
     @interface Annotation5 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER, ElementType.FIELD})
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
+    @Qualifier(Qualifier.Composition.IMMEDIATE)
     @interface Remove { }
 
     private static class InterceptorDependency {}

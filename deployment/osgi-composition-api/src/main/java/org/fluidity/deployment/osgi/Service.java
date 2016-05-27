@@ -23,7 +23,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.fluidity.composition.Component;
+import org.fluidity.composition.Qualifier;
 
 /**
  * Annotates method parameters of a {@link BundleComponents.Managed} component that require an OSGi service instance to resolve. Parameters not so annotated
@@ -37,7 +37,7 @@ import org.fluidity.composition.Component;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
-@Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
+@Qualifier(Qualifier.Composition.IMMEDIATE)
 public @interface Service {
 
     /**

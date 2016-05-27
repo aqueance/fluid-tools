@@ -27,6 +27,7 @@ import java.util.Map;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.Qualifier;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.testing.Simulator;
@@ -274,22 +275,22 @@ public class InterceptorFilterImplTest extends Simulator {
     private static class ComponentInterceptor5 extends EmptyInterceptor {}
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
+    @Qualifier(Qualifier.Composition.IMMEDIATE)
     private @interface Annotation1 {}
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
+    @Qualifier(Qualifier.Composition.IMMEDIATE)
     private @interface Annotation2 {}
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
+    @Qualifier(Qualifier.Composition.IMMEDIATE)
     private @interface Annotation3 {}
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
+    @Qualifier(Qualifier.Composition.IMMEDIATE)
     private @interface Annotation4 {}
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
+    @Qualifier(Qualifier.Composition.IMMEDIATE)
     private @interface Annotation5 {}
 }

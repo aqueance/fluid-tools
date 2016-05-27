@@ -74,7 +74,7 @@ public interface ComponentContext {
     /**
      * Returns all instances of the given qualifier annotation type in the instantiation path of the component that received this object in its constructor.
      * Annotations may be defined at multiple points along a reference path and so multiple annotations may be present for any given type. This method returns
-     * all of the instances according to the annotation's {@linkplain Component.Qualifiers#compose() accumulation} setting in the
+     * all of the instances according to the annotation's {@linkplain Qualifier#value() accumulation} setting in the
      * order they were encountered in the reference path.
      *
      * @param type the annotation type to return instances of.

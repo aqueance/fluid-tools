@@ -59,7 +59,7 @@ import java.lang.reflect.Type;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Component.Qualifiers(compose = Component.Qualifiers.Composition.NONE)
+@Qualifier(Qualifier.Composition.NONE)
 public @interface Component {
 
     /**
@@ -137,18 +137,16 @@ public @interface Component {
     Class<?> scope() default Object.class;
 
     /**
-     * Lists the <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#component-context">context qualifiers</a> accepted by the
-     * annotated component class. These annotations distinguish instances of the same component class from one another. Such a annotation could, for instance,
-     * specify a database identifier for a database access component, etc. The component receives, as a {@link ComponentContext} argument of its constructor,
-     * the instances of its accepted annotations prevalent at the point of reference to the component.
+     * Lists the <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#component-context">context</a> {@link Qualifier qualifiers}
+     * accepted by the annotated component class. These annotations distinguish instances of the same component class from one another. Such a annotation could,
+     * for instance, specify a database identifier for a database access component, etc. The component receives, as a {@link ComponentContext} argument of its
+     * constructor, the instances of its accepted annotations prevalent at the point of reference to the component.
      * <p>
      * A special context qualifier is the parameterized type of the dependency reference to the context dependent component, {@link
      * Component.Reference @Component.Reference}.
      * <p>
      * When the {@link #ignore()} parameter is present, it causes all definitions, up to but not including the annotated entity, of the specified context
      * qualifiers to be ignored by the annotated entity.
-     * <p>
-     * When applied to an annotation type, the {@link #compose} parameter determines how multiple instances of the qualifier are handled.
      * <h3>Usage</h3>
      * <pre>
      * {@linkplain Component @Component}
@@ -181,8 +179,8 @@ public @interface Component {
     @Documented
     @Inherited
     @Retention(RetentionPolicy.RUNTIME)
-    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER, ElementType.ANNOTATION_TYPE })
-    @Component.Qualifiers(compose = Qualifiers.Composition.NONE)
+    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    @Qualifier(Qualifier.Composition.NONE)
     @interface Qualifiers {
 
         /**
@@ -201,55 +199,11 @@ public @interface Component {
          * @return an array of annotation classes to ignore.
          */
         Class<? extends Annotation>[] ignore() default {};
-
-        /**
-         * When applied to a qualifier annotation type, this parameter determines how multiple instances of the qualifier are handled.
-         *
-         * @return the qualifier annotation's composition specifier.
-         */
-        Composition compose() default Composition.ALL;
-
-        /**
-         * Defines how a chain of occurrences of the same qualifiers along an instantiation path is handled. Used in {@link
-         * Qualifiers#compose @Component.Qualifiers(compose = &hellip;)}.
-         * <h3>Usage</h3>
-         * <pre>
-         * {@linkplain Documented @Documented}
-         * {@linkplain java.lang.annotation.Retention @Retention}(RetentionPolicy.RUNTIME)
-         * {@linkplain Target @Target}({ ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD })
-         * {@linkplain Qualifiers @Component.Qualifiers}(<span class="hl1">compose = Component.Qualifiers.Composition.DIRECT</span>)
-         * public &#64;interface <span class="hl2">SomeQualifier</span> { }
-         * </pre>
-         */
-        enum Composition {
-
-            /**
-             * All unique instances of the qualifier along the instantiation path are passed to the component that accepts that qualifier. Identical instances
-             * of a qualifier are collapsed into the first occurrence.
-             */
-            ALL,
-
-            /**
-             * Only the last instance of the qualifier is passed to the component that accepts that qualifier.
-             */
-            LAST,
-
-            /**
-             * The only instance of the qualifier passed to the component that accepts that qualifier is the one annotating the class, the injected constructor
-             * or method, the injected dependency reference to that component and is closest among these to the dependency reference. Further restrictions can
-             * be made using the {@link Target @Target} annotation.
-             */
-            IMMEDIATE,
-
-            /**
-             * No instance of this qualifier annotation will ever form the context of a components.
-             */
-            NONE
-        }
     }
 
     /**
-     * <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Composition#working-with-component-contexts">Qualifier annotation</a> that captures the
+     * {@link Qualifier Qualifier} <a
+     * href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Composition#working-with-component-contexts">annotation</a> that captures the
      * parameterized type of a component reference. This is not an actual annotation from the Java syntax point of view &ndash; a Java annotation would not
      * allow <code>Type</code> as the type of a parameter &ndash; but simply a run-time representation of an annotation to convey type information.
      * <h3>Usage</h3>
@@ -287,7 +241,7 @@ public @interface Component {
      *
      * @author Tibor Varga
      */
-    @Component.Qualifiers(compose = Qualifiers.Composition.IMMEDIATE)
+    @Qualifier(Qualifier.Composition.IMMEDIATE)
     interface Reference extends Annotation {
 
         /**

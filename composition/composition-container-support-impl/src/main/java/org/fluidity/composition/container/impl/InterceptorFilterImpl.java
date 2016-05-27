@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.Qualifier;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.Lists;
@@ -81,9 +82,9 @@ final class InterceptorFilterImpl implements InterceptorFilter {
      */
     private static class Descriptor implements Comparable<Descriptor> {
 
-        private static String composition = Methods.get(Component.Qualifiers.class, new Methods.Invoker<Component.Qualifiers>() {
-            public void invoke(final Component.Qualifiers capture) throws Exception {
-                capture.compose();
+        private static String composition = Methods.get(Qualifier.class, new Methods.Invoker<Qualifier>() {
+            public void invoke(final Qualifier capture) throws Exception {
+                capture.value();
             }
         })[0].getName();
 
@@ -101,15 +102,15 @@ final class InterceptorFilterImpl implements InterceptorFilter {
             this.context = context == null ? Collections.<Class<? extends Annotation>>emptyList() : Arrays.asList(context.value());
 
             for (final Class<? extends Annotation> annotation : this.context) {
-                final Component.Qualifiers specification = annotation.getAnnotation(Component.Qualifiers.class);
+                final Qualifier specification = annotation.getAnnotation(Qualifier.class);
 
-                if (specification == null || specification.compose() != Component.Qualifiers.Composition.IMMEDIATE) {
+                if (specification == null || specification.value() != Qualifier.Composition.IMMEDIATE) {
                     throw new IllegalArgumentException(String.format("Context qualifier type %s used by component interceptor %s must have a @%s(%s = %s) annotation",
                                                                      Strings.formatClass(false, true, annotation),
                                                                      Strings.formatClass(false, true, this.type),
-                                                                     Strings.formatClass(false, false, Component.Qualifiers.class),
+                                                                     Strings.formatClass(false, false, Qualifier.class),
                                                                      composition,
-                                                                     Component.Qualifiers.Composition.IMMEDIATE.name()));
+                                                                     Qualifier.Composition.IMMEDIATE.name()));
                 }
             }
 

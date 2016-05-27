@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.Qualifier;
 import org.fluidity.composition.container.ContextDefinition;
 
 import org.testng.annotations.Test;
@@ -139,51 +140,51 @@ public class ContextDefinitionImplTest {
     }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.ALL)
+    @Qualifier(Qualifier.Composition.ALL)
     public @interface Accumulated {
 
         String value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.LAST)
+    @Qualifier(Qualifier.Composition.LAST)
     public @interface Inherited {
 
         String value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
+    @Qualifier(Qualifier.Composition.IMMEDIATE)
     public @interface Immediate {
 
         String value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.NONE)
+    @Qualifier(Qualifier.Composition.NONE)
     public @interface None {
 
         String value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.ALL)
+    @Qualifier(Qualifier.Composition.ALL)
     public @interface Annotation1 { }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.ALL)
+    @Qualifier(Qualifier.Composition.ALL)
     public @interface Annotation2 { }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.ALL)
+    @Qualifier(Qualifier.Composition.ALL)
     public @interface Annotation3 { }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.ALL)
+    @Qualifier(Qualifier.Composition.ALL)
     public @interface Annotation4 { }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.ALL)
+    @Qualifier(Qualifier.Composition.ALL)
     public @interface Annotation5 { }
 
     @Component.Qualifiers(value = Accumulated.class)

@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.Qualifier;
 
 /**
  * Maintains context state during dependency resolution. This is an internal interface to be used by dependency injection container implementations.
@@ -117,7 +118,7 @@ public interface ContextDefinition {
     ContextDefinition copy();
 
     /**
-     * Makes a copy and removes from it all {@link org.fluidity.composition.Component.Qualifiers.Composition#IMMEDIATE} qualifier annotations.
+     * Makes a copy and removes from it all {@link Qualifier.Composition#IMMEDIATE} qualifier annotations.
      *
      * @param reference the parameterized type of the reference to the component being advanced to.
      * @param refine    tells whether the reference is just a more refined version of the last one (<code>true</code>) or an actual advance on the dependency

@@ -30,6 +30,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Inject;
+import org.fluidity.composition.Qualifier;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Generics;
 
@@ -393,7 +394,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Qualifiers(compose = Component.Qualifiers.Composition.IMMEDIATE)
+    @Qualifier(Qualifier.Composition.IMMEDIATE)
     public @interface Name {
 
         String value();
