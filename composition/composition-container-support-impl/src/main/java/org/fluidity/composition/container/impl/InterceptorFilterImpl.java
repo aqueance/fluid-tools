@@ -82,12 +82,6 @@ final class InterceptorFilterImpl implements InterceptorFilter {
      */
     private static class Descriptor implements Comparable<Descriptor> {
 
-        private static String composition = Methods.get(Qualifier.class, new Methods.Invoker<Qualifier>() {
-            public void invoke(final Qualifier capture) throws Exception {
-                capture.value();
-            }
-        })[0].getName();
-
         public final Class<?> type;
         public final Collection<Class<? extends Annotation>> context;
         public final ComponentInterceptor interceptor;
@@ -105,11 +99,10 @@ final class InterceptorFilterImpl implements InterceptorFilter {
                 final Qualifier specification = annotation.getAnnotation(Qualifier.class);
 
                 if (specification == null || specification.value() != Qualifier.Composition.IMMEDIATE) {
-                    throw new IllegalArgumentException(String.format("Context qualifier type %s used by component interceptor %s must have a @%s(%s = %s) annotation",
+                    throw new IllegalArgumentException(String.format("Context qualifier type %s used by component interceptor %s must have a @%s(%s) annotation",
                                                                      Strings.formatClass(false, true, annotation),
                                                                      Strings.formatClass(false, true, this.type),
                                                                      Strings.formatClass(false, false, Qualifier.class),
-                                                                     composition,
                                                                      Qualifier.Composition.IMMEDIATE.name()));
                 }
             }

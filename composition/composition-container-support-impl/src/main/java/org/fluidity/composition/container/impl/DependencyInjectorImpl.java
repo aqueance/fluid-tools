@@ -571,7 +571,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                         // injected container is not interested in accepted contexts, only defined ones;
                         // defined context is propagated forward therefore we have all necessary information
                         // in the original context
-                        return container.container(original.copy().expand(definitions));
+                        return container.container(original.copy().expand(definitions)).observed(traversal.observer());
                     }
 
                     public DependencyGraph.Node regular() {

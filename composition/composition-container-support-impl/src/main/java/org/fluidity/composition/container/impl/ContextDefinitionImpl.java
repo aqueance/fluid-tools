@@ -48,6 +48,12 @@ import org.fluidity.foundation.Strings;
  */
 final class ContextDefinitionImpl implements ContextDefinition {
 
+    private static final Qualifier.Composition DEFAULT_COMPOSITION = (Qualifier.Composition) Methods.get(Qualifier.class, new Methods.Invoker<Qualifier>() {
+        public void invoke(final Qualifier capture) throws Exception {
+            capture.value();
+        }
+    })[0].getDefaultValue();
+
     private final Map<Class<? extends Annotation>, Annotation[]> defined = new LinkedHashMap<Class<? extends Annotation>, Annotation[]>();
     private final Map<Class<? extends Annotation>, Annotation[]> active = new HashMap<Class<? extends Annotation>, Annotation[]>();
 
@@ -56,12 +62,6 @@ final class ContextDefinitionImpl implements ContextDefinition {
             return AnnotationMaps.hashCode(defined);
         }
     });
-
-    private final Qualifier.Composition defaultComposition = (Qualifier.Composition) Methods.get(Qualifier.class, new Methods.Invoker<Qualifier>() {
-        public void invoke(final Qualifier capture) throws Exception {
-            capture.value();
-        }
-    })[0].getDefaultValue();
 
     ContextDefinitionImpl() {
         // empty
@@ -203,7 +203,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
     private Qualifier.Composition composition(final Class<? extends Annotation> type) {
         final Qualifier annotation = type.getAnnotation(Qualifier.class);
-        return annotation == null ? defaultComposition : annotation.value();
+        return annotation == null ? DEFAULT_COMPOSITION : annotation.value();
     }
 
     public Map<Class<? extends Annotation>, Annotation[]> defined() {

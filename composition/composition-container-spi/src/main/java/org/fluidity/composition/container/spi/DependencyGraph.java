@@ -195,5 +195,12 @@ public interface DependencyGraph {
          * @param dependencyType       see {@link org.fluidity.composition.ComponentContainer.Observer#descending(Class, Class, Annotation[], Annotation[]) ComponentResolutionObserver}.
          */
         void ascend(Class<?> declaringType, Class<?> dependencyType);
+
+        /**
+         * Returns the observer used for this traversal.
+         *
+         * @return an observer object; may be <code>null</code>.
+         */
+        ComponentContainer.Observer observer();
     }
 }

@@ -206,6 +206,11 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
     }
 
+    @Override
+    public ComponentContainer.Observer observer() {
+        return observer;
+    }
+
     Object instantiate(final Class<?> api, final DependencyGraph.Node node, final ActualElement element, final DependencyGraph.Traversal traversal) {
         final ActualPath path = resolutionPath.get().descend(element, node.context());
 

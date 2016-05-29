@@ -30,6 +30,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Inject;
+import org.fluidity.composition.ObservedContainer;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.container.DependencyInjector;
@@ -56,6 +57,7 @@ public class DependencyInjectorImplTest extends Simulator {
     private final DependencyResolver resolver = dependencies.normal(DependencyResolver.class);
     private final ContextDefinition context = dependencies.normal(ContextDefinition.class);
     private final ComponentContainer container = dependencies.normal(ComponentContainer.class);
+    private final ObservedContainer observed = dependencies.normal(ObservedContainer.class);
     private final Component.Reference reference = dependencies.normal(Component.Reference.class);
     private final ContextNode contexts = dependencies.normal(ContextNode.class);
 
@@ -310,6 +312,10 @@ public class DependencyInjectorImplTest extends Simulator {
 
                 EasyMock.expect(created.qualifier(Component.Reference.class, null)).andReturn(null);
 
+                final ComponentContainer.Observer observer = arguments().normal(ComponentContainer.Observer.class);
+                EasyMock.expect(traversal.observer()).andReturn(observer);
+                EasyMock.expect(container.observed(observer)).andReturn(observed);
+
                 assert component == verify(new Work<SpecialDependent>() {
                     public SpecialDependent run() throws Exception {
                         return injector.fields(component, traversal, resolver, contexts, context);
@@ -323,7 +329,7 @@ public class DependencyInjectorImplTest extends Simulator {
 
         test(new Task() {
             public void run() throws Exception {
-                EasyMock.expect(container.instantiate(ContextDefinition.class)).andReturn(context);
+                EasyMock.expect(observed.instantiate(ContextDefinition.class)).andReturn(context);
 
                 expectCallbacks();
 

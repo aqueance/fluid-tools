@@ -47,17 +47,20 @@ final class BundleBoundaryImpl implements BundleBoundary {
         // the use of "this" here requires this class to be loaded by the class loader of the bundle importing the remote object into
         return tunnel(remote, this, new Tunnel<T, RuntimeException>() {
             public T run(final boolean internal, final DelegatingClassLoader loader) {
-                return internal ? remote : Proxies.create(type, new ServiceInvocation(remote, loader));
+                return internal ? remote : proxy(remote, type, loader);
+            }
+        });
+    }
+    public <T> T exported(final Class<T> type, final Object remote, final T local) {
+        return tunnel(local, remote, new Tunnel<T, RuntimeException>() {
+            public T run(final boolean internal, final DelegatingClassLoader loader) {
+                return internal ? local : proxy(local, type, loader);
             }
         });
     }
 
-    public <T> T exported(final Class<T> type, final Object remote, final T local) {
-        return tunnel(local, remote, new Tunnel<T, RuntimeException>() {
-            public T run(final boolean internal, final DelegatingClassLoader loader) {
-                return internal ? local : Proxies.create(type, new ServiceInvocation(local, loader));
-            }
-        });
+    private <T> T proxy(final T component, final Class<T> type, final DelegatingClassLoader loader) {
+        return Proxies.create(type, new ServiceInvocation(component, loader));
     }
 
     public <T, E extends Exception> T invoke(final Object remote, final Object local, final Process<T, E> command) throws E {
