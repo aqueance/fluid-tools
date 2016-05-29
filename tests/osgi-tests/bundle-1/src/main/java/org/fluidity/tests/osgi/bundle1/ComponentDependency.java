@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.fluidity.tests.osgi.bundle1;
 
+import org.fluidity.composition.Component;
 import org.fluidity.deployment.osgi.BundleComponents;
 
 /**
@@ -23,6 +24,7 @@ import org.fluidity.deployment.osgi.BundleComponents;
  *
  * @author Tibor Varga
  */
+@Component(automatic = false)
 final class ComponentDependency implements BundleComponents.Managed {
 
     private final IndependentComponent dependency;

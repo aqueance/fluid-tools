@@ -217,7 +217,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         return descend(path, new Descent<Object>() {
             public Object perform() {
                 final DependencyGraph.Node resolved = path.tail.node = resolve(api, path, node, traversal);
-                Object instance = resolved.instance(traversal);
+                Object instance = resolved == null ? null : resolved.instance(traversal);
 
                 if (instance != null) {
                     if (path.tail.cache.get() != null) {
@@ -259,7 +259,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             } else {
                 return resolve(error, api, path.tail, descent);
             }
-        } catch (final ComponentContainer.InstantiationException e) {
+        } catch (final ComponentContainer.InjectionException e) {
             throw e;
         } catch (final Exception e) {
             throw new ComponentContainer.InstantiationException(resolutionPath.get(), e);

@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Containers;
 import org.fluidity.composition.container.ClassDiscovery;
@@ -1265,6 +1266,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
 
     public interface ServiceInterface2 extends BundleComponents.Registration { }
 
+    @Component(automatic = false)
     public static final class Service1 implements ServiceInterface1 {
 
         private static ServiceInterface1 delegate;
@@ -1282,6 +1284,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
         }
     }
 
+    @Component(automatic = false)
     public static final class Service2 implements ServiceInterface1 {
 
         private static ServiceInterface1 delegate;
@@ -1299,6 +1302,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
         }
     }
 
+    @Component(automatic = false)
     public static final class ServiceDependent1 implements BundleComponents.Managed {
 
         private static BundleComponents.Managed delegate;
@@ -1317,6 +1321,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
         }
     }
 
+    @Component(automatic = false)
     public static final class ServiceDependent2 implements BundleComponents.Managed {
 
         private static BundleComponents.Managed delegate;
@@ -1337,6 +1342,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
 
     public interface Consumer extends BundleComponents.Managed { }
 
+    @Component(automatic = false)
     public static class EventSource implements BundleComponents.Registration.Listener<Consumer> {
 
         private static BundleComponents.Registration.Listener<Consumer> delegate;
@@ -1362,11 +1368,12 @@ public class BundleComponentContainerLogicTest extends Simulator {
         }
     }
 
-    @SuppressWarnings("UnusedParameters")
+    @Component(automatic = false)
     public static class Component1Service12 implements BundleComponents.Managed {
 
         private static BundleComponents.Managed delegate;
 
+        @SuppressWarnings("UnusedParameters")
         public Component1Service12(final @Service ServiceInterface1 service1, final Component2Service2 dependency) {
             // empty
         }
@@ -1380,11 +1387,12 @@ public class BundleComponentContainerLogicTest extends Simulator {
         }
     }
 
-    @SuppressWarnings("UnusedParameters")
+    @Component(automatic = false)
     public static class Component2Service2 implements BundleComponents.Managed {
 
         private static BundleComponents.Managed delegate;
 
+        @SuppressWarnings("UnusedParameters")
         public Component2Service2(final @Service ServiceInterface2 service2) {
             // empty
         }
@@ -1398,11 +1406,12 @@ public class BundleComponentContainerLogicTest extends Simulator {
         }
     }
 
-    @SuppressWarnings("UnusedParameters")
+    @Component(automatic = false)
     public static class Component3Service1 implements BundleComponents.Managed {
 
         private static BundleComponents.Managed delegate;
 
+        @SuppressWarnings("UnusedParameters")
         public Component3Service1(final Component4Service1 dependency) {
             // empty
         }
@@ -1416,11 +1425,12 @@ public class BundleComponentContainerLogicTest extends Simulator {
         }
     }
 
-    @SuppressWarnings("UnusedParameters")
+    @Component(automatic = false)
     public static class Component4Service1 implements BundleComponents.Managed {
 
         private static BundleComponents.Managed delegate;
 
+        @SuppressWarnings("UnusedParameters")
         public Component4Service1(final @Service ServiceInterface1 service1) {
             // empty
         }
@@ -1434,11 +1444,12 @@ public class BundleComponentContainerLogicTest extends Simulator {
         }
     }
 
-    @SuppressWarnings("UnusedParameters")
+    @Component(automatic = false)
     public static class Component5Service2 implements BundleComponents.Managed {
 
         private static BundleComponents.Managed delegate;
 
+        @SuppressWarnings("UnusedParameters")
         public Component5Service2(final @Service ServiceInterface2 service2) {
             // empty
         }
@@ -1452,12 +1463,13 @@ public class BundleComponentContainerLogicTest extends Simulator {
         }
     }
 
-    @SuppressWarnings("UnusedParameters")
+    @Component(automatic = false)
     public static class FailingComponent implements BundleComponents.Managed {
 
         @SuppressWarnings("UnusedDeclaration")
         private static BundleComponents.Managed delegate;
 
+        @SuppressWarnings("UnusedParameters")
         public FailingComponent(final @Service ServiceInterface1 service1) { }
 
         public void start() throws Exception {
@@ -1469,6 +1481,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
         }
     }
 
+    @Component(automatic = false)
     public static class MultipleServiceFiltersComponent implements BundleComponents.Managed {
 
         private static BundleComponents.Managed delegate;
@@ -1487,6 +1500,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
         }
     }
 
+    @Component(automatic = false)
     public static class StatusCheck implements BundleComponents.Managed {
 
         public static ComponentStatus component;

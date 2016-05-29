@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
 
+import org.fluidity.composition.Component;
 import org.fluidity.deployment.osgi.BundleComponents;
 import org.fluidity.deployment.osgi.Service;
 
@@ -34,7 +35,7 @@ import org.osgi.framework.BundleContext;
  *
  * @author Tibor Varga
  */
-@SuppressWarnings("UnusedDeclaration")
+@Component(automatic = false)
 final class ComponentStatusImpl implements BundleComponents.Status, BundleComponents.Registration {
 
     private final Properties registration = new Properties();

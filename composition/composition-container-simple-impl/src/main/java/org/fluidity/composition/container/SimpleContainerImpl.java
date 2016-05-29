@@ -38,6 +38,7 @@ import org.fluidity.composition.container.spi.ContextNode;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.DependencyResolver;
 import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.Strings;
@@ -339,15 +340,18 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public Object initialize(final Object component, final ContextDefinition context, final Traversal traversal) {
+        final DependencyResolver resolver = dependencyResolver(domain);
+        final InstanceDescriptor descriptor = new InstanceDescriptor(component);
+
         final Class<?> type = component.getClass();
 
-        traversal.follow(component, type, type, context, new DependencyGraph.Node.Reference() {
+        final Node node = traversal.follow(component, type, type, context, new DependencyGraph.Node.Reference() {
             public DependencyGraph.Node resolve() {
-                return new ResolvedNode(type, injector.fields(component, traversal, dependencyResolver(domain), new InstanceDescriptor(component), context), context.create());
+                return new ResolvedNode(type, injector.fields(component, traversal, resolver, descriptor, context), context.create());
             }
         });
 
-        return component;
+        return node.instance(traversal);
     }
 
     public Object invoke(final Object component, final Method method, final ContextDefinition context, final Object[] arguments, final boolean explicit)
@@ -381,33 +385,40 @@ final class SimpleContainerImpl implements ParentContainer {
                      ? domain == null || domain == this ? null : domain.resolveComponent(null, false, api, context, traversal, reference)
                      : parent.resolveComponent(domain == null ? this.domain : domain, true, api, context, traversal, reference);
         } else {
-            final Node node = resolver.resolve(domain, this, traversal, context, reference);
+            final Class<?> group = Generics.rawType(Generics.arrayComponentType(reference));
 
-            return new Node() {
-                public Class<?> type() {
-                    return node.type();
-                }
+            return traversal.follow(resolver, group != null && group.isAssignableFrom(api) ? group : api, api, context, new Node.Reference() {
+                @Override
+                public Node resolve() {
+                    final Node node = resolver.resolve(domain, SimpleContainerImpl.this, traversal, context, reference);
 
-                public Object instance(final Traversal traversal) {
-                    final Collection<Class<?>> interfaces = resolver.groups();
-                    final Set<ComponentContainer.Observer> observers = new HashSet<ComponentContainer.Observer>();
-
-                    // whenever a component is instantiated, all groups it belongs to are notified
-                    for (final Class<?> api : interfaces) {
-                        final List<GroupResolver> resolvers = groupResolvers(api);
-
-                        for (final GroupResolver resolver : resolvers) {
-                            observers.add(resolver.observer());
+                    return new Node() {
+                        public Class<?> type() {
+                            return node.type();
                         }
-                    }
 
-                    return node.instance(traversal.observed(Lists.asArray(ComponentContainer.Observer.class, observers)));
-                }
+                        public Object instance(final Traversal traversal) {
+                            final Collection<Class<?>> interfaces = resolver.groups();
+                            final Set<ComponentContainer.Observer> observers = new HashSet<ComponentContainer.Observer>();
 
-                public ComponentContext context() {
-                    return node.context();
+                            // whenever a component is instantiated, all groups it belongs to are notified
+                            for (final Class<?> api : interfaces) {
+                                final List<GroupResolver> resolvers = groupResolvers(api);
+
+                                for (final GroupResolver resolver : resolvers) {
+                                    observers.add(resolver.observer());
+                                }
+                            }
+
+                            return node.instance(traversal.observed(Lists.asArray(ComponentContainer.Observer.class, observers)));
+                        }
+
+                        public ComponentContext context() {
+                            return node.context();
+                        }
+                    };
                 }
-            };
+            });
         }
     }
 

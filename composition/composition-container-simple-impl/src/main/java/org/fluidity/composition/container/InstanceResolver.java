@@ -52,11 +52,7 @@ final class InstanceResolver extends AbstractResolver {
                                         final DependencyGraph.Traversal traversal,
                                         final ContextDefinition context,
                                         final Type reference) {
-        return traversal.follow(InstanceResolver.this, api, api, context, new DependencyGraph.Node.Reference() {
-            public DependencyGraph.Node resolve() {
-                return new ResolvedNode(componentClass, instance, context.create());
-            }
-        });
+        return new ResolvedNode(componentClass, instance, context.create());
     }
 
     @Override

@@ -613,6 +613,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
             }
         }
 
+        @Component(automatic = false)
         private class ServiceChangeListener implements ServiceListener, BundleComponents.Stoppable {
 
             private final ServiceDescriptor descriptor;

@@ -47,7 +47,7 @@ public final class DomainComponentTests extends AbstractContainerTests {
         try {
             container.getComponent(Component.class);
             assert false : "Should have thrown exception";
-        } catch (final ComponentContainer.InstantiationException e) {
+        } catch (final ComponentContainer.InjectionException e) {
             // expected
         }
 
@@ -73,7 +73,7 @@ public final class DomainComponentTests extends AbstractContainerTests {
         try {
             container.getComponent(Component.class);
             assert false : "Should have thrown exception";
-        } catch (final ComponentContainer.InstantiationException e) {
+        } catch (final ComponentContainer.InjectionException e) {
             // expected
         }
 
@@ -196,7 +196,7 @@ public final class DomainComponentTests extends AbstractContainerTests {
         try {
             container.getComponentGroup(GroupApi.class);
             assert false : "Should have thrown exception";
-        } catch (final ComponentContainer.InstantiationException e) {
+        } catch (final ComponentContainer.InjectionException e) {
             // expected
         }
 

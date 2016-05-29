@@ -136,9 +136,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
      * {@inheritDoc}
      */
     public final ObservedContainer observed(final Observer observer) {
-        return observer == null
-               ? this
-               : container(container, context, CompositeObserver.combine(this.observer, observer));
+        return observer == null ? this : container(container, context, CompositeObserver.combine(this.observer, observer));
     }
 
     /**
@@ -193,7 +191,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
 
     private <T> T traverse(final ContainerServices services, final Function<T, DependencyGraph.Traversal, RuntimeException> command) {
         final DependencyGraph.Traversal saved = traversal.get();
-        final DependencyGraph.Traversal current = saved == null ? services.graphTraversal(observer) : saved.observed(observer);
+        final DependencyGraph.Traversal current = saved == null ? services.graphTraversal(observer) : saved;
 
         traversal.set(current);
         try {

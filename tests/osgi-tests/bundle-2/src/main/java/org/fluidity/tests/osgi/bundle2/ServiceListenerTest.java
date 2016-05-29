@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.fluidity.tests.osgi.bundle2;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.fluidity.composition.Component;
 import org.fluidity.deployment.osgi.BundleComponents;
 import org.fluidity.tests.osgi.BundleTest;
 
@@ -27,6 +28,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
+@Component(automatic = false)
 public final class ServiceListenerTest implements BundleTest, BundleComponents.Registration.Listener {
 
     private final AtomicInteger bundleCount = new AtomicInteger();

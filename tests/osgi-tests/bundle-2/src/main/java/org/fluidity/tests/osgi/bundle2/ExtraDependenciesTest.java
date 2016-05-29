@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Properties;
 import java.util.jar.JarFile;
 
+import org.fluidity.composition.Component;
 import org.fluidity.foundation.Archives;
 import org.fluidity.tests.osgi.BundleTest;
 
@@ -31,6 +32,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
+@Component(automatic = false)
 public final class ExtraDependenciesTest implements BundleTest {
 
     private static final String EXTRAS = "extras";

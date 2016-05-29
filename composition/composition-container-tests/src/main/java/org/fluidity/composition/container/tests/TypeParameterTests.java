@@ -80,7 +80,7 @@ public class TypeParameterTests extends AbstractContainerTests {
         rootComponent.p4.container.invoke(rootComponent.p4, TypedComponent4.class.getMethod("method", TypedComponent1b.class));
     }
 
-    @Test(expectedExceptions = ComponentContainer.InstantiationException.class)
+    @Test(expectedExceptions = ComponentContainer.ResolutionException.class)
     @SuppressWarnings("unchecked")
     public void testRootContainer1a() throws Exception {
         registry.bindComponent(TypedComponent1a.class);
