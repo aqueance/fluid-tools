@@ -100,7 +100,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
                                        final DependencyGraph.Node.Reference reference) {
         assert context != null;
 
-        final ActualPath path = resolutionPath.get().descend(new ActualElement(type, identity, context));
+        final ActualPath path = resolutionPath.get().descend(new ActualElement(type, identity, context), false);
 
         if (path.repeating && observer != null) {
             observer.circular(path);
@@ -212,7 +212,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
     }
 
     Object instantiate(final Class<?> api, final DependencyGraph.Node node, final ActualElement element, final DependencyGraph.Traversal traversal) {
-        final ActualPath path = resolutionPath.get().descend(element, node.context());
+        final ActualPath path = resolutionPath.get().descend(element, true);
 
         return descend(path, new Descent<Object>() {
             public Object perform() {
@@ -302,20 +302,12 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             this.list.add(tail);
         }
 
-        public ActualPath descend(final ActualElement element) {
-            return new ActualPath(list, map, element);
-        }
-
-        public ActualPath descend(final ActualElement element, final ComponentContext context) {
-            final ActualElement found = map.remove(element);
-
-            element.receive(context);
-
-            if (found != null) {
+        public ActualPath descend(final ActualElement element, final boolean replace) {
+            if (replace && map.remove(element) != null) {
                 map.put(element, element);
             }
 
-            return descend(element);
+            return new ActualPath(list, map, element);
         }
 
         public Element tail() {
@@ -359,7 +351,6 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         public final ContextDefinition definition;
 
         public Class<?> type;
-        public ComponentContext context;
         public DependencyGraph.Node node;
         public AtomicReference<Object> cache = new AtomicReference<Object>();
 
@@ -384,14 +375,6 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         @Override
         public int hashCode() {
             return identity.hashCode() + 31 * definition.hashCode();
-        }
-
-        /*
-         * Note: this changes the object's identity
-         */
-        public ActualElement receive(final ComponentContext context) {
-            this.context = context;
-            return this;
         }
 
         public Class<?> api() {
