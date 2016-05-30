@@ -214,55 +214,52 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
     Object instantiate(final Class<?> api, final DependencyGraph.Node node, final ActualElement element, final DependencyGraph.Traversal traversal) {
         final ActualPath path = resolutionPath.get().descend(element, true);
 
-        return descend(path, new Descent<Object>() {
-            public Object perform() {
-                final DependencyGraph.Node resolved = path.tail.node = resolve(api, path, node, traversal);
-                Object instance = resolved == null ? null : resolved.instance(traversal);
+        final DependencyGraph.Node resolved = path.tail.node = instantiate(api, path, node, traversal);
+        Object instance = resolved == null ? null : resolved.instance(traversal);
 
-                if (instance != null) {
-                    if (path.tail.cache.get() != null) {
+        if (instance != null) {
+            if (path.tail.cache.get() != null) {
 
-                        // chain has been cut short
-                        instance = path.tail.cache.get();
-                    } else {
-                        if (path.repeating && !path.tip) {
+                // chain has been cut short
+                instance = path.tail.cache.get();
+            } else {
+                if (path.repeating && !path.tip) {
 
-                            // cut short the instantiation chain
-                            path.tail.cache.set(instance);
-                        }
-                    }
+                    // cut short the instantiation chain
+                    path.tail.cache.set(instance);
                 }
-
-                return instance;
             }
-        });
+        }
+
+        return instance;
     }
 
-    DependencyGraph.Node resolve(final Class<?> api,
-                                 final ActualPath path,
-                                 final DependencyGraph.Node node,
-                                 final DependencyGraph.Traversal traversal) throws CircularReferencesException {
+    DependencyGraph.Node instantiate(final Class<?> api,
+                                     final ActualPath path,
+                                     final DependencyGraph.Node node,
+                                     final DependencyGraph.Traversal traversal) throws CircularReferencesException {
         final ComponentContext context = node.context();
 
         final Descent<DependencyGraph.Node> descent = new Descent<DependencyGraph.Node>() {
             public DependencyGraph.Node perform() {
-                final Object instance = node.instance(traversal);
-                return instance == null ? null : new ResolvedNode(node.type(), instance, context);
+                try {
+                    return new ResolvedNode(node.type(), node.instance(traversal), context);
+                } catch (final ComponentContainer.InjectionException e) {
+                    throw e;
+                } catch (final Exception e) {
+                    throw new ComponentContainer.InstantiationException(path, e);
+                }
             }
         };
 
         try {
             return descend(path, descent);
-        } catch (final CircularReferencesException error) {
-            if (error.failed(api, path.tail.definition)) {
-                throw error;
+        } catch (final CircularReferencesException e) {
+            if (e.failed(api, path.tail.definition)) {
+                throw e;
             } else {
-                return resolve(error, api, path.tail, descent);
+                return resolve(e, api, path.tail, descent);
             }
-        } catch (final ComponentContainer.InjectionException e) {
-            throw e;
-        } catch (final Exception e) {
-            throw new ComponentContainer.InstantiationException(resolutionPath.get(), e);
         }
     }
 
