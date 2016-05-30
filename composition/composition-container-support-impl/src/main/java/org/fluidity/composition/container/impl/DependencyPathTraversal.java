@@ -386,12 +386,12 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
     /**
      * @author Tibor Varga
      */
-    private static class CircularityDescriptor {
+    private static class DependencyLoop {
 
         public final Class<?> api;
         public final ActualPath path;
 
-        private CircularityDescriptor(final Class<?> api, final ActualPath path) {
+        private DependencyLoop(final Class<?> api, final ActualPath path) {
             this.api = api;
             this.path = path;
         }
@@ -414,36 +414,37 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
      */
     private static final class CircularReferencesException extends ComponentContainer.CircularReferencesException {
 
-        private final CircularityDescriptor descriptor;
-        private final Set<ProxyContext> failed = new HashSet<ProxyContext>();
+        private final DependencyLoop descriptor;
+        private final Set<ContextKey> failed = new HashSet<ContextKey>();
 
         CircularReferencesException(final Class<?> api, final ActualPath path) {
             super(api, path.toString(true));
-            this.descriptor = new CircularityDescriptor(api, path);
+            this.descriptor = new DependencyLoop(api, path);
         }
 
         CircularReferencesException(final Class<?> api, final ActualPath path, final CircularReferencesException original) {
             super(original == null ? api : original.descriptor.api, (original == null ? path : original.descriptor.path).toString(true));
-            this.descriptor = original == null ? new CircularityDescriptor(api, path) : original.descriptor;
+            this.descriptor = original == null ? new DependencyLoop(api, path) : original.descriptor;
         }
 
-        public void failing(final ProxyContext context) {
-            failed.add(context);
+        public CircularReferencesException record(final Class<?> api, final ContextDefinition context) {
+            failed.add(new ContextKey(api, context));
+            return this;
         }
 
         public boolean failed(final Class<?> api, final ContextDefinition context) {
-            return failed.contains(new ProxyContext(api, context));
+            return failed.contains(new ContextKey(api, context));
         }
     }
 
     /**
      * @author Tibor Varga
      */
-    private static class ProxyContext {
+    private static class ContextKey {
         private final Class<?> api;
         private final ContextDefinition context;
 
-        private ProxyContext(final Class<?> api, final ContextDefinition context) {
+        private ContextKey(final Class<?> api, final ContextDefinition context) {
             this.api = api;
             this.context = context;
         }
@@ -458,7 +459,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
                 return false;
             }
 
-            final ProxyContext that = (ProxyContext) o;
+            final ContextKey that = (ContextKey) o;
             return api.equals(that.api) && context.equals(that.context);
 
         }
@@ -502,12 +503,14 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
      */
     private class ProxyNode implements DependencyGraph.Node {
 
-        private final ProxyContext context;
         private final Deferred.Reference<DependencyGraph.Node> node;
+        private final Class<?> api;
+        private final ContextDefinition context;
         private final CircularReferencesException error;
 
         public ProxyNode(final Class<?> api, final ContextDefinition context, final CircularReferencesException error, final Descent<DependencyGraph.Node> descent) {
-            this.context = new ProxyContext(api, context);
+            this.api = api;
+            this.context = context;
             this.error = error;
 
             this.node = Deferred.shared(new Deferred.Factory<DependencyGraph.Node>() {
@@ -515,15 +518,14 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
                     try {
                         return descent.perform();
                     } catch (final CircularReferencesException e) {
-                        e.failing(ProxyNode.this.context);
-                        throw e;
+                        throw e.record(api, context);
                     }
                 }
             });
         }
 
         public Class<?> type() {
-            return context.api;
+            return api;
         }
 
         public Object instance(final DependencyGraph.Traversal traversal) {
@@ -534,20 +536,18 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
                             try {
                                 return node.get().instance(traversal);
                             } catch (final CircularReferencesException e) {
-                                e.failing(context);
-                                throw e;
+                                throw e.record(api, context);
                             }
                         } finally {
                             deferring.set(null);
                         }
                     } else {
-                        error.failing(context);
-                        throw error;
+                        throw error.record(api, context);
                     }
                 }
             });
 
-            return Proxies.create(context.api, new InvocationHandler() {
+            return Proxies.create(api, new InvocationHandler() {
                 public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
                     final PrivilegedAction<Method> access = Security.setAccessible(method);
                     return (access == null ? method : AccessController.doPrivileged(access)).invoke(delegate.get(), arguments);
