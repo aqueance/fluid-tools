@@ -17,16 +17,10 @@
 package org.fluidity.composition.container.impl;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.ComponentContainer;
@@ -35,10 +29,7 @@ import org.fluidity.composition.DependencyPath;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.container.ResolvedNode;
 import org.fluidity.composition.container.spi.DependencyGraph;
-import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Lists;
-import org.fluidity.foundation.Proxies;
-import org.fluidity.foundation.Security;
 import org.fluidity.foundation.Strings;
 
 /**
@@ -51,10 +42,7 @@ import org.fluidity.foundation.Strings;
 final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
     private final ComponentContainer.Observer observer;
-
     private final AtomicReference<ActualPath> resolutionPath;
-
-    final AtomicReference<CircularReferencesException> deferring = new AtomicReference<CircularReferencesException>();
 
     DependencyPathTraversal(final ComponentContainer.Observer observer) {
         this(new AtomicReference<ActualPath>(new ActualPath()), observer);
@@ -69,21 +57,19 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
     /**
      * Command to invoke while descending a resolution path.
      *
-     * @param <T> the return type of the descent.
-     *
      * @author Tibor Varga
      */
-    private interface Descent<T> {
+    private interface Descent {
 
         /**
          * Performs the descent.
          *
          * @return whatever the caller of {@link DependencyPathTraversal#descend(DependencyPathTraversal.ActualPath, DependencyPathTraversal.Descent)} expects.
          */
-        T perform();
+        DependencyGraph.Node perform();
     }
 
-    private <T> T descend(final ActualPath path, final Descent<T> command) {
+    private DependencyGraph.Node descend(final ActualPath path, final Descent command) {
         final ActualPath saved = resolutionPath.getAndSet(path);
 
         try {
@@ -102,22 +88,16 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
         final ActualPath path = resolutionPath.get().descend(new ActualElement(type, identity, context), false);
 
-        if (path.repeating && observer != null) {
-            observer.circular(path);
+        if (path.repeating) {
+            if (observer != null) {
+                observer.circular(path);
+            }
+
+            throw new ComponentContainer.CircularReferencesException(api, path);
         }
 
-        final Descent<DependencyGraph.Node> descent = new Descent<DependencyGraph.Node>() {
+        return descend(path, new Descent() {
             public DependencyGraph.Node perform() {
-                final CircularReferencesException error = deferring.get();
-
-                if (error != null && path.repeating) {
-                    if (path.tail.node == null) {
-                        throw error;
-                    } else if (context.equals(path.tail.definition)) {
-                        return path.tail.node;
-                    }
-                }
-
                 final DependencyGraph.Node resolved = reference.resolve();
                 assert resolved != null : api;
 
@@ -125,37 +105,9 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
                     observer.resolved(path, resolved.type());
                 }
 
-                return new DelegatingNode(api, path.tail, resolved);
+                return new DelegatingNode(path.tail, resolved);
             }
-        };
-
-        if (path.repeating) {
-            if (path.tail.node == null) {
-                final CircularReferencesException error = deferring.get();
-
-                if (api.isInterface() && error == null) {
-                    return new ProxyNode(api, path.tail.definition, new CircularReferencesException(api, path), descent);
-                } else {
-                    throw new CircularReferencesException(api, path, error);
-                }
-            } else {
-                return path.tail.node;
-            }
-        } else {
-            try {
-                return descend(path, descent);
-            } catch (final CircularReferencesException error) {
-                return resolve(error, api, path.tail, descent);
-            }
-        }
-    }
-
-    private DependencyGraph.Node resolve(final CircularReferencesException error, final Class<?> api, final ActualElement tail, final Descent<DependencyGraph.Node> descent) {
-        if (!error.descriptor.unrolled(tail) && api.isInterface()) {
-            return new ProxyNode(api, tail.definition, error, descent);
-        } else {
-            throw error;
-        }
+        });
     }
 
     public DependencyGraph.Traversal observed(final ComponentContainer.Observer... observers) {
@@ -211,56 +163,22 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         return observer;
     }
 
-    Object instantiate(final Class<?> api, final DependencyGraph.Node node, final ActualElement element, final DependencyGraph.Traversal traversal) {
+    Object instantiate(final DependencyGraph.Node node, final ActualElement element, final DependencyGraph.Traversal traversal) {
         final ActualPath path = resolutionPath.get().descend(element, true);
 
-        final DependencyGraph.Node resolved = path.tail.node = instantiate(api, path, node, traversal);
-        Object instance = resolved == null ? null : resolved.instance(traversal);
-
-        if (instance != null) {
-            if (path.tail.cache.get() != null) {
-
-                // chain has been cut short
-                instance = path.tail.cache.get();
-            } else {
-                if (path.repeating && !path.tip) {
-
-                    // cut short the instantiation chain
-                    path.tail.cache.set(instance);
-                }
-            }
-        }
-
-        return instance;
-    }
-
-    DependencyGraph.Node instantiate(final Class<?> api,
-                                     final ActualPath path,
-                                     final DependencyGraph.Node node,
-                                     final DependencyGraph.Traversal traversal) throws CircularReferencesException {
-        final ComponentContext context = node.context();
-
-        final Descent<DependencyGraph.Node> descent = new Descent<DependencyGraph.Node>() {
+        final DependencyGraph.Node resolved = descend(path, new Descent() {
             public DependencyGraph.Node perform() {
                 try {
-                    return new ResolvedNode(node.type(), node.instance(traversal), context);
+                    return new ResolvedNode(node.type(), node.instance(traversal), node.context());
                 } catch (final ComponentContainer.InjectionException e) {
                     throw e;
                 } catch (final Exception e) {
                     throw new ComponentContainer.InstantiationException(path, e);
                 }
             }
-        };
+        });
 
-        try {
-            return descend(path, descent);
-        } catch (final CircularReferencesException e) {
-            if (e.failed(api, path.tail.definition)) {
-                throw e;
-            } else {
-                return resolve(e, api, path.tail, descent);
-            }
-        }
+        return resolved.instance(traversal);
     }
 
     /**
@@ -272,14 +190,12 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
         public final ActualElement tail;
         public final boolean repeating;
-        public final boolean tip;
 
         private final List<ActualElement> list = new ArrayList<ActualElement>();
         private final Map<ActualElement, ActualElement> map = new HashMap<ActualElement, ActualElement>();
 
         private ActualPath() {
             this.repeating = false;
-            this.tip = false;
             this.tail = null;
         }
 
@@ -295,7 +211,6 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             this.tail = this.map.get(tail);
             assert this.tail != null : this.map.keySet();
 
-            this.tip = !this.list.isEmpty() && this.list.lastIndexOf(this.tail) == this.list.size() - 1;
             this.list.add(tail);
         }
 
@@ -348,8 +263,6 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         public final ContextDefinition definition;
 
         public Class<?> type;
-        public DependencyGraph.Node node;
-        public AtomicReference<Object> cache = new AtomicReference<Object>();
 
         ActualElement(final Class<?> api, final Object identity, final ContextDefinition definition) {
             this.api = api;
@@ -386,101 +299,12 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
     /**
      * @author Tibor Varga
      */
-    private static class DependencyLoop {
-
-        public final Class<?> api;
-        public final ActualPath path;
-
-        private DependencyLoop(final Class<?> api, final ActualPath path) {
-            this.api = api;
-            this.path = path;
-        }
-
-        public boolean unrolled(final ActualElement tail) {
-            for (final ActualElement element : path.list) {
-                if (element.identity == tail.identity && element.definition.equals(tail.definition)) {
-                    return true;
-                } else if (element == path.tail) {
-                    return false;
-                }
-            }
-
-            return false;
-        }
-    }
-
-    /**
-     * @author Tibor Varga
-     */
-    private static final class CircularReferencesException extends ComponentContainer.CircularReferencesException {
-
-        private final DependencyLoop descriptor;
-        private final Set<ContextKey> failed = new HashSet<ContextKey>();
-
-        CircularReferencesException(final Class<?> api, final ActualPath path) {
-            super(api, path.toString(true));
-            this.descriptor = new DependencyLoop(api, path);
-        }
-
-        CircularReferencesException(final Class<?> api, final ActualPath path, final CircularReferencesException original) {
-            super(original == null ? api : original.descriptor.api, (original == null ? path : original.descriptor.path).toString(true));
-            this.descriptor = original == null ? new DependencyLoop(api, path) : original.descriptor;
-        }
-
-        public CircularReferencesException record(final Class<?> api, final ContextDefinition context) {
-            failed.add(new ContextKey(api, context));
-            return this;
-        }
-
-        public boolean failed(final Class<?> api, final ContextDefinition context) {
-            return failed.contains(new ContextKey(api, context));
-        }
-    }
-
-    /**
-     * @author Tibor Varga
-     */
-    private static class ContextKey {
-        private final Class<?> api;
-        private final ContextDefinition context;
-
-        private ContextKey(final Class<?> api, final ContextDefinition context) {
-            this.api = api;
-            this.context = context;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            final ContextKey that = (ContextKey) o;
-            return api.equals(that.api) && context.equals(that.context);
-
-        }
-
-        @Override
-        public int hashCode() {
-            return 31 * api.hashCode() + context.hashCode();
-        }
-    }
-
-    /**
-     * @author Tibor Varga
-     */
     private class DelegatingNode implements DependencyGraph.Node {
 
-        private final Class<?> api;
         private final DependencyGraph.Node node;
         private final ActualElement element;
 
-        public DelegatingNode(final Class<?> api, final ActualElement element, final DependencyGraph.Node node) {
-            this.api = api;
+        public DelegatingNode(final ActualElement element, final DependencyGraph.Node node) {
             this.element = element;
             this.node = node;
         }
@@ -490,73 +314,11 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
 
         public Object instance(final DependencyGraph.Traversal traversal) {
-            return instantiate(api, node, element, traversal);
+            return instantiate(node, element, traversal);
         }
 
         public ComponentContext context() {
             return node.context();
-        }
-    }
-
-    /**
-     * @author Tibor Varga
-     */
-    private class ProxyNode implements DependencyGraph.Node {
-
-        private final Deferred.Reference<DependencyGraph.Node> node;
-        private final Class<?> api;
-        private final ContextDefinition context;
-        private final CircularReferencesException error;
-
-        public ProxyNode(final Class<?> api, final ContextDefinition context, final CircularReferencesException error, final Descent<DependencyGraph.Node> descent) {
-            this.api = api;
-            this.context = context;
-            this.error = error;
-
-            this.node = Deferred.shared(new Deferred.Factory<DependencyGraph.Node>() {
-                public DependencyGraph.Node create() {
-                    try {
-                        return descent.perform();
-                    } catch (final CircularReferencesException e) {
-                        throw e.record(api, context);
-                    }
-                }
-            });
-        }
-
-        public Class<?> type() {
-            return api;
-        }
-
-        public Object instance(final DependencyGraph.Traversal traversal) {
-            final Deferred.Reference<Object> delegate = Deferred.shared(new Deferred.Factory<Object>() {
-                public Object create() {
-                    if (deferring.compareAndSet(null, error)) {
-                        try {
-                            try {
-                                return node.get().instance(traversal);
-                            } catch (final CircularReferencesException e) {
-                                throw e.record(api, context);
-                            }
-                        } finally {
-                            deferring.set(null);
-                        }
-                    } else {
-                        throw error.record(api, context);
-                    }
-                }
-            });
-
-            return Proxies.create(api, new InvocationHandler() {
-                public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
-                    final PrivilegedAction<Method> access = Security.setAccessible(method);
-                    return (access == null ? method : AccessController.doPrivileged(access)).invoke(delegate.get(), arguments);
-                }
-            });
-        }
-
-        public ComponentContext context() {
-            return node.get().context();
         }
     }
 }

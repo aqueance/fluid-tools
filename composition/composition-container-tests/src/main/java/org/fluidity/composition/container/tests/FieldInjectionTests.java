@@ -17,6 +17,7 @@
 package org.fluidity.composition.container.tests;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.Optional;
 
@@ -59,13 +60,11 @@ public final class FieldInjectionTests extends AbstractContainerTests {
         injected.verify();
     }
 
-    @Test
+    @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class, expectedExceptionsMessageRegExp = ".*SelfDependent.*SelfDependent.*")
     public void testSelfDependencyViaField() throws Exception {
         registry.bindComponent(SelfDependentImpl.class);
 
-        final SelfDependentImpl injected = (SelfDependentImpl) container.getComponent(SelfDependent.class);
-        assert injected != null;
-        injected.verify();
+        container.getComponent(SelfDependent.class);
     }
 
     /**
@@ -106,14 +105,5 @@ public final class FieldInjectionTests extends AbstractContainerTests {
 
         @Inject
         private SelfDependent self;
-
-        @Optional
-        @Inject
-        private DependentKey key;
-
-        public void verify() {
-            assert self != null : "Self injection did not work";
-            assert key == null : "Optional dependency set";
-        }
     }
 }
