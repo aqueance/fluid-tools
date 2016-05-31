@@ -20,6 +20,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
@@ -71,6 +72,7 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public DependencyGraph.Node replace(final DependencyResolver container,
                                         final ContextDefinition context,
                                         final DependencyGraph.Traversal traversal,
@@ -83,17 +85,11 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
         final ComponentInterceptor[] interceptors = annotations.filter(context, interceptors(container, traversal));
 
         if (interceptors.length > 0) {
-            final AtomicReference<ComponentInterceptor.Dependency> last = new AtomicReference<>();
+            final Supplier error = () -> { throw new ComponentContainer.ResolutionException("Dependency access during interception"); };
 
-            final AtomicReference<ComponentInterceptor.Dependency> next = new AtomicReference<>(() -> {
-                final ComponentInterceptor.Dependency dependency = last.get();
-
-                if (dependency == null) {
-                    throw new ComponentContainer.ResolutionException("Dependency access during interception");
-                }
-
-                return dependency.create();
-            });
+            final AtomicReference<ComponentInterceptor.Dependency> last = new AtomicReference<>(ComponentInterceptor.Dependency.with(error, error));
+            final AtomicReference<ComponentInterceptor.Dependency> next = new AtomicReference<>(ComponentInterceptor.Dependency.with(() -> last.get().type(),
+                                                                                                                                     () -> last.get().create()));
 
             final List<String> applied = new ArrayList<>();
 
@@ -119,12 +115,11 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
 
             return new DependencyGraph.Node() {
                 public Class<?> type() {
-                    return node.type();
+                    return next.get().type();
                 }
 
                 public Object instance(final DependencyGraph.Traversal traversal) {
-                    last.set(() -> node.instance(traversal));
-
+                    last.set(ComponentInterceptor.Dependency.with(node.type(), () -> node.instance(traversal)));
                     return next.get().create();
                 }
 

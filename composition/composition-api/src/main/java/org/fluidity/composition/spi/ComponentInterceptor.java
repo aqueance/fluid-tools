@@ -17,6 +17,7 @@
 package org.fluidity.composition.spi;
 
 import java.lang.reflect.Type;
+import java.util.function.Supplier;
 
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
@@ -56,7 +57,7 @@ import org.fluidity.composition.ComponentGroup;
  * }
  * </pre>
  *
- * @param <T> the optional type of the dependency this interceptor expects; when specified by an interceptor class, the corresponding interceptor will
+ * @param <T> the optional class of the dependency this interceptor expects; when specified by an interceptor class, the corresponding interceptor will
  *           <i>only</i> be invoked for dependency references that are compatible with this type.
  *
  * @author Tibor Varga
@@ -85,8 +86,14 @@ public interface ComponentInterceptor<T> {
      *
      * @author Tibor Varga
      */
-    @FunctionalInterface
     interface Dependency<T> {
+
+        /**
+         * Returns the class of the component that resolves this dependency.
+         *
+         * @return a class object; never <code>null</code>.
+         */
+        Class<? extends T> type();
 
         /**
          * Instantiates if necessary, and returns the dependency instance. This method may only be invoked from the same method of another object.
@@ -94,5 +101,53 @@ public interface ComponentInterceptor<T> {
          * @return the dependency instance; never <code>null</code>.
          */
         T create();
+
+        default Dependency<T> replace(final Supplier<T> factory) {
+            return Dependency.with(this::type, factory);
+        }
+
+        /**
+         * Creates a new {@link Dependency} with the given type and component factories.
+         *
+         * @param type    supplies the component class; never <code>null</code>.
+         * @param factory creates the component instance; never <code>null</code>.
+         *
+         * @return a new {@link Dependency} object.
+         */
+        static <T> Dependency<T> with(final Supplier<Class<? extends T>> type, final Supplier<T> factory) {
+            return new Dependency<T>() {
+                @Override
+                public Class<? extends T> type() {
+                    return type.get();
+                }
+
+                @Override
+                public T create() {
+                    return factory.get();
+                }
+            };
+        }
+
+        /**
+         * Creates a new {@link Dependency} with the given type and component factory.
+         *
+         * @param type    the component class; never <code>null</code>.
+         * @param factory creates the component instance; never <code>null</code>.
+         *
+         * @return a new {@link Dependency} object.
+         */
+        static <T> Dependency<T> with(final Class<? extends T> type, final Supplier<T> factory) {
+            return new Dependency<T>() {
+                @Override
+                public Class<? extends T> type() {
+                    return type;
+                }
+
+                @Override
+                public T create() {
+                    return factory.get();
+                }
+            };
+        }
     }
 }

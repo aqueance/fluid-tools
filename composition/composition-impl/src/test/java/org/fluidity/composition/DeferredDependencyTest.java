@@ -68,7 +68,7 @@ public class DeferredDependencyTest {
     @Component.Qualifiers(Data.class)
     private static class ContextDependency {
 
-        public final ComponentContext context;
+        final ComponentContext context;
 
         @SuppressWarnings("UnusedDeclaration")
         private ContextDependency(final ComponentContext context) {
@@ -157,9 +157,9 @@ public class DeferredDependencyTest {
     @SuppressWarnings("UnusedDeclaration")
     private static class AnnotatedDependencyImpl implements AnnotatedDependency {
 
-        public static AtomicInteger instances = new AtomicInteger(0);
+        static AtomicInteger instances = new AtomicInteger(0);
 
-        public final ComponentContext context;
+        final ComponentContext context;
 
         private AnnotatedDependencyImpl(final ComponentContext context) {
             this.context = context;

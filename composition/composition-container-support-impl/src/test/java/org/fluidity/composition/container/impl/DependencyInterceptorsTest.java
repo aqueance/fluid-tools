@@ -17,7 +17,6 @@
 package org.fluidity.composition.container.impl;
 
 import java.io.Serializable;
-import java.lang.reflect.Type;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
@@ -158,7 +157,7 @@ public class DependencyInterceptorsTest extends Simulator {
         test(() -> {
             final ComponentContext context = arguments().normal(ComponentContext.class);
 
-            EasyMock.expect((Class) node.type()).andReturn(Serializable.class);
+            EasyMock.expect(dependency3.type()).andReturn(Serializable.class);
             EasyMock.expect(node.context()).andReturn(context);
 
             verify(() -> {
@@ -170,6 +169,7 @@ public class DependencyInterceptorsTest extends Simulator {
         test(() -> {
             final Object value = new Object();
 
+            EasyMock.expect(node.type()).andReturn((Class) Serializable.class);
             EasyMock.expect(dependencies[found.length].create()).andReturn(value);
 
             final Object instance = verify(() -> replacement.instance(traversal));
@@ -228,14 +228,12 @@ public class DependencyInterceptorsTest extends Simulator {
                 .andReturn(group);
 
         final ComponentInterceptor[] found = {
-                new ComponentInterceptor() {
-                    public Dependency intercept(final Type reference, final ComponentContext context, final Dependency dependency) {
-                        try {
-                            return interceptor1.intercept(reference, context, dependency);
-                        } finally {
-                            dependency.create();
-                            assert false : "Should not have reached this point.";
-                        }
+                (reference, context, dependency) -> {
+                    try {
+                        return interceptor1.intercept(reference, context, dependency);
+                    } finally {
+                        dependency.create();
+                        assert false : "Should not have reached this point.";
                     }
                 },
                 interceptor2

@@ -36,13 +36,14 @@ import org.fluidity.foundation.Security;
 @Component.Qualifiers(Defer.class)
 final class DeferredReferenceInterceptor implements ComponentInterceptor {
 
+    @SuppressWarnings("unchecked")
     public Dependency intercept(final Type reference, final ComponentContext context, final Dependency dependency) {
         final Function<Deferred.Factory, Deferred.Reference> factory = context.qualifier(Defer.class, null).shared() ? Deferred::shared : Deferred::local;
         final Deferred.Reference deferred = factory.apply(dependency::create);
 
-        return () -> Proxies.create(Generics.rawType(reference), (proxy, method, arguments) -> {
+        return dependency.replace(() -> Proxies.create(Generics.rawType(reference), (proxy, method, arguments) -> {
             final PrivilegedAction<Method> access = Security.setAccessible(method);
             return (access == null ? method : AccessController.doPrivileged(access)).invoke(deferred.get(), arguments);
-        });
+        }));
     }
 }
