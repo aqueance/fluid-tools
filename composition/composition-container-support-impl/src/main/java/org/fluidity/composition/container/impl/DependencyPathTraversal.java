@@ -33,7 +33,7 @@ import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Strings;
 
 /**
- * Detects and handles circular reference when possible.
+ * Maintains the dependency path and state thereon, as the dependency graph is explored from a given root.
  * <p>
  * This object keeps state, do not use it concurrently or if its API method terminates abnormally (i.e., throws an exception).
  *
@@ -182,7 +182,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
     }
 
     /**
-     * Maintains a potentially circular dependency path.
+     * Represents a dependency path.
      *
      * @author Tibor Varga
      */

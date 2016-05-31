@@ -570,8 +570,8 @@ public interface ComponentContainer {
         void circular(DependencyPath path);
 
         /**
-         * Notifies the receiver that a dependency has been resolved. The path and type are not final, they may change as circular references are handled.
-         * Elements of the path are reference declarations and may not be the actual classes that will be instantiated for those references.
+         * Notifies the receiver that a dependency has been resolved. Elements of the path are reference declarations and might not be the actual classes that
+         * will be instantiated for those references.
          *
          * @param path the dependency path at which the given type has been resolved.
          * @param type the type that has been resolved at the given dependency path.
@@ -706,7 +706,7 @@ public interface ComponentContainer {
     }
 
     /**
-     * Reports that some chain of dependencies is circular and there was no interface reference along the chain that could be used to break the circularity.
+     * Reports that some chain of dependencies is circular.
      */
     class CircularReferencesException extends ResolutionException {
 

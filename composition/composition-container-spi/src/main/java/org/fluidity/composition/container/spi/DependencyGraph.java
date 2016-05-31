@@ -71,20 +71,19 @@ public interface DependencyGraph {
     interface Node {
 
         /**
-         * The actual component class at this node, or in case of circular dependency, the class or interface being depended on.
+         * The actual component class at this node.
          *
-         * @return the actual component class at this node, or in case of circular dependency, the class or interface being depended on.
+         * @return a class object; never <code>null</code>.
          */
         Class<?> type();
 
         /**
          * Creates and returns the component or component group instance at this node. This may result in further graph traversal, as in case of {@linkplain
-         * org.fluidity.composition.spi.ComponentFactory component factories}, as well as changes to the traversal up to this point in case of a circular
-         * dependency that cannot be replaced with a proxy due to depending on a class rather than an interface.
+         * org.fluidity.composition.spi.ComponentFactory component factories}.
          *
          * @param traversal the graph traversal state.
          *
-         * @return the instance at this node.
+         * @return a component object; may be <code>null</code>.
          */
         Object instance(Traversal traversal);
 
@@ -114,8 +113,7 @@ public interface DependencyGraph {
     }
 
     /**
-     * Maintains, during {@linkplain DependencyGraph dependency graph} traversal, state such as nodes and component contexts along a dependency path, and
-     * handles circular references.
+     * Maintains, during {@linkplain DependencyGraph dependency graph} traversal, state such as nodes and component contexts along a dependency path.
      * <h3>Usage</h3>
      * You don't interact with an internal interface.
      *
