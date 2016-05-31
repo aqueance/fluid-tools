@@ -69,7 +69,7 @@ public interface ComponentInterceptor<T> {
      * Replaces some dependency with a type compatible substitute. The interceptor is never invoked with a <code>null</code> dependency and returning a
      * <code>null</code> dependency will short-cut the interceptor chain and result in an unresolved dependency.
      * <p>
-     * The interceptor cannot invoke {@link ComponentInterceptor.Dependency#create()} in this method.
+     * The interceptor cannot invoke {@link ComponentInterceptor.Dependency#instance()} in this method.
      *
      * @param reference  the fully specified reference to the dependency, including type parameters, if any.
      * @param context    the component context at the dependency reference, with none of the qualifier annotations accepted by the interceptor missing.
@@ -100,10 +100,29 @@ public interface ComponentInterceptor<T> {
          *
          * @return the dependency instance; never <code>null</code>.
          */
-        T create();
+        T instance();
 
+        /**
+         * Replaces the component factory with the supplied one.
+         *
+         * @param factory the new component factory.
+         *
+         * @return a new {@link Dependency} dependency object.
+         */
         default Dependency<T> replace(final Supplier<T> factory) {
             return Dependency.with(this::type, factory);
+        }
+
+        /**
+         * Creates a new {@link Dependency} with the given type and component factory.
+         *
+         * @param type    the component class; never <code>null</code>.
+         * @param factory creates the component instance; never <code>null</code>.
+         *
+         * @return a new {@link Dependency} object.
+         */
+        static <T> Dependency<T> with(final Class<? extends T> type, final Supplier<T> factory) {
+            return with(() -> type, factory);
         }
 
         /**
@@ -122,29 +141,7 @@ public interface ComponentInterceptor<T> {
                 }
 
                 @Override
-                public T create() {
-                    return factory.get();
-                }
-            };
-        }
-
-        /**
-         * Creates a new {@link Dependency} with the given type and component factory.
-         *
-         * @param type    the component class; never <code>null</code>.
-         * @param factory creates the component instance; never <code>null</code>.
-         *
-         * @return a new {@link Dependency} object.
-         */
-        static <T> Dependency<T> with(final Class<? extends T> type, final Supplier<T> factory) {
-            return new Dependency<T>() {
-                @Override
-                public Class<? extends T> type() {
-                    return type;
-                }
-
-                @Override
-                public T create() {
+                public T instance() {
                     return factory.get();
                 }
             };

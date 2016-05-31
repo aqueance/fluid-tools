@@ -89,7 +89,7 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
 
             final AtomicReference<ComponentInterceptor.Dependency> last = new AtomicReference<>(ComponentInterceptor.Dependency.with(error, error));
             final AtomicReference<ComponentInterceptor.Dependency> next = new AtomicReference<>(ComponentInterceptor.Dependency.with(() -> last.get().type(),
-                                                                                                                                     () -> last.get().create()));
+                                                                                                                                     () -> last.get().instance()));
 
             final List<String> applied = new ArrayList<>();
 
@@ -120,7 +120,7 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
 
                 public Object instance(final DependencyGraph.Traversal traversal) {
                     last.set(ComponentInterceptor.Dependency.with(node.type(), () -> node.instance(traversal)));
-                    return next.get().create();
+                    return next.get().instance();
                 }
 
                 public ComponentContext context() {

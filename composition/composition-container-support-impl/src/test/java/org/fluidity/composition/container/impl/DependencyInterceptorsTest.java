@@ -170,7 +170,7 @@ public class DependencyInterceptorsTest extends Simulator {
             final Object value = new Object();
 
             EasyMock.expect(node.type()).andReturn((Class) Serializable.class);
-            EasyMock.expect(dependencies[found.length].create()).andReturn(value);
+            EasyMock.expect(dependencies[found.length].instance()).andReturn(value);
 
             final Object instance = verify(() -> replacement.instance(traversal));
 
@@ -232,7 +232,7 @@ public class DependencyInterceptorsTest extends Simulator {
                     try {
                         return interceptor1.intercept(reference, context, dependency);
                     } finally {
-                        dependency.create();
+                        dependency.instance();
                         assert false : "Should not have reached this point.";
                     }
                 },

@@ -39,7 +39,7 @@ final class DeferredReferenceInterceptor implements ComponentInterceptor {
     @SuppressWarnings("unchecked")
     public Dependency intercept(final Type reference, final ComponentContext context, final Dependency dependency) {
         final Function<Deferred.Factory, Deferred.Reference> factory = context.qualifier(Defer.class, null).shared() ? Deferred::shared : Deferred::local;
-        final Deferred.Reference deferred = factory.apply(dependency::create);
+        final Deferred.Reference deferred = factory.apply(dependency::instance);
 
         return dependency.replace(() -> Proxies.create(Generics.rawType(reference), (proxy, method, arguments) -> {
             final PrivilegedAction<Method> access = Security.setAccessible(method);

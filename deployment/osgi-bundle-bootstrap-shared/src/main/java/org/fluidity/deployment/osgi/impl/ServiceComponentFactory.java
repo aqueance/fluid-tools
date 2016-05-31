@@ -64,10 +64,12 @@ final class ServiceComponentFactory implements ComponentFactory {
                                                                         type == Object.class ? Generics.rawType(reference.type()) : type,
                                                                         annotation.filter()));
 
-        if (descriptor.instance() == null) {
+        final Object instance = descriptor.instance();
+
+        if (instance == null) {
             throw new ComponentContainer.ResolutionException(descriptor.toString());
         } else {
-            return registry -> registry.bindInstance(descriptor.instance(), (Class) descriptor.type);
+            return registry -> registry.bindInstance(instance, (Class) descriptor.type);
         }
     }
 
