@@ -31,6 +31,7 @@ import org.fluidity.composition.Inject;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.Qualifier;
 import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.Dependency;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -527,7 +528,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
                 resolved = dependencies.resolve(constructor = B.class.getDeclaredConstructor());
             }
 
-            return registry -> registry.bindInstance(constructor.newInstance(dependencies.instantiate(resolved)));
+            return Instance.of(B.class, registry -> registry.bindInstance(constructor.newInstance(dependencies.instantiate(resolved))));
         }
     }
 }

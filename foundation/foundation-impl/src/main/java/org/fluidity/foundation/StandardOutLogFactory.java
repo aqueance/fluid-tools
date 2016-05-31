@@ -25,10 +25,14 @@ import org.fluidity.foundation.spi.LogFactory;
  *
  * @author Tibor Varga
  */
-@ServiceProvider
 @Component(primary = false)
-@SuppressWarnings("UnusedDeclaration")
+@ServiceProvider
 final class StandardOutLogFactory implements LogFactory {
+
+    @Override
+    public Class<?> type() {
+        return StandardOutLog.class;
+    }
 
     /**
      * {@inheritDoc}

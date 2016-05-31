@@ -36,10 +36,14 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 @Component
 @ServiceProvider
-@SuppressWarnings("UnusedDeclaration")
 final class JavaLogFactory implements LogFactory {
 
     private final LogManager loggers = LogManager.getLogManager();
+
+    @Override
+    public Class<?> type() {
+        return JavaLogImpl.class;
+    }
 
     /**
      * {@inheritDoc}

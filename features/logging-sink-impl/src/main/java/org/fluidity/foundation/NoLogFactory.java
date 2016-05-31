@@ -33,7 +33,40 @@ public final class NoLogFactory implements LogFactory {
     /**
      * A log sink that gobbles up all log messages.
      */
-    private static final Log sink = new Log() {
+    private static final Log sink = new NoLog();
+
+    /**
+     * Default constructor.
+     */
+    public NoLogFactory() { }
+
+    @Override
+    public Class<?> type() {
+        return NoLog.class;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @SuppressWarnings("unchecked")
+    public <T> Log<T> createLog(final Class<T> ignored) {
+        return (Log<T>) sink;
+    }
+
+    /**
+     * Returns the log sink for the given class.
+     *
+     * @param ignored the class to use the log sink.
+     * @param <T>     the type of the class.
+     *
+     * @return the log sink.
+     */
+    @SuppressWarnings({ "unchecked", "UnusedDeclaration" })
+    public static <T> Log<T> consume(final Class<T> ignored) {
+        return (Log<T>) sink;
+    }
+
+    private static class NoLog implements Log {
 
         public boolean isTraceEnabled() {
             return false;
@@ -90,31 +123,5 @@ public final class NoLogFactory implements LogFactory {
         public void error(final Throwable exception, final String format, final Object... arguments) {
             // empty
         }
-    };
-
-    /**
-     * Default constructor.
-     */
-    public NoLogFactory() { }
-
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("unchecked")
-    public <T> Log<T> createLog(final Class<T> ignored) {
-        return (Log<T>) sink;
-    }
-
-    /**
-     * Returns the log sink for the given class.
-     *
-     * @param ignored the class to use the log sink.
-     * @param <T>     the type of the class.
-     *
-     * @return the log sink.
-     */
-    @SuppressWarnings({ "unchecked", "UnusedDeclaration" })
-    public static <T> Log<T> consume(final Class<T> ignored) {
-        return (Log<T>) sink;
     }
 }

@@ -23,6 +23,7 @@ import java.security.PrivilegedAction;
 import java.util.function.Function;
 
 import org.fluidity.composition.spi.ComponentInterceptor;
+import org.fluidity.composition.spi.Dependency;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Proxies;

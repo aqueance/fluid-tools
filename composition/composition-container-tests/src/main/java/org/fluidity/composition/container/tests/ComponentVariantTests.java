@@ -37,6 +37,7 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.Dependency;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -320,7 +321,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             final ComponentContext context = (ComponentContext) EasyMock.getCurrentArguments()[0];
             assert !context.defines(Setting1.class) : Setting1.class;
             assert context.defines(Setting2.class) : Setting2.class;
-            return registry -> registry.bindComponent(ContextDependentValue.class);
+            return ComponentFactory.Instance.of(ContextDependentValue.class, registry -> registry.bindComponent(ContextDependentValue.class));
         });
 
         final ContextProvider component = verify(() -> container.getComponent(ContextProvider1.class));
@@ -341,7 +342,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             final ComponentContext context = (ComponentContext) EasyMock.getCurrentArguments()[0];
             assert context.defines(Setting1.class) : Setting1.class;
             assert context.defines(Setting2.class) : Setting2.class;
-            return registry -> registry.bindComponent(ContextDependentValue.class);
+            return ComponentFactory.Instance.of(ContextDependentValue.class, registry -> registry.bindComponent(ContextDependentValue.class));
         });
 
         final ContextProvider component = verify(() -> container.getComponent(ContextProvider1.class));
@@ -413,11 +414,11 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     private static class GroupMember2Variants implements ComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            return registry -> {
+            return Instance.of(GroupMember2.class, registry -> {
                 final Setting1 annotation = context.qualifier(Setting1.class, null);
                 registry.bindInstance(annotation == null ? null : annotation.value(), String.class);
                 registry.bindComponent(GroupMember2.class);
-            };
+            });
         }
     }
 
@@ -480,7 +481,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             final Instance instance = delegate.resolve(context, dependencies);
 
             assert instance != null;
-            return instance::bind;
+            return instance;
         }
     }
 
@@ -496,7 +497,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             final Instance instance = delegate.resolve(context, dependencies);
 
             assert instance != null;
-            return instance::bind;
+            return instance;
         }
     }
 
@@ -553,15 +554,15 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             final ComponentFactory.Resolver resolver = (ComponentFactory.Resolver) EasyMock.getCurrentArguments()[1];
             assert resolver != null : "Received no resolver";
 
-            final ComponentFactory.Dependency<?> dependency = resolver.resolve(checkKey, (Type) null, null);
+            final Dependency<?> dependency = resolver.resolve(checkKey, (Type) null, null);
             assert dependency != null && dependency.instance() == checkValue : "Container does not check up";
 
             final Object[] arguments = EasyMock.getCurrentArguments();
 
-            return registry -> {
+            return ComponentFactory.Instance.of(type, registry -> {
                 registry.bindInstance(arguments[0]);
                 registry.bindComponent(type);
-            };
+            });
         }
     }
 

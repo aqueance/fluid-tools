@@ -54,10 +54,10 @@ final class DynamicConfigurationFactory implements ComponentFactory {
             }
         }
 
-        return registry -> {
+        return Instance.of(DynamicConfigurationImpl.class, registry -> {
             registry.bindInstance(api, Class.class);
             registry.bindComponent(DynamicConfigurationImpl.class);
-        };
+        });
     }
 
     @Component(automatic = false)

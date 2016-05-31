@@ -29,7 +29,7 @@ import org.fluidity.foundation.Log;
  * You will need to use Fluid Tools to implement and build your adaptor, and annotate the implementation with both
  * {@link org.fluidity.composition.ServiceProvider @ServiceProvider} and {@link org.fluidity.composition.Component @Component}. The Java archive containing the
  * implementation must be in the class path for it to be found and used, and it must be the <i>only</i> archive in the class path that contains a {@code
- * LogFactory} implementation
+ * LogFactory} implementation.
  * <p>
  * See {@link LogAdapter} for a recommended way to adapt any logging framework to Fluid Tools.
  * <p>
@@ -39,6 +39,13 @@ import org.fluidity.foundation.Log;
  */
 @SuppressWarnings("JavadocReference")
 public interface LogFactory {
+
+    /**
+     * Returns the class of the instantiated {@link Log} implementation.
+     *
+     * @return a class object; never <code>null</code>.
+     */
+    Class<?> type();
 
     /**
      * Creates a log whose output is annotated by the given class.

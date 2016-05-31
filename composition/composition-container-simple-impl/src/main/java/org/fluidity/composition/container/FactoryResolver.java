@@ -35,6 +35,7 @@ import org.fluidity.composition.Components;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.Dependency;
 import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Security;
@@ -107,7 +108,7 @@ abstract class FactoryResolver extends AbstractResolver {
             private final ComponentContext actual = saved.create();
 
             public Class<?> type() {
-                return api;
+                return instance == null ? api : instance.type();
             }
 
             public Object instance(final DependencyGraph.Traversal traversal) {
@@ -222,19 +223,19 @@ abstract class FactoryResolver extends AbstractResolver {
         final ComponentFactory.Container container = new ContainerImpl(instances, containers, traversal, injector, resolution);
 
         final ComponentFactory.Resolver resolver = new ComponentFactory.Resolver() {
-            public <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Class<?> type, final Field field) {
+            public <T> Dependency<T> resolve(final Class<T> api, final Class<?> type, final Field field) {
                 return container.resolve(api, type, field);
             }
 
-            public <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Constructor<?> constructor, final int parameter) {
+            public <T> Dependency<T> resolve(final Class<T> api, final Constructor<?> constructor, final int parameter) {
                 return container.resolve(api, constructor, parameter);
             }
 
-            public <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Class<?> type, final Method method, final int parameter) {
+            public <T> Dependency<T> resolve(final Class<T> api, final Class<?> type, final Method method, final int parameter) {
                 return container.resolve(api, type, method, parameter);
             }
 
-            public <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Type reference, final Annotation[] annotations) {
+            public <T> Dependency<T> resolve(final Class<T> api, final Type reference, final Annotation[] annotations) {
                 if (api == null && reference == null) {
                     throw new IllegalArgumentException("Both the api and the reference parameters are null");
                 }
@@ -246,11 +247,11 @@ abstract class FactoryResolver extends AbstractResolver {
                 return new NodeDependency<>(traversal, descend(api == null ? Generics.rawType(reference) : api, reference == null ? api : reference, annotations));
             }
 
-            public ComponentFactory.Dependency<?>[] resolve(final Class<?> type, final Method method) {
+            public Dependency<?>[] resolve(final Class<?> type, final Method method) {
                 return container.resolve(type, method);
             }
 
-            public ComponentFactory.Dependency<?>[] resolve(final Constructor<?> constructor) {
+            public Dependency<?>[] resolve(final Constructor<?> constructor) {
                 return container.resolve(constructor);
             }
 
@@ -272,7 +273,7 @@ abstract class FactoryResolver extends AbstractResolver {
                 });
             }
 
-            public ComponentFactory.Dependency<?>[] discover(final Class<?> type) {
+            public Dependency<?>[] discover(final Class<?> type) {
                 assert type != null;
                 fields(type);
                 return discover(constructor(type));
@@ -300,25 +301,25 @@ abstract class FactoryResolver extends AbstractResolver {
                 return injector.findConstructor(type);
             }
 
-            public ComponentFactory.Dependency<?>[] discover(final Constructor<?> constructor) {
+            public Dependency<?>[] discover(final Constructor<?> constructor) {
                 assert constructor != null;
                 return discover(constructor.getGenericParameterTypes(), constructor.getParameterAnnotations());
             }
 
-            public ComponentFactory.Dependency<?>[] discover(final Method method) {
+            public Dependency<?>[] discover(final Method method) {
                 assert method != null;
                 return discover(method.getGenericParameterTypes(), method.getParameterAnnotations());
             }
 
-            private ComponentFactory.Dependency<?>[] discover(final Type[] types, final Annotation[][] annotations) {
-                final List<ComponentFactory.Dependency<?>> nodes = new ArrayList<>();
+            private Dependency<?>[] discover(final Type[] types, final Annotation[][] annotations) {
+                final List<Dependency<?>> nodes = new ArrayList<>();
 
                 for (int i = 0, limit = types.length; i < limit; i++) {
                     final Type type = types[i];
                     nodes.add(new NodeDependency<>(traversal, descend(Generics.rawType(type), Generics.propagate(reference, type), annotations[i])));
                 }
 
-                return Lists.asArray(ComponentFactory.Dependency.class, nodes);
+                return Lists.asArray(Dependency.class, nodes);
             }
 
             public ComponentFactory.Container local(final Class<?> type, final Bindings bindings) {
@@ -355,11 +356,12 @@ abstract class FactoryResolver extends AbstractResolver {
                 });
             }
 
-            public <T> ComponentFactory.Dependency<T> constant(final T object) {
-                return () -> object;
+            @SuppressWarnings("unchecked")
+            public <T> Dependency<T> constant(final T object) {
+                return object == null ? null : Dependency.to((Class<? extends T>) object.getClass(), () -> object);
             }
 
-            public Object[] instantiate(final ComponentFactory.Dependency<?>... dependencies) {
+            public Object[] instantiate(final Dependency<?>... dependencies) {
                 final Object[] instances = new Object[dependencies.length];
 
                 for (int i = 0, limit = dependencies.length; i < limit; i++) {
@@ -438,7 +440,8 @@ abstract class FactoryResolver extends AbstractResolver {
         return false;
     }
 
-    private static class NodeDependency<T> implements ComponentFactory.Dependency<T> {
+    @SuppressWarnings("unchecked")
+    private static class NodeDependency<T> implements Dependency<T> {
         private final DependencyGraph.Node node;
         private final DependencyGraph.Traversal traversal;
 
@@ -447,7 +450,12 @@ abstract class FactoryResolver extends AbstractResolver {
             this.traversal = traversal;
         }
 
-        @SuppressWarnings("unchecked")
+        @Override
+        public Class<? extends T> type() {
+            return (Class<? extends T>) node.type();
+        }
+
+        @Override
         public T instance() {
             return node == null ? null : (T) node.instance(traversal);
         }
@@ -476,7 +484,7 @@ abstract class FactoryResolver extends AbstractResolver {
             this.resolution = resolution;
         }
 
-        public final <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Constructor<?> constructor, final int parameter) {
+        public final <T> Dependency<T> resolve(final Class<T> api, final Constructor<?> constructor, final int parameter) {
             if (constructor == null) {
                 throw new ComponentContainer.BindingException("Provided constructor is null");
             }
@@ -495,7 +503,7 @@ abstract class FactoryResolver extends AbstractResolver {
                               containers);
         }
 
-        public final <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Class<?> type, final Method method, final int parameter) {
+        public final <T> Dependency<T> resolve(final Class<T> api, final Class<?> type, final Method method, final int parameter) {
             if (method == null) {
                 throw new ComponentContainer.BindingException("Provided method is null");
             }
@@ -505,7 +513,7 @@ abstract class FactoryResolver extends AbstractResolver {
             return dependency(api,
                               method.getGenericParameterTypes()[parameter],
                               Lists.concatenate(Annotation.class,
-                                                type == null ? method.getDeclaringClass().getAnnotations() : type.getAnnotations(),
+                                                (type == null ? method.getDeclaringClass() : type).getAnnotations(),
                                                 method.getAnnotations(),
                                                 parameterAnnotations),
                               parameterAnnotations,
@@ -513,7 +521,7 @@ abstract class FactoryResolver extends AbstractResolver {
                               containers);
         }
 
-        public final <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Class<?> type, final Field field) {
+        public final <T> Dependency<T> resolve(final Class<T> api, final Class<?> type, final Field field) {
             if (field == null) {
                 throw new ComponentContainer.BindingException("Provided field is null");
             }
@@ -521,16 +529,16 @@ abstract class FactoryResolver extends AbstractResolver {
             return dependency(api,
                               field.getGenericType(),
                               Lists.concatenate(Annotation.class,
-                                                type == null ? field.getDeclaringClass().getAnnotations() : type.getAnnotations(),
+                                                (type == null ? field.getDeclaringClass() : type).getAnnotations(),
                                                 field.getAnnotations()),
                               field.getAnnotations(),
                               instances,
                               containers);
         }
 
-        public final ComponentFactory.Dependency<?>[] resolve(final Class<?> type, final Method method) {
+        public final Dependency<?>[] resolve(final Class<?> type, final Method method) {
             final Class<?>[] types = method.getParameterTypes();
-            final ComponentFactory.Dependency<?>[] dependencies = new ComponentFactory.Dependency<?>[types.length];
+            final Dependency<?>[] dependencies = new Dependency<?>[types.length];
 
             for (int i = 0, limit = types.length; i < limit; i++) {
                 dependencies[i] = resolve(types[i], type, method, i);
@@ -539,9 +547,9 @@ abstract class FactoryResolver extends AbstractResolver {
             return dependencies;
         }
 
-        public final ComponentFactory.Dependency<?>[] resolve(final Constructor<?> constructor) {
+        public final Dependency<?>[] resolve(final Constructor<?> constructor) {
             final Class<?>[] types = constructor.getParameterTypes();
-            final ComponentFactory.Dependency<?>[] dependencies = new ComponentFactory.Dependency<?>[types.length];
+            final Dependency<?>[] dependencies = new Dependency<?>[types.length];
 
             for (int i = 0, limit = types.length; i < limit; i++) {
                 dependencies[i] = resolve(types[i], constructor, i);
@@ -551,12 +559,12 @@ abstract class FactoryResolver extends AbstractResolver {
         }
 
         @SuppressWarnings("unchecked")
-        protected final <T> ComponentFactory.Dependency<T> dependency(final Class<T> api,
-                                                                      final Type reference,
-                                                                      final Annotation[] annotations,
-                                                                      final Annotation[] params,
-                                                                      final AccessGuard<DependencyGraph.Node> instances,
-                                                                      final AccessGuard<ComponentContainer> containers) {
+        protected final <T> Dependency<T> dependency(final Class<T> api,
+                                                     final Type reference,
+                                                     final Annotation[] annotations,
+                                                     final Annotation[] params,
+                                                     final AccessGuard<DependencyGraph.Node> instances,
+                                                     final AccessGuard<ComponentContainer> containers) {
             final DependencyGraph.Node node = injector.resolve(api, containers, new DependencyInjector.Resolution() {
                 public ComponentContext context() {
                     return resolution.context(api);
@@ -571,7 +579,7 @@ abstract class FactoryResolver extends AbstractResolver {
                 }
             });
 
-            return () -> instances.access(node) == null ? null : (T) node.instance(traversal);
+            return (Dependency<T>) Dependency.to(node.type(), () -> instances.access(node) == null ? null : node.instance(traversal));
         }
     }
 }

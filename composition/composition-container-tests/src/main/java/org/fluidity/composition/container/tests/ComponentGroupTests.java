@@ -369,7 +369,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
             dependencies.discover(type);
 
-            return registry -> registry.bindComponent(type);
+            return Instance.of(type, registry -> registry.bindComponent(type));
         }
     }
 

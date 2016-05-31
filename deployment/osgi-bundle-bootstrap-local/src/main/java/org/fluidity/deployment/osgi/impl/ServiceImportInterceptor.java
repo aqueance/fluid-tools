@@ -21,6 +21,7 @@ import java.lang.reflect.Type;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.spi.ComponentInterceptor;
+import org.fluidity.composition.spi.Dependency;
 import org.fluidity.deployment.osgi.BundleBoundary;
 import org.fluidity.deployment.osgi.Service;
 import org.fluidity.foundation.Generics;
@@ -62,6 +63,6 @@ final class ServiceImportInterceptor implements ComponentInterceptor {
         final Class<?> type = Generics.rawType(reference);
         assert type != null;
 
-        return !type.isInterface() ? dependency : Dependency.with(type, () -> border.imported((Class) type, dependency.instance()));
+        return !type.isInterface() ? dependency : Dependency.to(type, () -> border.imported((Class) type, dependency.instance()));
     }
 }

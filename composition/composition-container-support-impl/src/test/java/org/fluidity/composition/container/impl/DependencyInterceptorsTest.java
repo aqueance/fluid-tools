@@ -24,6 +24,7 @@ import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.DependencyResolver;
 import org.fluidity.composition.spi.ComponentInterceptor;
+import org.fluidity.composition.spi.Dependency;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.testing.Simulator;
 
@@ -51,13 +52,13 @@ public class DependencyInterceptorsTest extends Simulator {
     private final DependencyGraph.Node group = dependencies.normal(DependencyGraph.Node.class);
 
     private final ComponentInterceptor interceptor1 = dependencies.normal(ComponentInterceptor.class);
-    private final ComponentInterceptor.Dependency dependency1 = dependencies.normal(ComponentInterceptor.Dependency.class);
+    private final Dependency dependency1 = dependencies.normal(Dependency.class);
 
     private final ComponentInterceptor interceptor2 = dependencies.normal(ComponentInterceptor.class);
-    private final ComponentInterceptor.Dependency dependency2 = dependencies.normal(ComponentInterceptor.Dependency.class);
+    private final Dependency dependency2 = dependencies.normal(Dependency.class);
 
     private final ComponentInterceptor interceptor3 = dependencies.normal(ComponentInterceptor.class);
-    private final ComponentInterceptor.Dependency dependency3 = dependencies.normal(ComponentInterceptor.Dependency.class);
+    private final Dependency dependency3 = dependencies.normal(Dependency.class);
 
     private final DependencyInterceptors interceptors = new DependencyInterceptorsImpl(annotations, NoLogFactory.consume(DependencyInterceptorsImpl.class));
 
@@ -126,7 +127,7 @@ public class DependencyInterceptorsTest extends Simulator {
                 .andReturn(group);
 
         final ComponentInterceptor[] found = { interceptor1, interceptor2, interceptor3 };
-        final ComponentInterceptor.Dependency[] dependencies = {
+        final Dependency[] dependencies = {
                 null,
                 dependency1,
                 dependency2,
@@ -187,7 +188,7 @@ public class DependencyInterceptorsTest extends Simulator {
                 .andReturn(group);
 
         final ComponentInterceptor[] found = { interceptor1, interceptor2, interceptor3 };
-        final ComponentInterceptor.Dependency[] dependencies = {
+        final Dependency[] dependencies = {
                 null,
                 dependency1,
         };
@@ -238,7 +239,8 @@ public class DependencyInterceptorsTest extends Simulator {
                 },
                 interceptor2
         };
-        final ComponentInterceptor.Dependency[] dependencies = {
+
+        final Dependency[] dependencies = {
                 null,
                 dependency1,
                 dependency2

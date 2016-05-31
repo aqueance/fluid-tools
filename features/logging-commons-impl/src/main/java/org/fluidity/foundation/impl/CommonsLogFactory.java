@@ -30,6 +30,11 @@ import org.fluidity.foundation.spi.LogFactory;
 @ServiceProvider
 final class CommonsLogFactory implements LogFactory {
 
+    @Override
+    public Class<?> type() {
+        return CommonsLogImpl.class;
+    }
+
     /**
      * {@inheritDoc}
      */

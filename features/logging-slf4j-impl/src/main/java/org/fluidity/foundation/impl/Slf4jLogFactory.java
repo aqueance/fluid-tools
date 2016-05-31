@@ -28,8 +28,12 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 @Component
 @ServiceProvider
-@SuppressWarnings("UnusedDeclaration")
 final class Slf4jLogFactory implements LogFactory {
+
+    @Override
+    public Class<?> type() {
+        return Slf4jLogImpl.class;
+    }
 
     /**
      * {@inheritDoc}

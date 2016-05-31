@@ -31,6 +31,7 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.Dependency;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -423,10 +424,11 @@ public final class ComponentContextTests extends AbstractContainerTests {
             final Dependency<?>[] arguments = dependencies.discover(SecondComponent.class);
 
             // direct instantiation to bypass the container when instantiating ThirdComponent
-            return registry -> registry.bindInstance(new SecondComponent((ThirdComponent) arguments[0].instance(),
-                                                                         context.qualifiers(Setting1.class),
-                                                                         context.qualifiers(Setting2.class),
-                                                                         context.qualifiers(Setting3.class)));
+            return Instance.of(SecondComponent.class,
+                               registry -> registry.bindInstance(new SecondComponent((ThirdComponent) arguments[0].instance(),
+                                                                                     context.qualifiers(Setting1.class),
+                                                                                     context.qualifiers(Setting2.class),
+                                                                                     context.qualifiers(Setting3.class))));
         }
     }
 
@@ -437,7 +439,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
             dependencies.discover(ThirdComponent.class);
 
             // direct instantiation to bypass the container
-            return registry -> registry.bindInstance(new ThirdComponent(context));
+            return Instance.of(ThirdComponent.class, registry -> registry.bindInstance(new ThirdComponent(context)));
         }
     }
 
@@ -610,7 +612,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         @SuppressWarnings("Convert2Lambda")
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            return registry -> {
+            return Instance.of(NotContextAware1Impl.class, registry -> {
                 registry.bindComponent(NotContextAware1Impl.class);
                 registry.bindInstance(new ContextAware.Settings() {         // must remain actual class: a Lambda would not resolve the component type
                     public String setting() {
@@ -619,7 +621,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
                         return value == null ? "missing-value" : value;
                     }
                 });
-            };
+            });
         }
     }
 
@@ -629,7 +631,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         @SuppressWarnings("Convert2Lambda")
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            return registry -> {
+            return Instance.of(NotContextAware2Impl.class, registry -> {
                 registry.bindComponent(NotContextAware2Impl.class);
                 registry.bindInstance(new ContextAware.Settings() {         // must remain actual class: a Lambda would not resolve the component type
                     public String setting() {
@@ -638,7 +640,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
                         return value == null ? "missing-value" : value;
                     }
                 });
-            };
+            });
         }
     }
 
@@ -648,7 +650,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         @SuppressWarnings("Convert2Lambda")
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            return registry -> {
+            return Instance.of(OrdinaryComponent1Impl.class, registry -> {
                 registry.bindComponent(OrdinaryComponent1Impl.class);
                 registry.bindInstance(new ContextAware.Settings() {         // must remain actual class: a Lambda would not resolve the component type
                     public String setting() {
@@ -657,7 +659,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
                         return value == null ? "missing-value" : value;
                     }
                 });
-            };
+            });
         }
     }
 
@@ -667,7 +669,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         @SuppressWarnings("Convert2Lambda")
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            return registry -> {
+            return Instance.of(OrdinaryComponent2Impl.class, registry -> {
                 registry.bindComponent(OrdinaryComponent2Impl.class);
                 registry.bindInstance(new ContextAware.Settings() {         // must remain actual class: a Lambda would not resolve the component type
                     public String setting() {
@@ -676,7 +678,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
                         return value == null ? "missing-value" : value;
                     }
                 });
-            };
+            });
         }
     }
 

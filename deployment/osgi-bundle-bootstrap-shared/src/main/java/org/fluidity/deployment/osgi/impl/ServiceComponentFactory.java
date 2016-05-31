@@ -69,7 +69,7 @@ final class ServiceComponentFactory implements ComponentFactory {
         if (instance == null) {
             throw new ComponentContainer.ResolutionException(descriptor.toString());
         } else {
-            return registry -> registry.bindInstance(instance, (Class) descriptor.type);
+            return Instance.of(descriptor.type, registry -> registry.bindInstance(instance, (Class) descriptor.type));
         }
     }
 

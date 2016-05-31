@@ -30,6 +30,7 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Qualifier;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.spi.ComponentInterceptor;
+import org.fluidity.composition.spi.Dependency;
 import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;

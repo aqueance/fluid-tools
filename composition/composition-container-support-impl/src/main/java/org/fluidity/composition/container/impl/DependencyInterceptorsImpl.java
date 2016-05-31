@@ -20,7 +20,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
@@ -29,6 +28,7 @@ import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.DependencyResolver;
 import org.fluidity.composition.spi.ComponentInterceptor;
+import org.fluidity.composition.spi.Dependency;
 import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.Strings;
@@ -85,11 +85,13 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
         final ComponentInterceptor[] interceptors = annotations.filter(context, interceptors(container, traversal));
 
         if (interceptors.length > 0) {
-            final Supplier error = () -> { throw new ComponentContainer.ResolutionException("Dependency access during interception"); };
 
-            final AtomicReference<ComponentInterceptor.Dependency> last = new AtomicReference<>(ComponentInterceptor.Dependency.with(error, error));
-            final AtomicReference<ComponentInterceptor.Dependency> next = new AtomicReference<>(ComponentInterceptor.Dependency.with(() -> last.get().type(),
-                                                                                                                                     () -> last.get().instance()));
+            final AtomicReference<Dependency> last = new AtomicReference<>(Dependency.to(node::type, () -> {
+                throw new ComponentContainer.ResolutionException("Dependency access during interception");
+            }));
+
+            final AtomicReference<Dependency> next = new AtomicReference<>(Dependency.to(() -> last.get().type(),
+                                                                                         () -> last.get().instance()));
 
             final List<String> applied = new ArrayList<>();
 
@@ -97,10 +99,9 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
                 final Type type = Generics.typeParameter(Generics.specializedType(interceptor.getClass(), ComponentInterceptor.class), 0);
 
                 if (type == Object.class || Generics.isAssignable(reference, type)) {
-                    @SuppressWarnings("unchecked")
-                    final ComponentInterceptor.Dependency dependency = interceptor.intercept(reference,
-                                                                                             context.copy().accept(interceptor.getClass()).create(),
-                                                                                             next.get());
+                    final Dependency dependency = interceptor.intercept(reference,
+                                                                        context.copy().accept(interceptor.getClass()).create(),
+                                                                        next.get());
 
                     if (dependency == null) {
                         return null;
@@ -119,7 +120,7 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
                 }
 
                 public Object instance(final DependencyGraph.Traversal traversal) {
-                    last.set(ComponentInterceptor.Dependency.with(node.type(), () -> node.instance(traversal)));
+                    last.set(Dependency.to(node.type(), () -> node.instance(traversal)));
                     return next.get().instance();
                 }
 

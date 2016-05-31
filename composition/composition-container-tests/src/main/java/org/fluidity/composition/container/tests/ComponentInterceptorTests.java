@@ -37,6 +37,7 @@ import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.Qualifier;
 import org.fluidity.composition.spi.ComponentInterceptor;
+import org.fluidity.composition.spi.Dependency;
 import org.fluidity.foundation.Generics;
 
 import org.testng.annotations.BeforeMethod;

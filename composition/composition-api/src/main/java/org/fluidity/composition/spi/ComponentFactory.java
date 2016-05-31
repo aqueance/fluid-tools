@@ -37,11 +37,9 @@ import org.fluidity.composition.ComponentContext;
  * <p>
  * The protocol is as follows:
  * <ul>
- * <li>The {@link #resolve(ComponentContext, ComponentFactory.Resolver) ComponentFactory.resolve()} method is called with the context for the new
- * component</li>
- * <li>The receiver uses the provided {@link ComponentFactory.Resolver resolver} to resolve the dependencies of the new component without actually
- * instantiating anything.</li>
- * <li>At some point later, the {@link ComponentFactory.Instance#bind(ComponentFactory.Registry) ComponentFactory.Instance.bind()} method is invoked on the
+ * <li>The {@link #resolve(ComponentContext, Resolver) ComponentFactory.resolve()} method is called with the context for the new component</li>
+ * <li>The receiver uses the provided {@link Resolver resolver} to resolve the dependencies of the new component without actually instantiating anything.</li>
+ * <li>At some point later, the {@link Instance#bind(ComponentFactory.Registry) ComponentFactory.Instance.bind()} method is invoked on the
  * returned object to bind, in a transient container, the component to be instantiated and its local dependencies.</li>
  * <li>At some point later, the transient container is asked for the component by the component interface the factory is {@linkplain Component bound against}
  * and then the transient container is discarded.</li>
@@ -55,11 +53,7 @@ import org.fluidity.composition.ComponentContext;
  *   public {@linkplain ComponentFactory.Instance Instance} <span class="hl1">resolve</span>(final {@linkplain ComponentContext} context, final {@linkplain ComponentFactory.Resolver Resolver} dependencies) throws Exception {
  *     dependencies.discover(<span class="hl3">MyComponentImpl</span>.class);
  *
- *     return new {@linkplain ComponentFactory.Instance Instance}() {
- *       public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws Exception {
- *         registry.bindComponent(<span class="hl3">MyComponentImpl</span>.class);
- *       }
- *     }
+ *     return {@linkplain Instance Instance}.{@linkplain Instance#of(Class, ComponentFactory.Binding) of}(<span class="hl3">MyComponentImpl</span>.class, {@linkplain ComponentFactory.Registry registry} -&gt; registry.bindComponent(<span class="hl3">MyComponentImpl</span>.class));
  *   }
  * }
  * </pre>
@@ -80,12 +74,10 @@ import org.fluidity.composition.ComponentContext;
  *
  *     dependencies.discover(<span class="hl2">CreatedComponent</span>.class);
  *
- *     return new Instance() {
- *       public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws Exception {
- *         registry.bindInstance(contexts, <span class="hl3">CustomContext</span>[].class);
- *         registry.bindComponent(<span class="hl2">CreatedComponent</span>.class);
- *       }
- *     };
+ *     return {@linkplain Instance Instance}.{@linkplain Instance#of(Class, ComponentFactory.Binding) of}(<span class="hl2">CreatedComponent</span>.class, {@linkplain ComponentFactory.Registry registry} -&gt; {
+ *       registry.bindInstance(contexts, <span class="hl3">CustomContext</span>[].class);
+ *       registry.bindComponent(<span class="hl2">CreatedComponent</span>.class);
+ *     });
  *   }
  * }
  * </pre>
@@ -125,11 +117,7 @@ public interface ComponentFactory {
      * public {@linkplain ComponentFactory.Instance Instance} <span class="hl1">resolve</span>(final {@linkplain ComponentContext} context, final {@linkplain ComponentFactory.Resolver Resolver} dependencies) throws Exception {
      *   dependencies.<span class="hl2">discover</span>(<span class="hl3">CreatedComponent</span>.class);
      *
-     *   return new {@linkplain ComponentFactory.Instance Instance}() {
-     *     public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws Exception {
-     *       registry.bindComponent(<span class="hl3">CreatedComponent</span>.class);
-     *     }
-     *   }
+     *   return {@linkplain Instance Instance}.{@linkplain Instance#of(Class, ComponentFactory.Binding) of}(<span class="hl3">CreatedComponent</span>.class, {@linkplain ComponentFactory.Registry registry} -&gt; registry.bindComponent(<span class="hl3">CreatedComponent</span>.class));
      * }
      * </pre>
      * <p>
@@ -139,24 +127,22 @@ public interface ComponentFactory {
      *   final Constructor&lt;?&gt; <span class="hl2">constructor</span> = dependencies.{@linkplain ComponentFactory.Resolver#constructor(Class) constructor}(<span class="hl2">CreatedComponent</span>.class);
      *   final Dependency&lt;?&gt;[] <span class="hl3">parameters</span> = dependencies.{@linkplain ComponentFactory.Resolver#resolve(Class, java.lang.reflect.Constructor, int) resolve}(null, <span class="hl2">constructor</span>);
      *
-     *   return new {@linkplain ComponentFactory.Instance Instance}() {
-     *     public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws Exception {
+     *   return {@linkplain Instance Instance}.{@linkplain Instance#of(Class, ComponentFactory.Binding) of}(<span class="hl2">CreatedComponent</span>.class, {@linkplain ComponentFactory.Registry registry} -&gt; {
      *
-     *       // make sure the assumptions implicit in the code below
-     *       // are not broken by changes to MyComponentImpl:
-     *       if (false) {
-     *         final MyComponent result = new <span class="hl2">CreatedComponent</span>((Dependency1) null,
-     *                                                         (Dependency2) null,
-     *                                                         (String) null,
-     *                                                         0);
-     *       }
-     *
-     *       <span class="hl3">parameters</span>[2] = dependencies.{@linkplain ComponentFactory.Resolver#constant(Object) constant}("some text");
-     *       <span class="hl3">parameters</span>[3] = dependencies.{@linkplain ComponentFactory.Resolver#constant(Object) constant}(5);
-     *
-     *       registry.bindInstance(<span class="hl2">constructor</span>.{@linkplain Constructor#newInstance(Object...) newInstance}(dependencies.{@linkplain ComponentFactory.Resolver#instantiate(org.fluidity.composition.spi.ComponentFactory.Dependency[]) instantiate}(<span class="hl3">parameters</span>)));
+     *     // make sure the assumptions implicit in the code below
+     *     // are not broken by changes to MyComponentImpl:
+     *     if (false) {
+     *       final MyComponent result = new <span class="hl2">CreatedComponent</span>((Dependency1) null,
+     *                                                       (Dependency2) null,
+     *                                                       (String) null,
+     *                                                       0);
      *     }
-     *   }
+     *
+     *     <span class="hl3">parameters</span>[2] = dependencies.{@linkplain ComponentFactory.Resolver#constant(Object) constant}("some text");
+     *     <span class="hl3">parameters</span>[3] = dependencies.{@linkplain ComponentFactory.Resolver#constant(Object) constant}(5);
+     *
+     *     registry.bindInstance(<span class="hl2">constructor</span>.{@linkplain Constructor#newInstance(Object...) newInstance}(dependencies.{@linkplain ComponentFactory.Resolver#instantiate(org.fluidity.composition.spi.Dependency[]) instantiate}(<span class="hl3">parameters</span>)));
+     *   });
      * }
      * </pre>
      * <p>
@@ -180,14 +166,12 @@ public interface ComponentFactory {
      *                                                       int.class);
      *   final Dependency&lt;?&gt;[] <span class="hl3">parameters</span> = dependencies.{@linkplain ComponentFactory.Resolver#resolve(Class, java.lang.reflect.Method) resolve}(null, <span class="hl2">method</span>);
      *
-     *   return new {@linkplain ComponentFactory.Instance Instance}() {
-     *     public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws Exception {
-     *       <span class="hl3">parameters</span>[2] = dependencies.{@linkplain ComponentFactory.Resolver#constant(Object) constant}("some text");
-     *       <span class="hl3">parameters</span>[3] = dependencies.{@linkplain ComponentFactory.Resolver#constant(Object) constant}(5);
+     *   return {@linkplain Instance Instance}.{@linkplain Instance#of(Class, ComponentFactory.Binding) of}(method.getReturnedType(), {@linkplain ComponentFactory.Registry registry} -&gt; {
+     *     <span class="hl3">parameters</span>[2] = dependencies.{@linkplain ComponentFactory.Resolver#constant(Object) constant}("some text");
+     *     <span class="hl3">parameters</span>[3] = dependencies.{@linkplain ComponentFactory.Resolver#constant(Object) constant}(5);
      *
-     *       registry.bindInstance(<span class="hl2">method</span>.{@linkplain Method#invoke(Object, Object...) invoke}(null, dependencies.{@linkplain ComponentFactory.Resolver#instantiate(ComponentFactory.Dependency[]) instantiate}(<span class="hl3">parameters</span>)));
-     *     }
-     *   }
+     *     registry.bindInstance(<span class="hl2">method</span>.{@linkplain Method#invoke(Object, Object...) invoke}(null, dependencies.{@linkplain ComponentFactory.Resolver#instantiate(Dependency[]) instantiate}(<span class="hl3">parameters</span>)));
+     *   });
      * }
      * </pre>
      *
@@ -202,18 +186,18 @@ public interface ComponentFactory {
     Instance resolve(ComponentContext context, Resolver dependencies) throws Exception;
 
     /**
-     * Represents a future instance of the component created by a {@link ComponentFactory}.
+     * Binding for a component created by a {@link ComponentFactory}. Can be passed as a Lambda expression to {@link Instance#of(Class, ComponentFactory.Binding)}.
      * <h3>Usage</h3>
      * See {@link ComponentFactory}.
      *
      * @author Tibor Varga
      */
     @FunctionalInterface
-    interface Instance {
+    interface Binding {
 
         /**
-         * Binds the component to be created, and all its local dependencies, e.g., those not found in the application's containers by design, to the supplied
-         * registry.
+         * Binds the component to be created, and all its local dependencies, e.g., those not found in the application's containers <em>by design</em>, to the
+         * supplied registry.
          *
          * @param registry the registry to bind components in.
          *
@@ -223,26 +207,42 @@ public interface ComponentFactory {
     }
 
     /**
-     * Represents a resolved dependency of the component being created by a {@link ComponentFactory} in its {@link ComponentFactory#resolve(ComponentContext,
-     * ComponentFactory.Resolver) resolve()} method.
+     * Represents a component instance created by a {@link ComponentFactory}.
      * <h3>Usage</h3>
      * See {@link ComponentFactory}.
      *
-     * @param <T> the type of the dependency.
-     *
      * @author Tibor Varga
      */
-    @FunctionalInterface
-    interface Dependency<T> {
+    interface Instance extends Binding {
 
         /**
-         * Returns an actual instance of the dependency. This method is intended to be invoked only from the {@link
-         * ComponentFactory.Instance#bind(ComponentFactory.Registry) bind()} method of the <code>Instance</code> returned from the factory's {@link
-         * ComponentFactory#resolve(ComponentContext, ComponentFactory.Resolver) resolve()} method.
+         * Returns the class of the component instance this object represents.
          *
-         * @return an actual instance of the dependency; may be <code>null</code>.
+         * @return a class object; never <code>null</code>.
          */
-        T instance();
+        Class<?> type();
+
+        /**
+         * Creates a new {@link Instance} with the given type and binding.
+         *
+         * @param type    supplies the component class; never <code>null</code>.
+         * @param binding binds the component to a registry.
+         *
+         * @return a new {@link Instance} object.
+         */
+        static Instance of(final Class<?> type, final Binding binding) {
+            return new Instance() {
+                @Override
+                public Class<?> type() {
+                    return type;
+                }
+
+                @Override
+                public void bind(final Registry registry) throws Exception {
+                    binding.bind(registry);
+                }
+            };
+        }
     }
 
     /**
@@ -342,17 +342,17 @@ public interface ComponentFactory {
         /**
          * Wraps the given object as a dependency. Useful to fill in missing {@linkplain #resolve(Constructor) constructor} or {@linkplain #resolve(Class,
          * Method) method} parameters in the {@link Dependency} array returned by those methods before feeding the array to {@link
-         * #instantiate(ComponentFactory.Dependency[])}.
+         * #instantiate(Dependency[])}.
          *
          * @param object the object to wrap as a dependency.
          * @param <T>    the dependency type the given <code>object</code> satisfies.
          *
-         * @return the dependency whose {@link ComponentFactory.Dependency#instance()} method will return the given <code>object</code>.
+         * @return the dependency whose {@link Dependency#instance()} method will return the given <code>object</code>.
          */
         <T> Dependency<T> constant(T object);
 
         /**
-         * Returns an array containing the {@linkplain ComponentFactory.Dependency#instance() instance} of each dependency in the given array.
+         * Returns an array containing the {@linkplain Dependency#instance() instance} of each dependency in the given array.
          *
          * @param dependencies the dependency array; may not be <code>null</code>.
          *
@@ -508,24 +508,24 @@ public interface ComponentFactory {
 
         /**
          * Resolves each resolvable parameter of the given method and returns a list of dependencies for each method parameter, resolvable or not. The returned
-         * array is mutable and can be fed to {@link Resolver#instantiate(ComponentFactory.Dependency[])} to get an argument list to invoke the
+         * array is mutable and can be fed to {@link Resolver#instantiate(Dependency[])} to get an argument list to invoke the
          * <code>method</code> with.
          *
          * @param type the component class to derive context from; may be <code>null</code>, in which case the method's declaring class is used.
          * @param method the method to resolve the parameters of.
          *
-         * @return a list of dependencies that can then be used to get a dependency {@linkplain ComponentFactory.Dependency#instance()} of.
+         * @return a list of dependencies that can then be used to get a dependency {@linkplain Dependency#instance()} of.
          */
         Dependency<?>[] resolve(Class<?> type, Method method);
 
         /**
          * Resolves each resolvable parameter of the given constructor and returns a list of dependencies for each method parameter, resolvable or not. The
-         * returned array is mutable and can be fed to {@link Resolver#instantiate(ComponentFactory.Dependency[])} to get an argument list to invoke the
+         * returned array is mutable and can be fed to {@link Resolver#instantiate(Dependency[])} to get an argument list to invoke the
          * <code>constructor</code> with.
          *
          * @param constructor the constructor to resolve the parameters of.
          *
-         * @return a list of dependencies that can then be used to get a dependency {@linkplain ComponentFactory.Dependency#instance()} of.
+         * @return a list of dependencies that can then be used to get a dependency {@linkplain Dependency#instance()} of.
          */
         Dependency<?>[] resolve(Constructor<?> constructor);
 

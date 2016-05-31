@@ -120,7 +120,7 @@ public final class StatefulComponentTests extends AbstractContainerTests {
     private static class StatefulComponentFactory implements ComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            return registry -> registry.bindComponent(StatelessComponent.class);
+            return Instance.of(StatelessComponent.class, registry -> registry.bindComponent(StatelessComponent.class));
         }
     }
 }

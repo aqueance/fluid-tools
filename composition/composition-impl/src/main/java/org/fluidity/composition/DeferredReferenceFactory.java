@@ -17,6 +17,7 @@
 package org.fluidity.composition;
 
 import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.Dependency;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Generics;
 
@@ -30,7 +31,6 @@ import org.fluidity.foundation.Generics;
  */
 @Component(api = Deferred.Reference.class)
 @Component.Qualifiers(Component.Reference.class)
-@SuppressWarnings("UnusedDeclaration")
 final class DeferredReferenceFactory implements ComponentFactory {
 
     @SuppressWarnings("unchecked")
@@ -38,6 +38,6 @@ final class DeferredReferenceFactory implements ComponentFactory {
         final Dependency<?> dependency = dependencies.resolve(null, Generics.typeParameter(context.qualifier(Component.Reference.class, null).type(), 0), null);
 
         final Deferred.Reference<Object> reference = Deferred.local(dependency::instance);
-        return registry -> registry.bindInstance(reference, Deferred.Reference.class);
+        return Instance.of(dependency.type(), registry -> registry.bindInstance(reference, Deferred.Reference.class));
     }
 }

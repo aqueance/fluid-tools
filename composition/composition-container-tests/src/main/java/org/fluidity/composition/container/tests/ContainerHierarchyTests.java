@@ -185,7 +185,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
             dependencies.discover(RootComponent.class);
 
-            return registry -> registry.bindComponent(RootComponent.class);
+            return Instance.of(RootComponent.class, registry -> registry.bindComponent(RootComponent.class));
         }
     }
 
@@ -230,7 +230,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
             dependencies.discover(MyScopedRootComponentImpl.class);
 
-            return registry -> registry.bindComponent(MyScopedRootComponentImpl.class);
+            return Instance.of(MyScopedRootComponentImpl.class, registry -> registry.bindComponent(MyScopedRootComponentImpl.class));
         }
     }
 
