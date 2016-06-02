@@ -43,7 +43,7 @@ public interface Dependency<T> {
      * <p>
      * <b>Note</b>: When used in a {@link ComponentFactory}, this method is intended to be invoked only from the {@link
      * ComponentFactory.Instance#bind(ComponentFactory.Registry) bind()} method of the <code>Instance</code> returned from the factory's {@link
-     * ComponentFactory#resolve(ComponentContext, ComponentFactory.Resolver) resolve()} method.
+     * ComponentFactory#resolve(ComponentContext, ComponentFactory.Container) resolve()} method.
      *
      * @return the dependency instance; never <code>null</code>.
      */

@@ -30,6 +30,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Inject;
+import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.Dependency;
 
@@ -420,22 +421,28 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Component(api = SecondComponent.class)
     @Component.Qualifiers(Setting2.class)
     private static final class SecondFactory implements ComponentFactory {
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            final Dependency<?>[] arguments = dependencies.discover(SecondComponent.class);
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
+            final Resolver container = dependencies.local(SecondComponent.class, registry -> {
+                registry.bindInstance(context.qualifiers(Setting1.class));
+                registry.bindInstance(context.qualifiers(Setting2.class));
+                registry.bindInstance(context.qualifiers(Setting3.class));
+            });
+
+            final Dependency<?>[] arguments = container.discover(SecondComponent.class);
 
             // direct instantiation to bypass the container when instantiating ThirdComponent
             return Instance.of(SecondComponent.class,
                                registry -> registry.bindInstance(new SecondComponent((ThirdComponent) arguments[0].instance(),
-                                                                                     context.qualifiers(Setting1.class),
-                                                                                     context.qualifiers(Setting2.class),
-                                                                                     context.qualifiers(Setting3.class))));
+                                                                                     (Setting1[]) arguments[1].instance(),
+                                                                                     (Setting2[]) arguments[2].instance(),
+                                                                                     (Setting3[]) arguments[3].instance())));
         }
     }
 
     @Component(api = ThirdComponent.class)
     @Component.Qualifiers({ Setting1.class, Setting3.class })
     private static final class ThirdFactory implements ComponentFactory {
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             dependencies.discover(ThirdComponent.class);
 
             // direct instantiation to bypass the container
@@ -611,7 +618,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     private static class ContextAwareVariants1 implements ComponentFactory {
 
         @SuppressWarnings("Convert2Lambda")
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             return Instance.of(NotContextAware1Impl.class, registry -> {
                 registry.bindComponent(NotContextAware1Impl.class);
                 registry.bindInstance(new ContextAware.Settings() {         // must remain actual class: a Lambda would not resolve the component type
@@ -630,7 +637,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     private static class ContextAwareVariants2 implements ComponentFactory {
 
         @SuppressWarnings("Convert2Lambda")
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             return Instance.of(NotContextAware2Impl.class, registry -> {
                 registry.bindComponent(NotContextAware2Impl.class);
                 registry.bindInstance(new ContextAware.Settings() {         // must remain actual class: a Lambda would not resolve the component type
@@ -649,7 +656,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     private static class OrdinaryComponentVariants1 implements ComponentFactory {
 
         @SuppressWarnings("Convert2Lambda")
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             return Instance.of(OrdinaryComponent1Impl.class, registry -> {
                 registry.bindComponent(OrdinaryComponent1Impl.class);
                 registry.bindInstance(new ContextAware.Settings() {         // must remain actual class: a Lambda would not resolve the component type
@@ -668,7 +675,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     private static class OrdinaryComponentVariants2 implements ComponentFactory {
 
         @SuppressWarnings("Convert2Lambda")
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             return Instance.of(OrdinaryComponent2Impl.class, registry -> {
                 registry.bindComponent(OrdinaryComponent2Impl.class);
                 registry.bindInstance(new ContextAware.Settings() {         // must remain actual class: a Lambda would not resolve the component type

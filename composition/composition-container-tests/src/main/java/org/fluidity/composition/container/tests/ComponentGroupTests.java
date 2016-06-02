@@ -361,7 +361,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
             this.type = getClass().getAnnotation(Component.class).api()[0];
         }
 
-        public final Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+        public final Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             final Type reference = context.qualifier(Component.Reference.class, type).type();
 
             assert reference != null;

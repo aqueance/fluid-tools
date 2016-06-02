@@ -37,7 +37,7 @@ final class LogComponentFactory implements ComponentFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+    public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
         return Instance.of(factory.type(), registry -> {
             final Component.Reference reference = context.qualifier(Component.Reference.class, Log.class);
             registry.bindInstance(factory.createLog(reference.parameter(0)), Log.class);

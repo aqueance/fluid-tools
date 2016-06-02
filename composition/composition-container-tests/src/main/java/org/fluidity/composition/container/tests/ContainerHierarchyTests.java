@@ -182,10 +182,8 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     @Component(api = RootComponent.class, stateful = true, automatic = false)
     private static class RootComponentFactory implements ComponentFactory {
 
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            dependencies.discover(RootComponent.class);
-
-            return Instance.of(RootComponent.class, registry -> registry.bindComponent(RootComponent.class));
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
+            return dependencies.instance(RootComponent.class);
         }
     }
 
@@ -227,10 +225,8 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     @Component(api = MyScopedRootComponent.class, scope = MyRootComponent.class)
     private static final class MyScopedRootComponentFactory implements ComponentFactory {
 
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            dependencies.discover(MyScopedRootComponentImpl.class);
-
-            return Instance.of(MyScopedRootComponentImpl.class, registry -> registry.bindComponent(MyScopedRootComponentImpl.class));
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
+            return dependencies.instance(MyScopedRootComponentImpl.class);
         }
     }
 

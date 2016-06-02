@@ -69,8 +69,11 @@ public final class Generics extends Utility {
             final Type[] upperBounds = wildcard.getUpperBounds();
 
             return lowerBounds.length == 1 ? rawType(lowerBounds[0]) : upperBounds.length == 1 ? rawType(upperBounds[0]) : Object.class;
+        } else if (type == null) {
+            return null;
         }
 
+        assert false : type.getTypeName();
         return null;
     }
 

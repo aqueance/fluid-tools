@@ -109,7 +109,7 @@ public class EmptyRegistryTest extends Simulator {
     @Component(api = Interface1.class)
     private static class MarkedFactory implements ComponentFactory {
 
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             throw new UnsupportedOperationException();
         }
     }

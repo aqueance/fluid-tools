@@ -23,7 +23,7 @@ import org.fluidity.composition.spi.ComponentFactory;
 @Component(api = GroupMemberComponent4.class)
 public class GroupMemberFactory2 implements ComponentFactory {
 
-    public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+    public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
         throw new UnsupportedOperationException();
     }
 }

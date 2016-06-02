@@ -21,7 +21,7 @@ import org.fluidity.composition.spi.ComponentFactory;
 
 public final class NoComponentFactory implements ComponentFactory {
 
-    public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+    public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
         throw new UnsupportedOperationException();
     }
 }

@@ -513,7 +513,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     private static final class BF implements ComponentFactory {
 
         @Override
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             final Context1[] context1 = context.qualifiers(Context1.class);
             final Context2[] context2 = context.qualifiers(Context2.class);
 
@@ -528,7 +528,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
                 resolved = dependencies.resolve(constructor = B.class.getDeclaredConstructor());
             }
 
-            return Instance.of(B.class, registry -> registry.bindInstance(constructor.newInstance(dependencies.instantiate(resolved))));
+            return Instance.of(B.class, registry -> registry.bindInstance(dependencies.invoke(constructor, resolved)));
         }
     }
 }

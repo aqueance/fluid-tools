@@ -19,6 +19,7 @@ package org.fluidity.composition.container;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.security.AccessController;
@@ -28,14 +29,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Components;
+import org.fluidity.composition.DependencyPath;
 import org.fluidity.composition.Inject;
+import org.fluidity.composition.Optional;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.Dependency;
+import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Security;
@@ -97,9 +102,9 @@ abstract class FactoryResolver extends AbstractResolver {
         final DependencyInjector injector = nested.services().dependencyInjector();
 
         final AccessGuard<ComponentContainer> containers = injector.containerGuard();
-        final AccessGuard<DependencyGraph.Node> instantiation = new AccessGuard<>("Dependencies must be instantiated in ComponentFactory.Instance.bind(...).");
+        final AccessGuard<DependencyGraph.Node> instantiation = new AccessGuard<>("Dependencies cannot be instantiated outside ComponentFactory.Instance.bind(...).");
 
-        final ComponentFactory.Instance instance = resolve(injector, traversal, context, nested, reference, contexts, factory, consumer, instantiation, containers);
+        final ComponentFactory.Instance instance = resolve(injector, traversal, context, nested, contexts, factory, consumer, instantiation, containers);
 
         final ContextDefinition saved = context.accept(consumer).collect(contexts).copy();
         final RegistryWrapper registry = new RegistryWrapper(nested, saved, traversal);
@@ -165,14 +170,13 @@ abstract class FactoryResolver extends AbstractResolver {
         /**
          * See {@link DependencyInjector.Resolution#regular()}.
          */
-        DependencyGraph.Node regular(Class<?> api, Type reference, final Annotation[] annotations, Annotation[] params);
+        DependencyGraph.Node regular(Class<?> api, Type reference, Annotation[] annotations, Annotation[] params);
     }
 
     private ComponentFactory.Instance resolve(final DependencyInjector injector,
                                               final DependencyGraph.Traversal traversal,
                                               final ContextDefinition context,
                                               final SimpleContainer nested,
-                                              final Type reference,
                                               final List<ContextDefinition> contexts,
                                               final ComponentFactory factory,
                                               final Class<?> consumer,
@@ -182,198 +186,122 @@ abstract class FactoryResolver extends AbstractResolver {
         final ContextDefinition reduced = context.copy().accept(consumer);
         final ComponentContext passed = reduced.create();
 
-        final Resolution resolution = new Resolution() {
-            public ComponentContext context(final Class<?> type) {
-                traversal.descend(api, type, null, null);
+        final Resolution resolution = new LocalResolution(traversal, nested, passed, reduced, collected, contexts);
+        final ComponentFactory.Resolver resolver = new LocalResolver(instances, containers, traversal, injector, resolution);
 
-                try {
-                    return passed;
-                } finally {
-                    traversal.ascend(api, type);
-                }
-            }
+        final ComponentFactory.Container container = new ComponentFactory.Container() {
 
-            public ComponentContainer container(final Class<?> type) {
-                traversal.descend(api, type, null, null);
-
-                try {
-                    return new ComponentContainerShell(nested, reduced.accept(null), false);
-                } finally {
-                    traversal.ascend(api, type);
-                }
-            }
-
-            public DependencyGraph.Node regular(final Class<?> type, final Type reference, final Annotation[] annotations, final Annotation[] params) {
-                traversal.descend(api, type, null, annotations);
-
-                try {
-                    final ContextDefinition copy = collected.advance(reference, false).expand(annotations);
-
-                    contexts.add(copy);
-
-                    return isGroup(type, params)
-                           ? nested.resolveGroup(type.getComponentType(), copy, traversal, type)
-                           : nested.resolveComponent(type, copy, traversal, type);
-                } finally {
-                    traversal.ascend(api, type);
-                }
-            }
-        };
-
-        final ComponentFactory.Container container = new ContainerImpl(instances, containers, traversal, injector, resolution);
-
-        final ComponentFactory.Resolver resolver = new ComponentFactory.Resolver() {
-            public <T> Dependency<T> resolve(final Class<T> api, final Class<?> type, final Field field) {
-                return container.resolve(api, type, field);
-            }
-
-            public <T> Dependency<T> resolve(final Class<T> api, final Constructor<?> constructor, final int parameter) {
-                return container.resolve(api, constructor, parameter);
-            }
-
-            public <T> Dependency<T> resolve(final Class<T> api, final Class<?> type, final Method method, final int parameter) {
-                return container.resolve(api, type, method, parameter);
-            }
-
-            public <T> Dependency<T> resolve(final Class<T> api, final Type reference, final Annotation[] annotations) {
-                if (api == null && reference == null) {
-                    throw new IllegalArgumentException("Both the api and the reference parameters are null");
-                }
-
-                if (api != null && reference != null && !Generics.rawType(reference).isAssignableFrom(api)) {
-                    throw new ComponentContainer.ResolutionException("Type %s cannot be assigned to %s", api, reference);
-                }
-
-                return new NodeDependency<>(traversal, descend(api == null ? Generics.rawType(reference) : api, reference == null ? api : reference, annotations));
-            }
-
-            public Dependency<?>[] resolve(final Class<?> type, final Method method) {
-                return container.resolve(type, method);
-            }
-
-            public Dependency<?>[] resolve(final Constructor<?> constructor) {
-                return container.resolve(constructor);
-            }
-
-            private DependencyGraph.Node descend(final Class<?> api, final Type reference, final Annotation[] annotations) {
-                assert reference != null : api;
-
-                return injector.resolve(api, containers, new DependencyInjector.Resolution() {
-                    public ComponentContext context() {
-                        return resolution.context(api);
-                    }
-
-                    public ComponentContainer container() {
-                        return resolution.container(api);
-                    }
-
-                    public DependencyGraph.Node regular() {
-                        return resolution.regular(api, reference, annotations, annotations);
-                    }
-                });
-            }
-
-            public Dependency<?>[] discover(final Class<?> type) {
-                assert type != null;
-                fields(type);
-                return discover(constructor(type));
-            }
-
-            public void fields(final Class<?> type) {
-                assert type != null;
-                final Field[] fields = !Security.CONTROLLED ? type.getDeclaredFields() : AccessController.doPrivileged((PrivilegedAction<Field[]>) type::getDeclaredFields);
-
-                for (final Field field : fields) {
-                    if (field.isAnnotationPresent(Inject.class)) {
-                        descend(field.getType(), field.getGenericType(), field.getAnnotations());
-                    }
-                }
-
-                final Class<?> superClass = type.getSuperclass();
-
-                if (superClass != null && superClass != Object.class) {
-                    fields(superClass);
-                }
-            }
-
-            public Constructor<?> constructor(final Class<?> type) {
-                assert type != null;
-                return injector.findConstructor(type);
-            }
-
-            public Dependency<?>[] discover(final Constructor<?> constructor) {
-                assert constructor != null;
-                return discover(constructor.getGenericParameterTypes(), constructor.getParameterAnnotations());
-            }
-
-            public Dependency<?>[] discover(final Method method) {
-                assert method != null;
-                return discover(method.getGenericParameterTypes(), method.getParameterAnnotations());
-            }
-
-            private Dependency<?>[] discover(final Type[] types, final Annotation[][] annotations) {
-                final List<Dependency<?>> nodes = new ArrayList<>();
-
-                for (int i = 0, limit = types.length; i < limit; i++) {
-                    final Type type = types[i];
-                    nodes.add(new NodeDependency<>(traversal, descend(Generics.rawType(type), Generics.propagate(reference, type), annotations[i])));
-                }
-
-                return Lists.asArray(Dependency.class, nodes);
-            }
-
-            public ComponentFactory.Container local(final Class<?> type, final Bindings bindings) {
+            @Override
+            public ComponentFactory.Resolver local(final Class<?> type, final ComponentFactory.Bindings bindings) throws Exception {
                 final ContextDefinition reduced = context.copy().accept(type);
                 final ComponentContext passed = reduced.create();
                 final SimpleContainer container = nested.newChildContainer(false);
 
-                bindings.bindComponents(new Registry() {
+                bindings.bind(new ComponentFactory.Registry() {
+                    @Override
                     @SafeVarargs
                     public final <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
                         container.bindComponent(Components.inspect(implementation, interfaces));
                     }
-                });
 
-                return new ContainerImpl(instances, containers, traversal, injector, new Resolution() {
-                    public ComponentContext context(final Class<?> api) {
-                        return passed;
-                    }
-
-                    public ComponentContainer container(final Class<?> api) {
-                        return new ComponentContainerShell(container, reduced, false);
-                    }
-
-                    public DependencyGraph.Node regular(final Class<?> api,
-                                                        final Type reference,
-                                                        final Annotation[] annotations,
-                                                        final Annotation[] params) {
-                        final ContextDefinition copy = context.copy().advance(reference, false).expand(annotations);
-
-                        return isGroup(api, params)
-                               ? container.resolveGroup(api.getComponentType(), copy, traversal, api)
-                               : container.resolveComponent(api, copy, traversal, api);
+                    @Override
+                    @SuppressWarnings("unchecked")
+                    public <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
+                        if (instance != null) {
+                            container.bindInstance(instance, Components.inspect((Class) instance.getClass(), interfaces));
+                        }
                     }
                 });
+
+                final LocalResolution resolution = new LocalResolution(traversal, container, passed, reduced, context.copy(), contexts);
+                return new LocalResolver(instances, containers, traversal, injector, resolution);
             }
 
+            @Override
+            public ComponentFactory.Instance instance(final Class<?> type, final ComponentFactory.Bindings bindings) throws Exception {
+                local(type, bindings).discover(type);
+                return ComponentFactory.Instance.of(type, bindings);
+            }
+
+            @Override
             @SuppressWarnings("unchecked")
-            public <T> Dependency<T> constant(final T object) {
-                return object == null ? null : Dependency.to((Class<? extends T>) object.getClass(), () -> object);
+            public ComponentFactory.Instance instance(final Class<?> type) {
+                return Exceptions.wrap(() -> instance(type, registry -> registry.bindComponent(type)));
             }
 
+            @Override
+            public Dependency<?> resolve(final Constructor<?> constructor, final int parameter) {
+                return resolver.resolve(constructor, parameter);
+            }
+
+            @Override
+            public Dependency<?> resolve(final Class<?> type, final Method method, final int parameter) {
+                return resolver.resolve(type, method, parameter);
+            }
+
+            @Override
+            public Dependency<?> resolve(final Class<?> type, final Field field) {
+                return resolver.resolve(type, field);
+            }
+
+            @Override
+            public Dependency<?>[] resolve(final Class<?> type, final Method method) {
+                return resolver.resolve(type, method);
+            }
+
+            @Override
+            public Dependency<?>[] resolve(final Constructor<?> constructor) {
+                return resolver.resolve(constructor);
+            }
+
+            @Override
+            public Dependency<?>[] discover(final Class<?> type) {
+                return resolver.discover(type);
+            }
+
+            @Override
+            public Dependency<?> lookup(final Type reference) {
+                return resolver.lookup(reference);
+            }
+
+            @Override
+            public Constructor<?> constructor(final Class<?> type) {
+                return resolver.constructor(type);
+            }
+
+            @Override
+            public Dependency<?>[] discover(final Constructor<?> constructor) {
+                return resolver.discover(constructor);
+            }
+
+            @Override
+            public Dependency<?>[] discover(final Class<?> type, final Method method) {
+                return resolver.discover(type, method);
+            }
+
+            @Override
+            public <T> Dependency<T> constant(final T object) {
+                return resolver.constant(object);
+            }
+
+            @Override
             public Object[] instantiate(final Dependency<?>... dependencies) {
-                final Object[] instances = new Object[dependencies.length];
+                return resolver.instantiate(dependencies);
+            }
 
-                for (int i = 0, limit = dependencies.length; i < limit; i++) {
-                    instances[i] = dependencies[i].instance();
-                }
+            @Override
+            public <T> T invoke(final Constructor<T> constructor, final Dependency<?>... arguments) throws Exception {
+                return resolver.invoke(constructor, arguments);
+            }
 
-                return instances;
+            @Override
+            public Object invoke(final Object target, final Method method, final Dependency<?>... arguments) throws Exception {
+                return resolver.invoke(target, method, arguments);
             }
         };
 
         try {
-            return factory.resolve(passed, resolver);
+            return factory.resolve(passed, container);
         } catch (final ComponentContainer.InjectionException e) {
             throw e;
         } catch (final Exception e) {
@@ -440,31 +368,10 @@ abstract class FactoryResolver extends AbstractResolver {
         return false;
     }
 
-    @SuppressWarnings("unchecked")
-    private static class NodeDependency<T> implements Dependency<T> {
-        private final DependencyGraph.Node node;
-        private final DependencyGraph.Traversal traversal;
-
-        NodeDependency(final DependencyGraph.Traversal traversal, final DependencyGraph.Node node) {
-            this.node = node;
-            this.traversal = traversal;
-        }
-
-        @Override
-        public Class<? extends T> type() {
-            return (Class<? extends T>) node.type();
-        }
-
-        @Override
-        public T instance() {
-            return node == null ? null : (T) node.instance(traversal);
-        }
-    }
-
     /**
      * @author Tibor Varga
      */
-    private static class ContainerImpl implements ComponentFactory.Container {
+    private static final class LocalResolver implements ComponentFactory.Resolver {
 
         private final AccessGuard<DependencyGraph.Node> instances;
         private final AccessGuard<ComponentContainer> containers;
@@ -472,7 +379,7 @@ abstract class FactoryResolver extends AbstractResolver {
         private final DependencyInjector injector;
         private final Resolution resolution;
 
-        ContainerImpl(final AccessGuard<DependencyGraph.Node> instances,
+        LocalResolver(final AccessGuard<DependencyGraph.Node> instances,
                       final AccessGuard<ComponentContainer> containers,
                       final DependencyGraph.Traversal traversal,
                       final DependencyInjector injector,
@@ -484,7 +391,7 @@ abstract class FactoryResolver extends AbstractResolver {
             this.resolution = resolution;
         }
 
-        public final <T> Dependency<T> resolve(final Class<T> api, final Constructor<?> constructor, final int parameter) {
+        public Dependency<?> resolve(final Constructor<?> constructor, final int parameter) {
             if (constructor == null) {
                 throw new ComponentContainer.BindingException("Provided constructor is null");
             }
@@ -492,80 +399,191 @@ abstract class FactoryResolver extends AbstractResolver {
             final Generics.Parameters parameters = Generics.describe(constructor);
             final Annotation[] parameterAnnotations = parameters.annotations(parameter);
 
-            return dependency(api,
+            final Class<?> type = constructor.getDeclaringClass();
+            return dependency(type,
+                              parameters.type(parameter),
                               parameters.genericType(parameter),
                               Lists.concatenate(Annotation.class,
-                                                constructor.getDeclaringClass().getAnnotations(),
+                                                type.getAnnotations(),
                                                 constructor.getAnnotations(),
                                                 parameterAnnotations),
-                              parameterAnnotations,
-                              instances,
-                              containers);
+                              parameterAnnotations);
         }
 
-        public final <T> Dependency<T> resolve(final Class<T> api, final Class<?> type, final Method method, final int parameter) {
+        public Dependency<?> resolve(final Class<?> type, final Method method, final int parameter) {
             if (method == null) {
-                throw new ComponentContainer.BindingException("Provided method is null");
+                throw new ComponentContainer.ResolutionException("Provided method is null");
             }
 
             final Annotation[] parameterAnnotations = method.getParameterAnnotations()[parameter];
 
+            final Class<?> api = type == null ? method.getDeclaringClass() : type;
             return dependency(api,
+                              method.getParameterTypes()[parameter],
                               method.getGenericParameterTypes()[parameter],
                               Lists.concatenate(Annotation.class,
-                                                (type == null ? method.getDeclaringClass() : type).getAnnotations(),
+                                                api.getAnnotations(),
                                                 method.getAnnotations(),
                                                 parameterAnnotations),
-                              parameterAnnotations,
-                              instances,
-                              containers);
+                              parameterAnnotations);
         }
 
-        public final <T> Dependency<T> resolve(final Class<T> api, final Class<?> type, final Field field) {
+        public Dependency<?> resolve(final Class<?> type, final Field field) {
             if (field == null) {
-                throw new ComponentContainer.BindingException("Provided field is null");
+                throw new ComponentContainer.ResolutionException("Provided field is null");
             }
 
+            final Class<?> api = type == null ? field.getDeclaringClass() : type;
             return dependency(api,
+                              field.getType(),
                               field.getGenericType(),
                               Lists.concatenate(Annotation.class,
-                                                (type == null ? field.getDeclaringClass() : type).getAnnotations(),
+                                                api.getAnnotations(),
                                                 field.getAnnotations()),
-                              field.getAnnotations(),
-                              instances,
-                              containers);
+                              field.getAnnotations());
         }
 
-        public final Dependency<?>[] resolve(final Class<?> type, final Method method) {
+        public Dependency<?>[] resolve(final Class<?> type, final Method method) {
             final Class<?>[] types = method.getParameterTypes();
             final Dependency<?>[] dependencies = new Dependency<?>[types.length];
 
             for (int i = 0, limit = types.length; i < limit; i++) {
-                dependencies[i] = resolve(types[i], type, method, i);
+                dependencies[i] = resolve(type, method, i);
             }
 
             return dependencies;
         }
 
-        public final Dependency<?>[] resolve(final Constructor<?> constructor) {
+        public Dependency<?>[] resolve(final Constructor<?> constructor) {
             final Class<?>[] types = constructor.getParameterTypes();
             final Dependency<?>[] dependencies = new Dependency<?>[types.length];
 
             for (int i = 0, limit = types.length; i < limit; i++) {
-                dependencies[i] = resolve(types[i], constructor, i);
+                dependencies[i] = resolve(constructor, i);
             }
 
             return dependencies;
         }
 
+        public Dependency<?>[] discover(final Class<?> type) {
+            assert type != null;
+            return discover(constructor(type));
+        }
+
+        @Override
+        public Dependency<?> lookup(final Type reference) {
+            if (reference == null) {
+                throw new IllegalArgumentException("Provided reference is null");
+            }
+
+            final Class<?> api = Generics.rawType(reference);
+            final DependencyGraph.Node node = dependency(null, api, null, descend(api, reference, null, null));
+
+            return Dependency.to(node::type, () -> node.instance(traversal));
+        }
+
+        public Constructor<?> constructor(final Class<?> type) {
+            assert type != null;
+            return injector.findConstructor(type);
+        }
+
+        public Dependency<?>[] discover(final Constructor<?> constructor) {
+            assert constructor != null;
+
+            final Class<?> reference = constructor.getDeclaringClass();
+
+            if (reference.getAnnotation(Component.class) != null) {
+                fields(reference);
+            }
+
+            return discover(reference,
+                            constructor.getGenericParameterTypes(),
+                            Lists.concatenate(Annotation.class, reference.getAnnotations(), constructor.getAnnotations()),
+                            constructor.getParameterAnnotations());
+        }
+
+        private void fields(final Class<?> type) {
+            assert type != null;
+            final Field[] fields = !Security.CONTROLLED ? type.getDeclaredFields() : AccessController.doPrivileged((PrivilegedAction<Field[]>) type::getDeclaredFields);
+
+            for (final Field field : fields) {
+                if (field.isAnnotationPresent(Inject.class)) {
+                    final Annotation[] fieldAnnotations = field.getAnnotations();
+
+                    descend(field.getType(),
+                            field.getGenericType(),
+                            Lists.concatenate(Annotation.class, field.getDeclaringClass().getAnnotations(), fieldAnnotations),
+                            fieldAnnotations);
+                }
+            }
+
+            final Class<?> superClass = type.getSuperclass();
+
+            if (superClass != null && superClass != Object.class) {
+                fields(superClass);
+            }
+        }
+
+        public Dependency<?>[] discover(final Class<?> type, final Method method) {
+            assert type != null;
+            assert method != null;
+
+            return discover(type,
+                            method.getGenericParameterTypes(),
+                            Lists.concatenate(Annotation.class, type.getAnnotations(), method.getAnnotations()),
+                            method.getParameterAnnotations());
+        }
+
+        private Dependency<?>[] discover(final Class reference, final Type[] types, final Annotation[] annotations, final Annotation[][] parameters) {
+            final List<Dependency<?>> nodes = new ArrayList<>();
+
+            for (int i = 0, limit = types.length; i < limit; i++) {
+                final Type type = types[i];
+                final Class<?> api = Generics.rawType(type);
+
+                final Annotation[] params = parameters[i];
+                final DependencyGraph.Node node = dependency(reference,
+                                                             api,
+                                                             params,
+                                                             descend(api, type, Lists.concatenate(Annotation.class, annotations, params), params));
+
+                nodes.add(Dependency.to(() -> node == null ? api : node.type(), () -> node == null ? null : node.instance(traversal)));
+            }
+
+            return Lists.asArray(Dependency.class, nodes);
+        }
+
         @SuppressWarnings("unchecked")
-        protected final <T> Dependency<T> dependency(final Class<T> api,
-                                                     final Type reference,
-                                                     final Annotation[] annotations,
-                                                     final Annotation[] params,
-                                                     final AccessGuard<DependencyGraph.Node> instances,
-                                                     final AccessGuard<ComponentContainer> containers) {
-            final DependencyGraph.Node node = injector.resolve(api, containers, new DependencyInjector.Resolution() {
+        public <T> Dependency<T> constant(final T object) {
+            return object == null ? null : Dependency.to((Class<? extends T>) object.getClass(), () -> object);
+        }
+
+        public Object[] instantiate(final Dependency<?>... dependencies) {
+            final Object[] instances = new Object[dependencies.length];
+
+            for (int i = 0, limit = dependencies.length; i < limit; i++) {
+                instances[i] = dependencies[i].instance();
+            }
+
+            return instances;
+        }
+
+        @Override
+        public <T> T invoke(final Constructor<T> constructor, final Dependency<?>... arguments) throws Exception {
+            final PrivilegedAction<Constructor<T>> access = Security.setAccessible(constructor);
+            return (access != null ? AccessController.doPrivileged(access) : constructor).newInstance(instantiate(arguments));
+        }
+
+        @Override
+        public Object invoke(final Object target, final Method method, final Dependency<?>... arguments) throws Exception {
+            final PrivilegedAction<Method> access = Security.setAccessible(method);
+            return (access != null ? AccessController.doPrivileged(access) : method).invoke(target, instantiate(arguments));
+        }
+
+        private DependencyGraph.Node descend(final Class<?> api, final Type reference, final Annotation[] annotations, final Annotation[] params) {
+            assert reference != null : api;
+
+            return injector.resolve(api, containers, new DependencyInjector.Resolution() {
                 public ComponentContext context() {
                     return resolution.context(api);
                 }
@@ -578,8 +596,105 @@ abstract class FactoryResolver extends AbstractResolver {
                     return resolution.regular(api, reference, annotations, params);
                 }
             });
+        }
 
-            return (Dependency<T>) Dependency.to(node.type(), () -> instances.access(node) == null ? null : node.instance(traversal));
+        @SuppressWarnings("unchecked")
+        private <T> Dependency<T> dependency(final Class<?> type,
+                                             final Class<T> api,
+                                             final Type reference,
+                                             final Annotation[] annotations,
+                                             final Annotation[] params) {
+            final DependencyGraph.Node node = dependency(type, api, params, descend(api, reference, annotations, params));
+
+            // instances.access(node) throws if access not allowed
+            return node == null ? null : (Dependency<T>) Dependency.to(node::type, () -> instances.access(node) == null ? null : node.instance(traversal));
+        }
+
+        DependencyGraph.Node dependency(final Class<?> reference, final Class<?> api, final Annotation[] annotations, final DependencyGraph.Node node) {
+            if (node == null) {
+                final Class<?> type = reference == null ? host(api) : reference;
+                final Component component = type.getAnnotation(Component.class);
+
+                if (component == null) {
+                    return null;
+                }
+
+                for (final Annotation annotation : annotations) {
+                    if (annotation.annotationType() == Optional.class) {
+                        return null;
+                    }
+                }
+
+                throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied", Strings.formatClass(true, true, api), Strings.formatClass(true, true, type));
+            }
+
+            return node;
+        }
+
+        public Class<?> host(final Class<?> api) {
+            final List<? extends DependencyPath.Element> path = traversal.path().path();
+            assert path.size() > 1 : api;
+            return path.get(path.size() - 2).type();
+        }
+    }
+
+    private class LocalResolution implements Resolution {
+
+        private final DependencyGraph.Traversal traversal;
+        private final SimpleContainer container;
+        private final ComponentContext passed;
+        private final ContextDefinition reduced;
+        private final ContextDefinition collected;
+        private final List<ContextDefinition> contexts;
+
+        public LocalResolution(final DependencyGraph.Traversal traversal,
+                               final SimpleContainer container,
+                               final ComponentContext passed,
+                               final ContextDefinition reduced,
+                               final ContextDefinition collected,
+                               final List<ContextDefinition> contexts) {
+            this.traversal = traversal;
+            this.container = container;
+            this.passed = passed;
+            this.reduced = reduced;
+            this.collected = collected;
+            this.contexts = contexts;
+        }
+
+        public ComponentContext context(final Class<?> type) {
+            traversal.descend(api, type, null, null);
+
+            try {
+                return passed;
+            } finally {
+                traversal.ascend(api, type);
+            }
+        }
+
+        public ComponentContainer container(final Class<?> type) {
+            traversal.descend(api, type, null, null);
+
+            try {
+                return new ComponentContainerShell(container, reduced.accept(null), false);
+            } finally {
+                traversal.ascend(api, type);
+            }
+        }
+
+        public DependencyGraph.Node regular(final Class<?> type, final Type reference, final Annotation[] annotations, final Annotation[] params) {
+            traversal.descend(api, type, null, annotations);
+
+            try {
+                final ContextDefinition copy = collected.advance(reference, false).expand(annotations);
+
+                contexts.add(copy);
+
+                return isGroup(type, params)
+                       ? container.resolveGroup(type.getComponentType(), copy, traversal, type)
+                       : container.resolveComponent(type, copy, traversal, type);
+            } finally {
+                traversal.ascend(api, type);
+            }
         }
     }
 }

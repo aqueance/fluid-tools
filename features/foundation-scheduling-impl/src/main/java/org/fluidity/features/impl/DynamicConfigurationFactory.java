@@ -18,6 +18,7 @@ package org.fluidity.features.impl;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ import org.fluidity.features.DynamicConfiguration;
 import org.fluidity.features.Updates;
 import org.fluidity.foundation.Configuration;
 import org.fluidity.foundation.Deferred;
+import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Proxies;
 import org.fluidity.foundation.Security;
 
@@ -42,11 +44,9 @@ import org.fluidity.foundation.Security;
 final class DynamicConfigurationFactory implements ComponentFactory {
 
     @SuppressWarnings("unchecked")
-    public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+    public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
         final Component.Reference reference = context.qualifier(Component.Reference.class, DynamicConfiguration.class);
         final Class<?> api = reference.parameter(0);
-
-        dependencies.discover(DynamicConfigurationImpl.class);
 
         for (final Method method : api.getMethods()) {
             if (method.getParameterTypes().length > 0) {
@@ -54,10 +54,7 @@ final class DynamicConfigurationFactory implements ComponentFactory {
             }
         }
 
-        return Instance.of(DynamicConfigurationImpl.class, registry -> {
-            registry.bindInstance(api, Class.class);
-            registry.bindComponent(DynamicConfigurationImpl.class);
-        });
+        return dependencies.instance(DynamicConfigurationImpl.class);
     }
 
     @Component(automatic = false)
@@ -66,7 +63,11 @@ final class DynamicConfigurationFactory implements ComponentFactory {
 
         private final Deferred.Reference<Updates.Snapshot<T>> snapshot;
 
-        DynamicConfigurationImpl(final Class<T> type, final Configuration<T> delegate, final Configuration<Settings> configuration, final Updates updates) {
+        DynamicConfigurationImpl(final ComponentContext context, final Configuration<T> delegate, final Configuration<Settings> configuration, final Updates updates) {
+
+            @SuppressWarnings("unchecked")
+            final Class<T> type = (Class<T>) Generics.rawType(context.qualifier(Component.Reference.class, null).parameter(0));
+
             final Configuration.Query<T, T> all = settings -> {
                 final Map<Method, Object> cache = new HashMap<>();
 

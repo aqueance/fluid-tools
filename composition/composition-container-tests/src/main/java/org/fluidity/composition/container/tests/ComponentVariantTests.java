@@ -413,7 +413,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     @Component.Qualifiers(Setting1.class)
     private static class GroupMember2Variants implements ComponentFactory {
 
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             return Instance.of(GroupMember2.class, registry -> {
                 final Setting1 annotation = context.qualifier(Setting1.class, null);
                 registry.bindInstance(annotation == null ? null : annotation.value(), String.class);
@@ -476,7 +476,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         }
 
         @SuppressWarnings("TrivialMethodReference")
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             assert delegate != null;
             final Instance instance = delegate.resolve(context, dependencies);
 
@@ -492,7 +492,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         public static ComponentFactory delegate;
 
         @SuppressWarnings("TrivialMethodReference")
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             assert delegate != null;
             final Instance instance = delegate.resolve(context, dependencies);
 
@@ -554,7 +554,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             final ComponentFactory.Resolver resolver = (ComponentFactory.Resolver) EasyMock.getCurrentArguments()[1];
             assert resolver != null : "Received no resolver";
 
-            final Dependency<?> dependency = resolver.resolve(checkKey, (Type) null, null);
+            final Dependency<?> dependency = resolver.lookup(checkKey);
             assert dependency != null && dependency.instance() == checkValue : "Container does not check up";
 
             final Object[] arguments = EasyMock.getCurrentArguments();

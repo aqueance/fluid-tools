@@ -30,6 +30,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Inject;
+import org.fluidity.composition.Optional;
 import org.fluidity.composition.Qualifier;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.Dependency;
@@ -231,18 +232,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         }
     }
 
-    @DataProvider(name = "resolution-variants")
-    public Object[][] resolutionTypes() {
-        return new Object[][] {
-                new Object[] { 0 },
-                new Object[] { 1 },
-                new Object[] { 2 },
-                new Object[] { 3 },
-                new Object[] { 4 },
-        };
-    }
-
-    @Test(dataProvider = "resolution-variants")
+    @Test
     public void testResolver(final int variant) throws Exception {
 
         @Component(automatic = false)
@@ -252,80 +242,20 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         @Component.Qualifiers(Component.Reference.class)
         class Secondary implements Serializable {
             public Secondary(final ComponentContext context) {
-                switch (variant) {
-                case 0:
-                case 1:
-                case 2:
-                    assert context.qualifier(Component.Reference.class, null).type() == Secondary.class : context;
-                    break;
-                case 3:
-                    assert context.qualifier(Component.Reference.class, null).type() == Serializable.class : context;
-                    break;
-                default:
-                    assert false : variant;
-                }
+                assert context.qualifier(Component.Reference.class, null).type() == Secondary.class : context;
             }
         }
 
         @Component(api = Main.class, automatic = false)
         class Factory implements ComponentFactory {
-            public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-                switch (variant) {
-                case 0: {
-                    final Dependency<Secondary> dependency = dependencies.resolve(Secondary.class, (Type) null, null);
-                    assert dependency != null : Secondary.class;
+            public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
+                final Dependency<?> dependency = dependencies.lookup(Secondary.class);
+                assert dependency != null : Secondary.class;
 
-                    return Instance.of(Main.class, registry -> {
-                        registry.bindInstance(dependency.instance());
-                        registry.bindComponent(Main.class);
-                    });
-                }
-
-                case 1: {
-                    final Dependency<Secondary> dependency = dependencies.resolve(Secondary.class, (Type) Secondary.class, null);
-                    assert dependency != null : Secondary.class;
-
-                    return Instance.of(Main.class, registry -> {
-                        registry.bindInstance(dependency.instance());
-                        registry.bindComponent(Main.class);
-                    });
-                }
-
-                case 2: {
-                    final Dependency<Secondary> dependency = dependencies.resolve(null, (Type) Secondary.class, null);
-                    assert dependency != null : Secondary.class;
-
-                    return Instance.of(Main.class, registry -> {
-                        registry.bindInstance(dependency.instance());
-                        registry.bindComponent(Main.class);
-                    });
-                }
-
-                case 3: {
-                    final Dependency<Secondary> dependency = dependencies.resolve(Secondary.class, (Type) Serializable.class, null);
-                    assert dependency != null : Secondary.class;
-
-                    return Instance.of(Main.class, registry -> {
-                        registry.bindInstance(dependency.instance());
-                        registry.bindComponent(Main.class);
-                    });
-                }
-
-                case 4: {
-                    try {
-                        dependencies.resolve(Secondary.class, (Type) Closeable.class, null);
-                        assert false : "Should have thrown resolution exception";
-                    } catch (final ComponentContainer.ResolutionException e) {
-                        // that's fine
-                    }
-
-                    return null;
-                }
-
-                default:
-                    assert false : variant;
-                    return null;
-                }
+                return Instance.of(Main.class, registry -> {
+                    registry.bindInstance(dependency.instance());
+                    registry.bindComponent(Main.class);
+                });
             }
         }
 
@@ -334,22 +264,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         registry.bindComponent(Secondary.class);
         registry.bindComponent(Factory.class);
 
-        verify(() -> {
-            switch (variant) {
-            case 0:
-            case 1:
-            case 2:
-            case 3:
-                assert container.getComponent(Main.class) != null;
-                break;
-            case 4:
-                assert container.getComponent(Main.class) == null;
-                break;
-            default:
-                assert false : variant;
-                break;
-            }
-        });
+        assert verify(() -> container.getComponent(Main.class)) != null;
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -473,26 +388,26 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     @Component(automatic = false)
     private static class ConstructorDelegatingFactory1 implements ComponentFactory {
 
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            final Constructor<?> constructor = dependencies.constructor(ContextProvider.class);
-
-            dependencies.discover(constructor);
-
-            final Container container = dependencies.local(ContextProvider.class, registry -> {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
+            final Resolver container = dependencies.local(ContextProvider.class, registry -> {
                 registry.bindComponent(NamedGroupMember3.class);
                 registry.bindComponent(NamedComponent.class);
             });
+
+            final Constructor<?> constructor = container.constructor(ContextProvider.class);
+
+            container.discover(constructor);
 
             final Dependency<?>[] resolved = container.resolve(constructor);
 
             final Field field1 = SuperClass.class.getDeclaredField("field3");
             final Field field2 = SuperClass.class.getDeclaredField("field2");
 
-            final Dependency<NamedComponent> dependency4 = container.resolve(NamedComponent.class, ContextProvider.class, field1);
-            final Dependency<NamedGroup[]> dependency5 = dependencies.resolve(NamedGroup[].class, ContextProvider.class, field2);
+            final Dependency<NamedComponent> dependency4 = (Dependency<NamedComponent>) container.resolve(null, field1);
+            final Dependency<NamedGroup[]> dependency5 = (Dependency<NamedGroup[]>) dependencies.resolve(null, field2);
 
             return Instance.of(ContextProvider.class, registry -> {
-                final ContextProvider instance = (ContextProvider) constructor.newInstance(dependencies.instantiate(resolved));
+                final ContextProvider instance = (ContextProvider) dependencies.invoke(constructor, resolved);
 
                 final NamedComponent value1 = dependency4.instance();
                 assert value1 != null;
@@ -515,25 +430,25 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     @Component(automatic = false)
     private static class ConstructorDelegatingFactory2 implements ComponentFactory {
 
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            final Constructor<?> constructor = dependencies.constructor(ContextProvider.class);
-
-            dependencies.discover(constructor);
-
-            final Container container = dependencies.local(ContextProvider.class, registry -> {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
+            final Resolver container = dependencies.local(ContextProvider.class, registry -> {
                 registry.bindComponent(NamedGroupMember3.class);
                 registry.bindComponent(NamedComponent.class);
             });
 
-            final Dependency<NamedComponent> dependency1 = container.resolve(NamedComponent.class, constructor, 0);
-            final Dependency<NamedComponent> dependency2 = container.resolve(NamedComponent.class, constructor, 1);
-            final Dependency<NamedGroup[]> dependency3 = container.resolve(NamedGroup[].class, constructor, 2);
+            final Constructor<?> constructor = container.constructor(ContextProvider.class);
+
+            container.discover(constructor);
+
+            final Dependency<NamedComponent> dependency1 = (Dependency<NamedComponent>) container.resolve(constructor, 0);
+            final Dependency<NamedComponent> dependency2 = (Dependency<NamedComponent>) container.resolve(constructor, 1);
+            final Dependency<NamedGroup[]> dependency3 = (Dependency<NamedGroup[]>) container.resolve(constructor, 2);
 
             final Field field1 = SuperClass.class.getDeclaredField("field3");
             final Field field2 = SuperClass.class.getDeclaredField("field2");
 
-            final Dependency<NamedComponent> dependency4 = container.resolve(NamedComponent.class, ContextProvider.class, field1);
-            final Dependency<NamedGroup[]> dependency5 = dependencies.resolve(NamedGroup[].class, ContextProvider.class, field2);
+            final Dependency<NamedComponent> dependency4 = (Dependency<NamedComponent>) container.resolve(null, field1);
+            final Dependency<NamedGroup[]> dependency5 = (Dependency<NamedGroup[]>) dependencies.resolve(null, field2);
 
             return Instance.of(ContextProvider.class, registry -> {
                 final ContextProvider instance = new ContextProvider(dependency1.instance(), dependency2.instance(), dependency3.instance());
@@ -559,9 +474,9 @@ public final class CustomFactoryTests extends AbstractContainerTests {
 
         @Name("name-1")
         @SuppressWarnings("UnusedDeclaration")
-        static ContextProvider factoryMethod(final NamedComponent dependency1,
-                                             final @Name("name-2") NamedComponent dependency2,
-                                             final @Name("name-3") @ComponentGroup NamedGroup[] group) {
+        static ContextProvider factoryMethod(final @Optional NamedComponent dependency1,
+                                             final @Optional @Name("name-2") NamedComponent dependency2,
+                                             final @Optional @Name("name-3") @ComponentGroup NamedGroup[] group) {
             return new ContextProvider(dependency1, dependency2, group);
         }
     }
@@ -569,23 +484,23 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     @Component(automatic = false)
     private static class FactoryDelegatingFactory1 implements ComponentFactory {
 
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            final Method method = ContextProviderFactory.class.getDeclaredMethod("factoryMethod", NamedComponent.class, NamedComponent.class, NamedGroup[].class);
-
-            dependencies.discover(method);
-
-            final Container container = dependencies.local(null, registry -> {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
+            final Resolver container = dependencies.local(null, registry -> {
                 registry.bindComponent(NamedGroupMember3.class);
                 registry.bindComponent(NamedComponent.class);
             });
+
+            final Method method = ContextProviderFactory.class.getDeclaredMethod("factoryMethod", NamedComponent.class, NamedComponent.class, NamedGroup[].class);
+
+            container.discover(ContextProviderFactory.class, method);
 
             final Dependency<?>[] resolved = container.resolve(ContextProvider.class, method);
 
             final Field field1 = SuperClass.class.getDeclaredField("field3");
             final Field field2 = SuperClass.class.getDeclaredField("field2");
 
-            final Dependency<NamedComponent> dependency4 = container.resolve(NamedComponent.class, ContextProvider.class, field1);
-            final Dependency<NamedGroup[]> dependency5 = dependencies.resolve(NamedGroup[].class, ContextProvider.class, field2);
+            final Dependency<NamedComponent> dependency4 = (Dependency<NamedComponent>) container.resolve(ContextProvider.class, field1);
+            final Dependency<NamedGroup[]> dependency5 = (Dependency<NamedGroup[]>) dependencies.resolve(ContextProvider.class, field2);
 
             return Instance.of(ContextProvider.class, registry -> {
                 final ContextProvider instance = (ContextProvider) method.invoke(null, dependencies.instantiate(resolved));
@@ -610,25 +525,25 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     @Component(automatic = false)
     private static class FactoryDelegatingFactory2 implements ComponentFactory {
 
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-            final Method method = ContextProviderFactory.class.getDeclaredMethod("factoryMethod", NamedComponent.class, NamedComponent.class, NamedGroup[].class);
-
-            dependencies.discover(method);
-
-            final Container container = dependencies.local(null, registry -> {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
+            final Resolver container = dependencies.local(null, registry -> {
                 registry.bindComponent(NamedGroupMember3.class);
                 registry.bindComponent(NamedComponent.class);
             });
 
-            final Dependency<NamedComponent> dependency1 = container.resolve(NamedComponent.class, ContextProvider.class, method, 0);
-            final Dependency<NamedComponent> dependency2 = container.resolve(NamedComponent.class, ContextProvider.class, method, 1);
-            final Dependency<NamedGroup[]> dependency3 = container.resolve(NamedGroup[].class, ContextProvider.class, method, 2);
+            final Method method = ContextProviderFactory.class.getDeclaredMethod("factoryMethod", NamedComponent.class, NamedComponent.class, NamedGroup[].class);
+
+            dependencies.discover(ContextProviderFactory.class, method);
+
+            final Dependency<NamedComponent> dependency1 = (Dependency<NamedComponent>) container.resolve(null, method, 0);
+            final Dependency<NamedComponent> dependency2 = (Dependency<NamedComponent>) container.resolve(null, method, 1);
+            final Dependency<NamedGroup[]> dependency3 = (Dependency<NamedGroup[]>) container.resolve(null, method, 2);
 
             final Field field1 = SuperClass.class.getDeclaredField("field3");
             final Field field2 = SuperClass.class.getDeclaredField("field2");
 
-            final Dependency<NamedComponent> dependency4 = container.resolve(NamedComponent.class, ContextProvider.class, field1);
-            final Dependency<NamedGroup[]> dependency5 = dependencies.resolve(NamedGroup[].class, ContextProvider.class, field2);
+            final Dependency<NamedComponent> dependency4 = (Dependency<NamedComponent>) container.resolve(ContextProvider.class, field1);
+            final Dependency<NamedGroup[]> dependency5 = (Dependency<NamedGroup[]>) dependencies.resolve(ContextProvider.class, field2);
 
             return Instance.of(ContextProvider.class, registry -> {
                 final ContextProvider instance = ContextProviderFactory.factoryMethod(dependency1.instance(), dependency2.instance(), dependency3.instance());
@@ -659,7 +574,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
             assert dependency != null;
         }
 
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             assert delegate != null;
             final Instance instance = delegate.resolve(context, dependencies);
 
@@ -688,7 +603,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
 
         static ComponentFactory delegate;
 
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             assert delegate != null;
             final Instance instance = delegate.resolve(context, dependencies);
 
@@ -706,7 +621,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
 
         static ComponentFactory delegate;
 
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             assert delegate != null;
             final Instance instance = delegate.resolve(context, dependencies);
 
@@ -735,7 +650,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
             final ComponentFactory.Resolver resolver = (ComponentFactory.Resolver) EasyMock.getCurrentArguments()[1];
             assert resolver != null : "Received no resolver";
 
-            final Dependency<?> dependency = resolver.resolve(checkKey, (Type) null, null);
+            final Dependency<?> dependency = resolver.lookup(checkKey);
             assert dependency != null && dependency.instance() == checkValue : "Container does not check up";
 
             return instance;
@@ -754,7 +669,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     @Component(api = DynamicComponent1.class)
     private static class DynamicFactory1 implements ComponentFactory {
 
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             final Dependency<?>[] arguments = dependencies.discover(DynamicComponent1.class);
 
             return Instance.of(DynamicComponent1.class, registry -> registry.bindInstance(new DynamicComponent1((ComponentContainer) arguments[0].instance())));
@@ -779,7 +694,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     @Component(api = DynamicComponent2.class)
     private static class DynamicFactory2 implements ComponentFactory {
 
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             final Dependency<?>[] arguments = dependencies.discover(DynamicComponent1.class);
 
             return Instance.of(DynamicComponent2.class, registry -> registry.bindInstance(new DynamicComponent2((ComponentContainer) arguments[0].instance())));
@@ -799,7 +714,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     @Component.Qualifiers(Component.Reference.class)
     private static class CustomDependencyFactory implements ComponentFactory {
 
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             assert context.defines(Component.Reference.class);
             assert context.qualifiers(Component.Reference.class) != null;
 
@@ -834,7 +749,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     @Component(api = DependentKey.class, automatic = false)
     private static class BadFactory implements ComponentFactory {
 
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
+        public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             return Instance.of(DependentKey.class, registry -> {
                 // empty
             });

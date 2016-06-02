@@ -125,16 +125,19 @@ final class DependencyInjectorImpl implements DependencyInjector {
             final int index = i;
             if (parameters[index] == null && (explicit || contains(parameterAnnotations[index], Inject.class))) {
                 injectDependency(false, traversal, container, contexts, context, componentClass, parameterized, guard, new Dependency() {
+
+                    private final Annotation[] annotations = Lists.concatenate(Annotation.class, methodAnnotations, parameterAnnotations[index]);
+
                     public Type reference() {
                         return types[index];
                     }
 
                     public <T extends Annotation> T annotation(final Class<T> annotationClass) {
-                        return find(annotations(), annotationClass);
+                        return find(annotations, annotationClass);
                     }
 
                     public Annotation[] annotations() {
-                        return Lists.concatenate(Annotation.class, methodAnnotations, parameterAnnotations[index]);
+                        return annotations;
                     }
 
                     public void set(final DependencyGraph.Node node) {
@@ -294,16 +297,19 @@ final class DependencyInjectorImpl implements DependencyInjector {
         for (int i = 0, length = params.length; i < length; ++i) {
             final int index = i;
             consumed.add(injectDependency(true, traversal, container, contexts, context, componentClass, parameterized, guard, new Dependency() {
+
+                private final Annotation[] annotations = Lists.concatenate(Annotation.class, constructorAnnotations, descriptor.annotations(index));
+
                 public Type reference() {
                     return descriptor.genericType(index);
                 }
 
                 public <T extends Annotation> T annotation(final Class<T> annotationClass) {
-                    return find(annotations(), annotationClass);
+                    return find(annotations, annotationClass);
                 }
 
                 public Annotation[] annotations() {
-                    return Lists.concatenate(Annotation.class, constructorAnnotations, descriptor.annotations(index));
+                    return annotations;
                 }
 
                 public void set(final DependencyGraph.Node node) {
