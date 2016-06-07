@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.container;
+package org.fluidity.composition;
 
 /**
  * Partially implements the <a href="https://github.com/aqueance/fluid-tools/wiki/User-Guide---Overview#service-providers">service provider</a> discovery
@@ -28,7 +28,7 @@ package org.fluidity.composition.container;
  * {@linkplain org.fluidity.composition.Component @Component}
  * public final class MyComponent {
  *
- *   MyComponent(final <span class="hl1">ClassDiscovery</span> discovery) {
+ *   MyComponent(final <span class="hl1">ComponentDiscovery</span> discovery) {
  *     final {@linkplain ClassLoader} loader = getClass().getClassLoader();
  *     final Class&lt;<span class="hl2">MyProvider</span>&gt;[] classes = discovery.<span class="hl1">findComponentClasses</span>(<span class="hl2">MyProvider</span>.class, loader, false);
  *     assert classes != null : <span class="hl2">MyProvider</span>.class;
@@ -44,7 +44,7 @@ package org.fluidity.composition.container;
  *
  * @author Tibor Varga
  */
-public interface ClassDiscovery {
+public interface ComponentDiscovery {
 
     /**
      * Finds all classes visible to the given class loader that implement or extend the given service provider interface. Use this method to find classes for

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,11 +40,11 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 @SuppressWarnings({ "unchecked", "ResultOfMethodCallIgnored" })
-public class ClassDiscoveryImplTest {
+public class ComponentDiscoveryImplTest {
 
     private static final String SERVICES = String.format("%s/%s/", Archives.META_INF, ServiceProviders.TYPE);
 
-    private final Log<ClassDiscoveryImpl> log = NoLogFactory.consume(ClassDiscoveryImpl.class);
+    private final Log<ComponentDiscoveryImpl> log = NoLogFactory.consume(ComponentDiscoveryImpl.class);
 
     @Test
     public void findsClassesInAnyClassLoader() throws Exception {
@@ -70,7 +70,7 @@ public class ClassDiscoveryImplTest {
 
         try {
             final ClassLoader loader = ClassLoaders.create(Collections.singleton(classDir.toURI().toURL()), getClass().getClassLoader(), null);
-            final Class[] classes = new ClassDiscoveryImpl(log).findComponentClasses(Interface.class, loader, false);
+            final Class[] classes = new ComponentDiscoveryImpl(log).findComponentClasses(Interface.class, loader, false);
 
             assert new ArrayList<Class>(Arrays.asList(Impl1.class, Impl2.class, Impl3.class)).equals(new ArrayList<Class>(Arrays.asList(classes)));
         } finally {
@@ -113,9 +113,9 @@ public class ClassDiscoveryImplTest {
             final ClassLoader loader1 = ClassLoaders.create(Collections.singleton(classDir1.toURI().toURL()), null, null);
             final ClassLoader loader2 = ClassLoaders.create(Collections.singleton(classDir2.toURI().toURL()), loader1, null);
 
-            final Class[] classes = new ClassDiscoveryImpl(log).findComponentClasses(loader1.loadClass(Interface.class.getName()), loader2, true);
+            final Class[] classes = new ComponentDiscoveryImpl(log).findComponentClasses(loader1.loadClass(Interface.class.getName()), loader2, true);
 
-            assert new ArrayList<Class>(Arrays.asList(loader2.loadClass(Impl1.class.getName()))).equals(new ArrayList<Class>(Arrays.asList(classes)));
+            assert Collections.singletonList(loader2.loadClass(Impl1.class.getName())).equals(Arrays.asList(classes));
         } finally {
             deleteDirectory(classDir1, fileList);
             deleteDirectory(classDir2, fileList);

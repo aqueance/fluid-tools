@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.fluidity.composition.container.ClassDiscovery;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.spi.PackageBindings;
@@ -45,7 +44,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
                                               final ClassLoader loader,
                                               final Callback callback) {
         final Log log = log(services);
-        final ClassDiscovery discovery = services.classDiscovery();
+        final ComponentDiscovery discovery = services.componentDiscovery();
 
         final MutableContainer container = parent == null ? provider.newContainer(services, false) : parent.makeChildContainer();
 

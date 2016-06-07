@@ -32,12 +32,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentDiscovery;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.ObservedContainer;
 import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.ServiceProvider;
-import org.fluidity.composition.container.ClassDiscovery;
 import org.fluidity.deployment.osgi.BundleComponents;
 import org.fluidity.deployment.osgi.Service;
 import org.fluidity.foundation.Lists;
@@ -60,10 +60,10 @@ import org.osgi.framework.ServiceRegistration;
 final class BundleComponentContainerImpl<T> implements BundleComponentContainer<T> {
 
     private final BundleContext context;
-    private final ClassDiscovery discovery;
+    private final ComponentDiscovery discovery;
     private final Log log;
 
-    BundleComponentContainerImpl(final BundleContext bundle, final Log<BundleComponentContainerImpl> log, final ClassDiscovery discovery) {
+    BundleComponentContainerImpl(final BundleContext bundle, final Log<BundleComponentContainerImpl> log, final ComponentDiscovery discovery) {
         this.context = bundle;
         this.log = log;
         this.discovery = discovery;
@@ -156,7 +156,7 @@ final class BundleComponentContainerImpl<T> implements BundleComponentContainer<
             }
         };
 
-        Logic(final BundleContext context, final ClassDiscovery discovery, final ComponentContainer container, final ClassLoader loader, final Log log) {
+        Logic(final BundleContext context, final ComponentDiscovery discovery, final ComponentContainer container, final ClassLoader loader, final Log log) {
             this.context = context;
             this.container = container;
             this.log = log;

@@ -30,8 +30,8 @@ import java.util.Set;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentDiscovery;
 import org.fluidity.composition.Containers;
-import org.fluidity.composition.container.ClassDiscovery;
 import org.fluidity.deployment.osgi.BundleComponents;
 import org.fluidity.deployment.osgi.Service;
 import org.fluidity.foundation.Deferred;
@@ -64,7 +64,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
 
     private final Bundle bundle = dependencies.normal(Bundle.class);
     private final BundleContext context = dependencies.normal(BundleContext.class);
-    private final ClassDiscovery discovery = dependencies.normal(ClassDiscovery.class);
+    private final ComponentDiscovery discovery = dependencies.normal(ComponentDiscovery.class);
 
     private final ServiceInterface1 service1 = dependencies.normal(ServiceInterface1.class);
     private final ServiceInterface2 service2 = dependencies.normal(ServiceInterface2.class);

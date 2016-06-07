@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -192,7 +192,7 @@ final class SimpleContainerImpl implements ParentContainer {
         }
 
         if (root != null && root != scope) {
-            for (final Class<?> dependency : services.classDiscovery().findComponentClasses(Component.SCOPE, root, root.getClassLoader(), false, false)) {
+            for (final Class<?> dependency : services.componentDiscovery().findComponentClasses(Component.SCOPE, root, root.getClassLoader(), false, false)) {
                 if (dependency != component) {
                     bindComponent(scope == null ? root : scope, Components.inspect(dependency));
                 }

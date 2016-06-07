@@ -17,7 +17,7 @@
 package org.fluidity.composition.container.impl;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.container.ClassDiscovery;
+import org.fluidity.composition.ComponentDiscovery;
 import org.fluidity.composition.container.ComponentCache;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.ContextDefinition;
@@ -35,14 +35,14 @@ import org.fluidity.foundation.spi.LogFactory;
 final class ProductionServices implements ContainerServices {
 
     private final LogFactory logs;
-    private final ClassDiscovery discovery;
+    private final ComponentDiscovery discovery;
     private final DependencyInjector injector;
     private final Log<ComponentCacheImpl> cacheLog;
 
     ProductionServices(final LogFactory logs) {
         this.logs = logs;
         this.cacheLog = logs.createLog(ComponentCacheImpl.class);
-        this.discovery = new ClassDiscoveryImpl(logs.createLog(ClassDiscoveryImpl.class));
+        this.discovery = new ComponentDiscoveryImpl(logs.createLog(ComponentDiscoveryImpl.class));
         this.injector = new DependencyInjectorImpl(new DependencyInterceptorsImpl(new InterceptorFilterImpl(), logs.createLog(DependencyInterceptorsImpl.class)));
     }
 
@@ -50,7 +50,7 @@ final class ProductionServices implements ContainerServices {
         return new ContextDefinitionImpl();
     }
 
-    public ClassDiscovery classDiscovery() {
+    public ComponentDiscovery componentDiscovery() {
         return discovery;
     }
 

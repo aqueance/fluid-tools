@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.fluidity.composition.container.ClassDiscovery;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.spi.ContainerTermination;
@@ -50,7 +49,7 @@ public final class ContainerBootstrapImplTest extends Simulator {
     private final ContainerBootstrap.Callback callback = dependencies.normal(ContainerBootstrap.Callback.class);
     private final ContainerProvider provider = dependencies.normal(ContainerProvider.class);
     private final ContainerServices services = dependencies.normal(ContainerServices.class);
-    private final ClassDiscovery discovery = dependencies.normal(ClassDiscovery.class);
+    private final ComponentDiscovery discovery = dependencies.normal(ComponentDiscovery.class);
     private final ContainerTermination termination = dependencies.normal(ContainerTermination.class);
     private final MutableContainer parent = dependencies.normal(MutableContainer.class);
     private final MutableContainer container = dependencies.normal(MutableContainer.class);
@@ -66,7 +65,7 @@ public final class ContainerBootstrapImplTest extends Simulator {
         bootstrap = new ContainerBootstrapImpl();
 
         EasyMock.expect(services.createLog(EasyMock.<Log>anyObject(), EasyMock.<Class<?>>anyObject())).andReturn(log).anyTimes();
-        EasyMock.expect(services.classDiscovery()).andReturn(discovery).anyTimes();
+        EasyMock.expect(services.componentDiscovery()).andReturn(discovery).anyTimes();
     }
 
     @SuppressWarnings("unchecked")

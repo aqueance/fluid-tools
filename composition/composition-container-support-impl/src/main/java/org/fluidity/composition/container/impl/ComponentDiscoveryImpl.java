@@ -17,8 +17,8 @@
 package org.fluidity.composition.container.impl;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentDiscovery;
 import org.fluidity.composition.ServiceProvider;
-import org.fluidity.composition.container.ClassDiscovery;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.ServiceProviders;
 
@@ -29,25 +29,25 @@ import org.fluidity.foundation.ServiceProviders;
  * @author Tibor Varga
  */
 @Component(automatic = false)
-final class ClassDiscoveryImpl implements ClassDiscovery {
+final class ComponentDiscoveryImpl implements ComponentDiscovery {
 
     private final Log log;
 
     private final ServiceProviders.Log wrapper = new ServiceProviders.Log() {
         public void debug(final String format, final Object... arguments) {
-            ClassDiscoveryImpl.this.log.debug(format, arguments);
+            ComponentDiscoveryImpl.this.log.debug(format, arguments);
         }
 
         public void error(final String format, final Object... arguments) {
-            ClassDiscoveryImpl.this.log.error(format, arguments);
+            ComponentDiscoveryImpl.this.log.error(format, arguments);
         }
 
         public void error(final Exception error, final String format, final Object... arguments) {
-            ClassDiscoveryImpl.this.log.error(error, format, arguments);
+            ComponentDiscoveryImpl.this.log.error(error, format, arguments);
         }
     };
 
-    ClassDiscoveryImpl(final Log<ClassDiscoveryImpl> log) {
+    ComponentDiscoveryImpl(final Log<ComponentDiscoveryImpl> log) {
         this.log = log;
     }
 

@@ -21,6 +21,8 @@ import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
+ * A @ServiceProvider by heritage.
+ *
  * @author Tibor Varga
  */
 final class ProductionServicesFactory implements ContainerServicesFactory {

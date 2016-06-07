@@ -17,6 +17,7 @@
 package org.fluidity.composition.container;
 
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentDiscovery;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.foundation.Log;
 
@@ -47,11 +48,11 @@ public interface ContainerServices {
     ContextDefinition emptyContext();
 
     /**
-     * Returns the service to use to find classes implementing some interface.
+     * Returns the service to use to find classes implementing some component or service provider interface.
      *
-     * @return the class discovery service; never <code>null</code>.
+     * @return the component discovery service; never <code>null</code>.
      */
-    ClassDiscovery classDiscovery();
+    ComponentDiscovery componentDiscovery();
 
     /**
      * Returns the component that can perform dependency injection to constructors, fields, and methods.

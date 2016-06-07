@@ -16,8 +16,8 @@
 
 package org.fluidity.composition.container.tests;
 
+import org.fluidity.composition.ComponentDiscovery;
 import org.fluidity.composition.MutableContainer;
-import org.fluidity.composition.container.ClassDiscovery;
 import org.fluidity.composition.container.ComponentCache;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.ContextDefinition;
@@ -43,10 +43,10 @@ public abstract class ContainerProviderAbstractTest extends Simulator {
     private final Log log = NoLogFactory.consume(getClass());
 
     private final ContainerServices services = dependencies.normal(ContainerServices.class);
-    private final ClassDiscovery classDiscovery = dependencies.normal(ClassDiscovery.class);
+    private final ComponentDiscovery discovery = dependencies.normal(ComponentDiscovery.class);
     private final DependencyGraph.Traversal traversal = dependencies.normal(DependencyGraph.Traversal.class);
     private final DependencyInjector injector = dependencies.normal(DependencyInjector.class);
-    private final ComponentCache componentCache = dependencies.normal(ComponentCache.class);
+    private final ComponentCache cache = dependencies.normal(ComponentCache.class);
     private final ContextDefinition context = dependencies.normal(ContextDefinition.class);
     private final ContextDefinition copy = dependencies.normal(ContextDefinition.class);
 
@@ -59,9 +59,9 @@ public abstract class ContainerProviderAbstractTest extends Simulator {
     @BeforeMethod
     public final void setup() {
         EasyMock.expect(services.createLog(EasyMock.<Log>anyObject(), EasyMock.<Class<?>>anyObject())).andReturn(log).anyTimes();
-        EasyMock.expect(services.classDiscovery()).andReturn(classDiscovery).anyTimes();
+        EasyMock.expect(services.componentDiscovery()).andReturn(discovery).anyTimes();
         EasyMock.expect(services.dependencyInjector()).andReturn(injector).anyTimes();
-        EasyMock.expect(services.newCache(EasyMock.anyBoolean())).andReturn(componentCache).anyTimes();
+        EasyMock.expect(services.newCache(EasyMock.anyBoolean())).andReturn(cache).anyTimes();
         EasyMock.expect(services.emptyContext()).andReturn(context).anyTimes();
         EasyMock.expect(services.graphTraversal()).andReturn(traversal).anyTimes();
     }
