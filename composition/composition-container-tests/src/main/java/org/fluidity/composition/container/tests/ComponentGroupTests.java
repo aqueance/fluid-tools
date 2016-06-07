@@ -367,9 +367,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
             assert reference != null;
             assert !Generics.rawType(reference).isArray() : reference;
 
-            dependencies.discover(type);
-
-            return Instance.of(type, registry -> registry.bindComponent(type));
+            return dependencies.instance(type, registry -> registry.bindComponent(type));
         }
     }
 

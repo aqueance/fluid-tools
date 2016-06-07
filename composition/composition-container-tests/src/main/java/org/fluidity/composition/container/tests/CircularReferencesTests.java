@@ -520,15 +520,17 @@ public final class CircularReferencesTests extends AbstractContainerTests {
             final Constructor<B> constructor;
             final Dependency<?>[] resolved;
 
+            final Resolver container = dependencies.resolver();
+
             if (context1 != null) {
-                resolved = dependencies.resolve(constructor = B.class.getDeclaredConstructor(C.class));
+                resolved = container.resolve(constructor = B.class.getDeclaredConstructor(C.class));
             } else if (context2 != null) {
-                resolved = dependencies.resolve(constructor = B.class.getDeclaredConstructor(A.class));
+                resolved = container.resolve(constructor = B.class.getDeclaredConstructor(A.class));
             } else {
-                resolved = dependencies.resolve(constructor = B.class.getDeclaredConstructor());
+                resolved = container.resolve(constructor = B.class.getDeclaredConstructor());
             }
 
-            return Instance.of(B.class, registry -> registry.bindInstance(dependencies.invoke(constructor, resolved)));
+            return Instance.of(B.class, registry -> registry.bindInstance(container.invoke(constructor, resolved)));
         }
     }
 }

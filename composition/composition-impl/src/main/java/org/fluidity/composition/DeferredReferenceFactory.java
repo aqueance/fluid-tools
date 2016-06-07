@@ -44,7 +44,7 @@ final class DeferredReferenceFactory implements ComponentFactory {
             throw new IllegalArgumentException(String.format("Type parameter missing from a %s dependency", Strings.formatClass(false, true, Deferred.class)));
         }
 
-        final Dependency<?> dependency = dependencies.lookup(api);
+        final Dependency<?> dependency = dependencies.resolver().lookup(api);
         final Deferred.Reference reference = Deferred.local(dependency::instance);
 
         return Instance.of(dependency.type(), registry -> registry.bindInstance(reference, Deferred.Reference.class));

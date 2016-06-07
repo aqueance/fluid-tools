@@ -30,7 +30,6 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Inject;
-import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.Dependency;
 
@@ -422,7 +421,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Component.Qualifiers(Setting2.class)
     private static final class SecondFactory implements ComponentFactory {
         public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
-            final Resolver container = dependencies.local(SecondComponent.class, registry -> {
+            final Resolver container = dependencies.resolver(registry -> {
                 registry.bindInstance(context.qualifiers(Setting1.class));
                 registry.bindInstance(context.qualifiers(Setting2.class));
                 registry.bindInstance(context.qualifiers(Setting3.class));
@@ -443,10 +442,9 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Component.Qualifiers({ Setting1.class, Setting3.class })
     private static final class ThirdFactory implements ComponentFactory {
         public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
-            dependencies.discover(ThirdComponent.class);
 
             // direct instantiation to bypass the container
-            return Instance.of(ThirdComponent.class, registry -> registry.bindInstance(new ThirdComponent(context)));
+            return dependencies.instance(ThirdComponent.class, registry -> registry.bindInstance(new ThirdComponent(context)));
         }
     }
 

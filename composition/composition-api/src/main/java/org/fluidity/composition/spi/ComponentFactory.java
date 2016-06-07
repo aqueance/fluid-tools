@@ -101,8 +101,10 @@ public interface ComponentFactory {
      * The static dependencies of the component are discovered by calls to methods of the {@link ComponentFactory.Container dependencies} argument, the simplest
      * of which are {@link Container#instance(Class) instance(Class)} and {@link Container#instance(Class, ComponentFactory.Bindings) instance(Class, Bindings)}.
      * <p>
-     * More elaborate factory logic may require calls to {@link ComponentFactory.Container#discover(Class) discover(Class)} to resolve dependencies of specific
-     * component classes, and even more elaborate cases may require other, more specific, calls to {@link ComponentFactory.Container}.
+     * More elaborate factory logic may require acquisition of a {@link ComponentFactory.Resolver resolver} via {@link Container#resolver()},
+     * {@link Container#resolver(Class)}, or {@link Container#resolver(Class, Bindings)}, and then calls to {@link
+     * ComponentFactory.Resolver#discover(Class) discover(Class)} to resolve dependencies of specific component classes, and even more elaborate cases may
+     * require other, more specific, calls to {@link ComponentFactory.Resolver}.
      * <p>
      * The {@link ComponentFactory.Instance#bind(ComponentFactory.Registry) ComponentFactory.Instance.bind()} method of the returned object will be invoked, at
      * the appropriate time, to actually bind the created component, and its local, internal dependencies to a container. Actual instantiation should, when
@@ -115,8 +117,9 @@ public interface ComponentFactory {
      * The following code snippet shows the pattern of the implementation in case it has to call the component's constructor:
      * <pre>
      * public {@linkplain ComponentFactory.Instance Instance} <span class="hl1">resolve</span>(final {@linkplain ComponentContext} context, final {@linkplain ComponentFactory.Container Container} dependencies) throws Exception {
-     *   final Constructor&lt;?&gt; <span class="hl2">constructor</span> = dependencies.{@linkplain ComponentFactory.Container#constructor(Class) constructor}(<span class="hl2">CreatedComponent</span>.class);
-     *   final Dependency&lt;?&gt;[] <span class="hl3">arguments</span> = dependencies.{@linkplain ComponentFactory.Container#resolve(Constructor, int) resolve}(<span class="hl2">constructor</span>);
+     *   final {@linkplain ComponentFactory.Resolver Resolver} resolver = dependencies.resolver(<span class="hl2">CreatedComponent</span>.class);
+     *   final Constructor&lt;?&gt; <span class="hl2">constructor</span> = resolver.{@linkplain ComponentFactory.Resolver#constructor(Class) constructor}(<span class="hl2">CreatedComponent</span>.class);
+     *   final Dependency&lt;?&gt;[] <span class="hl3">arguments</span> = resolver.{@linkplain ComponentFactory.Resolver#resolve(Constructor, int) resolve}(<span class="hl2">constructor</span>);
      *
      *   // make sure the assumptions implicit in the code below
      *   // are not broken by changes to MyComponentImpl:
@@ -127,11 +130,11 @@ public interface ComponentFactory {
      *                                                     0);
      *   }
      *
-     *   <span class="hl3">arguments</span>[2] = dependencies.{@linkplain ComponentFactory.Container#constant(Object) constant}("some text");
-     *   <span class="hl3">arguments</span>[3] = dependencies.{@linkplain ComponentFactory.Container#constant(Object) constant}(5);
+     *   <span class="hl3">arguments</span>[2] = resolver.{@linkplain ComponentFactory.Resolver#constant(Object) constant}("some text");
+     *   <span class="hl3">arguments</span>[3] = resolver.{@linkplain ComponentFactory.Resolver#constant(Object) constant}(5);
      *
      *   return {@linkplain Instance Instance}.{@linkplain Instance#of(Class, ComponentFactory.Bindings) of}(<span class="hl2">CreatedComponent</span>.class,
-     *                      {@linkplain ComponentFactory.Registry registry} -&gt; registry.bindInstance(<span class="hl2">constructor</span>.{@linkplain Constructor#newInstance(Object...) newInstance}(dependencies.{@linkplain ComponentFactory.Container#instantiate(org.fluidity.composition.spi.Dependency[]) instantiate}(<span class="hl3">arguments</span>))));
+     *                      {@linkplain ComponentFactory.Registry registry} -&gt; registry.bindInstance(<span class="hl2">constructor</span>.{@linkplain Constructor#newInstance(Object...) newInstance}(resolver.{@linkplain ComponentFactory.Resolver#instantiate(org.fluidity.composition.spi.Dependency[]) instantiate}(<span class="hl3">arguments</span>))));
      * }
      * </pre>
      * <p>
@@ -154,13 +157,14 @@ public interface ComponentFactory {
      *                                                       String.class,
      *                                                       int.class);
      *
-     *   final Dependency&lt;?&gt;[] <span class="hl3">arguments</span> = dependencies.{@linkplain ComponentFactory.Container#resolve(Class, Method) resolve}(<span class="hl2">external</span>.getClass(), <span class="hl2">method</span>);
+     *   final {@linkplain ComponentFactory.Resolver Resolver} resolver = dependencies.resolver(<span class="hl2">external</span>.getClass());
+     *   final Dependency&lt;?&gt;[] <span class="hl3">arguments</span> = resolver.{@linkplain ComponentFactory.Resolver#resolve(Class, Method) resolve}(<span class="hl2">external</span>.getClass(), <span class="hl2">method</span>);
      *
-     *   <span class="hl3">arguments</span>[2] = dependencies.{@linkplain ComponentFactory.Container#constant(Object) constant}("some text");
-     *   <span class="hl3">arguments</span>[3] = dependencies.{@linkplain ComponentFactory.Container#constant(Object) constant}(5);
+     *   <span class="hl3">arguments</span>[2] = resolver.{@linkplain ComponentFactory.Resolver#constant(Object) constant}("some text");
+     *   <span class="hl3">arguments</span>[3] = resolver.{@linkplain ComponentFactory.Resolver#constant(Object) constant}(5);
      *
      *   return {@linkplain Instance Instance}.{@linkplain Instance#of(Class, ComponentFactory.Bindings) of}(method.getReturnedType(),
-     *                      {@linkplain ComponentFactory.Registry registry} -&gt; registry.bindInstance(dependencies.{@linkplain ComponentFactory.Container#invoke(Object, Method, Dependency[])  invoke}(<span class="hl2">external</span>.getClass(), <span class="hl2">method</span>, <span class="hl3">arguments</span>)));
+     *                      {@linkplain ComponentFactory.Registry registry} -&gt; registry.bindInstance(resolver.{@linkplain ComponentFactory.Resolver#invoke(Object, Method, Dependency[])  invoke}(<span class="hl2">external</span>.getClass(), <span class="hl2">method</span>, <span class="hl3">arguments</span>)));
      * }
      * </pre>
      *
@@ -293,14 +297,14 @@ public interface ComponentFactory {
      * final class MyComponentFactory implements {@linkplain ComponentFactory} {
      *
      *   public {@linkplain ComponentFactory.Instance Instance} resolve(final {@linkplain ComponentContext} context, final {@linkplain ComponentFactory.Container Container} dependencies) throws Exception {
-     *     final {@linkplain ComponentFactory.Bindings} bindings = {@linkplain ComponentFactory.Registry registry} -&gt; registry.<span class="hl1">bindComponent</span>(<span class="hl3">LocalDependency</span>.class);
-     *     final <span class="hl1">Container</span> container = dependencies.<span class="hl1">local</span>(<span class="hl2">MyComponentImpl</span>.class, bindings));
+     *     final {@linkplain ComponentFactory.Bindings} locals = {@linkplain ComponentFactory.Registry registry} -&gt; registry.<span class="hl1">bindComponent</span>(<span class="hl3">LocalDependency</span>.class);
+     *     final <span class="hl1">Container</span> container = dependencies.<span class="hl1">resolver</span>(<span class="hl2">MyComponentImpl</span>.class, locals));
      *
      *     final Constructor&lt;?&gt; <span class="hl2">constructor</span> = <span class="hl3">MyComponentImpl</span>.class.getConstructor(&hellip;);
      *     final Dependency&lt;?&gt;[] <span class="hl3">arguments</span> = container.<span class="hl1">resolve</span>(null, <span class="hl2">constructor</span>);
      *
      *     return Instance.of(<span class="hl2">MyComponentImpl</span>.class, {@linkplain ComponentFactory.Registry registry} -&gt; {
-     *       bindings.bind(registry);
+     *       locals.bind(registry);
      *       registry.bindComponent(<span class="hl2">constructor</span>.newInstance(container.<span class="hl1">instantiate</span>(<span class="hl3">arguments</span>)));
      *     });
      *   }
@@ -326,7 +330,7 @@ public interface ComponentFactory {
      * If <code>LocalDependency</code> were not a Fluid Tools component either, rather binding its class directly, its dependencies would have to be discovered
      * using more specific methods of {@link ComponentFactory.Container}, similarly how <code>MyComponentImpl</code> was handled.
      */
-    interface Container extends Resolver {
+    interface Container {
 
         /**
          * Convenience method to resolve and instantiate a local component. Calling this method on a <code>container</code> instance is equivalent to the
@@ -334,11 +338,11 @@ public interface ComponentFactory {
          * <pre>
          *   final Instance resolve(final ComponentContext context, Container dependencies) throws Exception {
          *     final Class type = &hellip;
-         *     final {@linkplain ComponentFactory.Bindings} bindings = &hellip;
+         *     final {@linkplain ComponentFactory.Bindings} locals = &hellip;
          *
-         *     dependencies.local(type, bindings).discover(type);
+         *     dependencies.resolver(locals).discover(type);
          *
-         *     return Instance.of(type, bindings);
+         *     return Instance.of(type, locals);
          *   }
          * </pre>
          *
@@ -368,16 +372,46 @@ public interface ComponentFactory {
         Instance instance(Class<?> type);
 
         /**
-         * Uses the given <code>bindings</code> to resolve dependencies of the component with the given <code>type</code> class. The returned container can be
-         * used to resolve further dependencies.
+         * Returns a resolver without any local dependencies bound. The returned container can be used to resolve dependencies of some component.
          *
-         * @param type     component class to derive context from; may be <code>null</code>.
-         * @param bindings the component bindings for the local dependencies of the component.
+         * @return a container to resolve dependencies.
+         */
+        Resolver resolver();
+
+        /**
+         * Returns a resolver without bound <code>type</code> bound as local dependency, but with {@link org.fluidity.composition.Qualifier component context}
+         * derived from the given type. The returned container can be used to resolve dependencies of the given <code>type</code> or some other component.
          *
-         * @return a container to instantiate local dependencies.
+         * @param type component class to derive context from; may be <code>null</code>.
+         *
+         * @return a container to resolve dependencies.
+         */
+        Resolver resolver(Class<?> type);
+
+        /**
+         * Returns a resolver local dependencies bound by the given <code>bindings</code>. The returned container can be used to resolve dependencies of some
+         * component.
+         *
+         * @param bindings the component bindings for the local dependencies.
+         *
+         * @return a container to resolve dependencies.
+         *
          * @throws Exception whatever <code>bindings</code> throws.
          */
-        Resolver local(Class<?> type, Bindings bindings) throws Exception;
+        Resolver resolver(Bindings bindings) throws Exception;
+
+        /**
+         * Returns a resolver with local dependencies bound by the given <code>bindings</code> and {@link org.fluidity.composition.Qualifier component context}
+         * derived from the given type. The returned container can be used to resolve dependencies of the given <code>type</code> or some other component.
+         *
+         * @param type     component class to derive context from; may be <code>null</code>.
+         * @param bindings the component bindings for the local dependencies; may be <code>null</code>.
+         *
+         * @return a container to resolve dependencies.
+         *
+         * @throws Exception whatever <code>bindings</code> throws.
+         */
+        Resolver resolver(Class<?> type, Bindings bindings) throws Exception;
     }
 
     /**

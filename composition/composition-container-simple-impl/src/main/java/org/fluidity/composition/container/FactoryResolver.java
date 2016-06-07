@@ -19,7 +19,6 @@ package org.fluidity.composition.container;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.security.AccessController;
@@ -182,36 +181,51 @@ abstract class FactoryResolver extends AbstractResolver {
                                               final Class<?> consumer,
                                               final AccessGuard<DependencyGraph.Node> instances,
                                               final AccessGuard<ComponentContainer> containers) {
-        final ContextDefinition collected = context.copy().accept(null);
         final ContextDefinition reduced = context.copy().accept(consumer);
         final ComponentContext passed = reduced.create();
-
-        final Resolution resolution = new LocalResolution(traversal, nested, passed, reduced, collected, contexts);
-        final ComponentFactory.Resolver resolver = new LocalResolver(instances, containers, traversal, injector, resolution);
 
         final ComponentFactory.Container container = new ComponentFactory.Container() {
 
             @Override
-            public ComponentFactory.Resolver local(final Class<?> type, final ComponentFactory.Bindings bindings) throws Exception {
+            public ComponentFactory.Resolver resolver() {
+                return Exceptions.wrap(() -> resolver(null, null));
+            }
+
+            @Override
+            public ComponentFactory.Resolver resolver(final Class<?> type) {
+                return Exceptions.wrap(() -> resolver(type, null));
+            }
+
+            @Override
+            public ComponentFactory.Resolver resolver(ComponentFactory.Bindings bindings) {
+                return Exceptions.wrap(() -> resolver(null, bindings));
+            }
+
+            @Override
+            public ComponentFactory.Resolver resolver(final Class<?> type, final ComponentFactory.Bindings bindings) throws Exception {
                 final ContextDefinition reduced = context.copy().accept(type);
                 final ComponentContext passed = reduced.create();
                 final SimpleContainer container = nested.newChildContainer(false);
 
-                bindings.bind(new ComponentFactory.Registry() {
-                    @Override
-                    @SafeVarargs
-                    public final <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
-                        container.bindComponent(Components.inspect(implementation, interfaces));
-                    }
-
-                    @Override
-                    @SuppressWarnings("unchecked")
-                    public <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
-                        if (instance != null) {
-                            container.bindInstance(instance, Components.inspect((Class) instance.getClass(), interfaces));
+                if (bindings != null) {
+                    bindings.bind(new ComponentFactory.Registry() {
+                        @Override
+                        @SafeVarargs
+                        public final <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
+                            container.bindComponent(Components.inspect(implementation, interfaces));
                         }
-                    }
-                });
+
+                        @Override
+                        @SuppressWarnings("unchecked")
+                        public <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
+                            if (instance != null) {
+                                container.bindInstance(instance, Components.inspect((Class) instance.getClass(), interfaces));
+                            }
+                        }
+                    });
+                } else if (type != null) {
+                    container.bindComponent(Components.inspect(type));
+                }
 
                 final LocalResolution resolution = new LocalResolution(traversal, container, passed, reduced, context.copy(), contexts);
                 return new LocalResolver(instances, containers, traversal, injector, resolution);
@@ -219,7 +233,7 @@ abstract class FactoryResolver extends AbstractResolver {
 
             @Override
             public ComponentFactory.Instance instance(final Class<?> type, final ComponentFactory.Bindings bindings) throws Exception {
-                local(type, bindings).discover(type);
+                resolver(bindings).discover(type);
                 return ComponentFactory.Instance.of(type, bindings);
             }
 
@@ -227,76 +241,6 @@ abstract class FactoryResolver extends AbstractResolver {
             @SuppressWarnings("unchecked")
             public ComponentFactory.Instance instance(final Class<?> type) {
                 return Exceptions.wrap(() -> instance(type, registry -> registry.bindComponent(type)));
-            }
-
-            @Override
-            public Dependency<?> resolve(final Constructor<?> constructor, final int parameter) {
-                return resolver.resolve(constructor, parameter);
-            }
-
-            @Override
-            public Dependency<?> resolve(final Class<?> type, final Method method, final int parameter) {
-                return resolver.resolve(type, method, parameter);
-            }
-
-            @Override
-            public Dependency<?> resolve(final Class<?> type, final Field field) {
-                return resolver.resolve(type, field);
-            }
-
-            @Override
-            public Dependency<?>[] resolve(final Class<?> type, final Method method) {
-                return resolver.resolve(type, method);
-            }
-
-            @Override
-            public Dependency<?>[] resolve(final Constructor<?> constructor) {
-                return resolver.resolve(constructor);
-            }
-
-            @Override
-            public Dependency<?>[] discover(final Class<?> type) {
-                return resolver.discover(type);
-            }
-
-            @Override
-            public Dependency<?> lookup(final Type reference) {
-                return resolver.lookup(reference);
-            }
-
-            @Override
-            public Constructor<?> constructor(final Class<?> type) {
-                return resolver.constructor(type);
-            }
-
-            @Override
-            public Dependency<?>[] discover(final Constructor<?> constructor) {
-                return resolver.discover(constructor);
-            }
-
-            @Override
-            public Dependency<?>[] discover(final Class<?> type, final Method method) {
-                return resolver.discover(type, method);
-            }
-
-            @Override
-            public <T> Dependency<T> constant(final T object) {
-                return resolver.constant(object);
-            }
-
-            @Override
-            public Object[] instantiate(final Dependency<?>... dependencies) {
-                return resolver.instantiate(dependencies);
-            }
-
-            @Override
-            public <T> T invoke(final Constructor<T> constructor, final Dependency<?>... arguments) throws Exception {
-                return resolver.invoke(constructor, arguments);
-            }
-
-            @Override
-            public Object invoke(final Object target, final Method method, final Dependency<?>... arguments) throws Exception {
-                return resolver.invoke(target, method, arguments);
             }
         };
 
