@@ -83,10 +83,11 @@ public interface ContainerTermination {
      * org.fluidity.foundation.Command.Job job} {@linkplain #add(org.fluidity.foundation.Command.Job) added} to this component is loaded by a class loader less
      * stable than that of the {@code ContainerTermination} component; i.e., the class loader of all jobs added must be the same as, or in the ancestry of, the
      * class loader of the {@code ContainerTermination} component.
-     * <h3>Usage</h3>
-     * See {@link ContainerTermination}.
+     * <p>
+     * <b>NOTE</b>: Do not use this component, only <em>implement</em> it when integrating a new termination mechanism to Fluid Tools; use {@link
+     * ContainerTermination} instead.
      *
-     * @param <T> identifies the class to which a component instance belongs.
+     * @param <T> identifies the dependent component's class a particular instance belongs to; used to match class loaders.
      *
      * @author Tibor Varga
      */

@@ -25,6 +25,7 @@ import org.fluidity.composition.BoundaryComponent;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentGroup;
+import org.fluidity.composition.Inject;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.foundation.Command;
@@ -50,6 +51,9 @@ import org.osgi.framework.BundleContext;
 @SuppressWarnings("UnusedDeclaration")
 public final class BundleBootstrap extends BoundaryComponent implements BundleActivator {
 
+    @Inject
+    private BundleTermination termination;
+
     // no synchronization necessary: https://osgi.org/javadoc/r4v43/core/org/osgi/framework/BundleActivator.html
     private Activation activation;
 
@@ -67,7 +71,11 @@ public final class BundleBootstrap extends BoundaryComponent implements BundleAc
             throw new IllegalStateException("Bundle has already been started");
         }
 
-        final ComponentContainer container = container().makeDomainContainer(registry -> registry.bindInstance(context, BundleContext.class));
+        final ComponentContainer container = container().makeDomainContainer(registry -> {
+            registry.bindInstance(termination);                     // pierce the domain boundary for this component to prevent a new instance being created, separate from the bundle termination logic
+            registry.bindInstance(context, BundleContext.class);
+        });
+
         activation = container.instantiate(Activation.class);
 
         activation.start();
