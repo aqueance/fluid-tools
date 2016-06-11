@@ -17,14 +17,11 @@
 package org.fluidity.foundation;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.Arrays;
 
 /**
@@ -82,22 +79,19 @@ public final class Strings extends Utility {
             } else if (object instanceof Type) {
                 return Generics.toString(qualified, (Type) object);
             } else {
-                final PrivilegedAction<Method> access = () -> {
+
+                // see if object overrides Object.toString()
+                final Method method = Security.invoke(() -> {
                     for (Class<?> check = type; check != Object.class; check = check.getSuperclass()) {
                         try {
-                            final Method method = check.getDeclaredMethod("toString");
-                            method.setAccessible(true);
-                            return method;
+                            return check.getDeclaredMethod("toString");
                         } catch (final NoSuchMethodException e) {
-                            // ignored
+                            // keep searching
                         }
                     }
 
                     return null;
-                };
-
-                // see if object overrides Object.toString()
-                final Method method = Security.CONTROLLED ? AccessController.doPrivileged(access) : access.run();
+                });
 
                 if (method == null) {
 
@@ -106,7 +100,7 @@ public final class Strings extends Utility {
                 } else {
 
                     // yep, object did override Object.toString()
-                    return (String) Methods.invoke(method, object);
+                    return (String) Methods.invoke(Security.access(method), object);
                 }
             }
         }
@@ -187,18 +181,13 @@ public final class Strings extends Utility {
     public static String describeAnnotation(final boolean identity, final Annotation annotation) {
         final Class<? extends Annotation> type = annotation.annotationType();
 
-        final PrivilegedAction<Method[]> action = () -> {
-            final Method[] methods = type.getDeclaredMethods();
-            AccessibleObject.setAccessible(methods, true);
-            return methods;
-        };
-
         final Lists.Delimited list = Lists.delimited(", ");
-        final Method[] methods = Security.CONTROLLED ? AccessController.doPrivileged(action) : action.run();
+
+        final Method[] methods = Security.invoke(type::getDeclaredMethods);
 
         try {
             if (methods.length == 1 && methods[0].getName().equals("value")) {
-                appendValue(identity, list.text, methods[0].invoke(annotation));
+                appendValue(identity, list.text, Security.access(methods[0]).invoke(annotation));
             } else {
                 Arrays.sort(methods, (method1, method2) -> method1.getName().compareTo(method2.getName()));
 
@@ -209,7 +198,7 @@ public final class Strings extends Utility {
                         final Object fallback = method.getDefaultValue();
                         final Class<?> parameterType = method.getReturnType();
 
-                        final Object value = method.invoke(annotation);
+                        final Object value = Security.access(method).invoke(annotation);
 
                         if (fallback == null || !(parameterType.isArray() ? Arrays.equals((Object[]) fallback, (Object[]) value) : fallback.equals(value))) {
                             final StringBuilder parameter = new StringBuilder();

@@ -16,12 +16,10 @@
 
 package org.fluidity.composition.cli.impl;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-
 import org.fluidity.composition.Component;
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.foundation.Command;
+import org.fluidity.foundation.Security;
 
 /**
  * Uses the {@link Runtime} object to add shutdown tasks to. The caller must make sure it has enough privileges to add a shutdown hook.
@@ -29,7 +27,6 @@ import org.fluidity.foundation.Command;
  * @author Tibor Varga
  */
 @Component
-@SuppressWarnings("unchecked")
 final class RuntimeTermination implements ContainerTermination {
 
     private final Jobs jobs;
@@ -37,7 +34,7 @@ final class RuntimeTermination implements ContainerTermination {
     RuntimeTermination(final Jobs<RuntimeTermination> jobs) {
         this.jobs = jobs;
 
-        AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+        Security.invoke(() -> {
             Runtime.getRuntime().addShutdownHook(new Thread(jobs::flush, "Container shutdown"));
             return null;
         });

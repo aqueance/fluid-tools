@@ -17,7 +17,6 @@
 package org.fluidity.composition.container.impl;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
@@ -26,8 +25,6 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
@@ -58,7 +55,6 @@ import org.fluidity.foundation.Security;
 import org.fluidity.foundation.Strings;
 
 import static org.fluidity.composition.ComponentContainer.ResolutionException;
-import static org.fluidity.foundation.Command.Process;
 
 /**
  * Finds, resolves and sets, using the given container, all {@link Inject @Inject} annotated fields of an object that have not yet been set.
@@ -149,8 +145,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         guard.enable();
 
-        final PrivilegedAction<Method> access = Security.setAccessible(method);
-        return Methods.invoke(access == null ? method : AccessController.doPrivileged(access), component, parameters);
+        return Methods.invoke(Security.access(method), component, parameters);
     }
 
     @SuppressWarnings("unchecked")
@@ -181,9 +176,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final List<Constructor<?>> packageConstructors = new ArrayList<>();
         final List<Constructor<?>> publicConstructors = new ArrayList<>();
 
-        final Constructor<?>[] constructors = !Security.CONTROLLED
-                                              ? componentClass.getDeclaredConstructors()
-                                              : AccessController.doPrivileged((PrivilegedAction<Constructor<?>[]>) componentClass::getDeclaredConstructors);
+        final Constructor<?>[] constructors = Security.invoke(componentClass::getDeclaredConstructors);
 
         for (final Constructor<?> constructor : constructors) {
             if (!constructor.isSynthetic()) {
@@ -347,13 +340,11 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 final Object cached = container.cached(api, componentContext);
 
                 if (cached == null) {
-                    final PrivilegedAction<Constructor> access = Security.setAccessible((Constructor) constructor);
-                    final Process<Object, Exception> action = () -> (access == null ? constructor : AccessController.doPrivileged(access)).newInstance(arguments);
-
                     traversal.instantiating(componentClass);
 
                     final Deferred.Label label = Deferred.label(() -> String.format("Invoking %s with %s", constructor, Strings.formatId(arguments)));
-                    return traversal.instantiated(componentClass, Exceptions.wrap(label, ResolutionException.class, action));
+                    return traversal.instantiated(componentClass,
+                                                  Exceptions.wrap(label, ResolutionException.class, () -> Security.access(constructor).newInstance(arguments)));
                 } else {
                     return cached;
                 }
@@ -421,19 +412,13 @@ final class DependencyInjectorImpl implements DependencyInjector {
     }
 
     private void processFields(final Class<?> type, final FieldCommand command) {
-        final Field[] fields = AccessController.doPrivileged((PrivilegedAction<Field[]>) () -> {
-            final Field[] _fields = type.getDeclaredFields();
-            AccessibleObject.setAccessible(_fields, true);
-            return _fields;
-        });
-
-        for (final Field field : fields) {
+        for (final Field field : Security.invoke(type::getDeclaredFields)) {
             if ((field.getModifiers() & Modifier.FINAL) != 0) {
                 continue;
             }
 
             if (field.isAnnotationPresent(Inject.class)) {
-                command.process(field);
+                command.process(Security.access(field));
             }
         }
 

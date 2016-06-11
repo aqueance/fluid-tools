@@ -16,10 +16,7 @@
 
 package org.fluidity.composition;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.function.Function;
 
 import org.fluidity.composition.spi.ComponentInterceptor;
@@ -42,9 +39,7 @@ final class DeferredReferenceInterceptor implements ComponentInterceptor {
         final Function<Deferred.Factory, Deferred.Reference> factory = context.qualifier(Defer.class, null).shared() ? Deferred::shared : Deferred::local;
         final Deferred.Reference deferred = factory.apply(dependency::instance);
 
-        return dependency.replace(() -> Proxies.create(Generics.rawType(reference), (proxy, method, arguments) -> {
-            final PrivilegedAction<Method> access = Security.setAccessible(method);
-            return (access == null ? method : AccessController.doPrivileged(access)).invoke(deferred.get(), arguments);
-        }));
+        return dependency.replace(() -> Proxies.create(Generics.rawType(reference),
+                                                       (proxy, method, arguments) -> Security.access(method).invoke(deferred.get(), arguments)));
     }
 }

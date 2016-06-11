@@ -28,6 +28,7 @@ import org.fluidity.deployment.plugin.spi.ServerBootstrap;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Lists;
+import org.fluidity.foundation.Security;
 import org.fluidity.foundation.ServiceProviders;
 
 /**
@@ -60,7 +61,7 @@ public final class WebApplicationBootstrap {
     private void boot(final String[] arguments) throws Exception {
         final Class<? extends WebApplicationBootstrap> bootstrapClass = getClass();
         final String name = ClassLoaders.classResourceName(bootstrapClass);
-        final ClassLoader bootstrapLoader = bootstrapClass.getClassLoader();
+        final ClassLoader bootstrapLoader = Security.invoke(bootstrapClass::getClassLoader);
         final String bootUrl = URLDecoder.decode(bootstrapLoader.getResource(name).toExternalForm(), "UTF-8");
 
         final List<File> managedApps = new ArrayList<>();

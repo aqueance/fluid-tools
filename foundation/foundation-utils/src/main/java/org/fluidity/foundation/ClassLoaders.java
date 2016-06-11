@@ -50,7 +50,7 @@ public final class ClassLoaders extends Utility {
      * <li>else if <code>fallback</code> is <code>true</code>, the class loader that loaded this class, if not <code>null</code></li>
      * <li>else the system class loader.</li>
      * </ul>
-     * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
+     * <b>NOTE</b>: The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
      *
      * @param type     the class to find the appropriate class loader for.
      * @param fallback if <code>true</code>, the context class loader and the class loader of this utility class may be returned.

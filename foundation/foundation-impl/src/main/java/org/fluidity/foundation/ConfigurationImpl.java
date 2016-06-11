@@ -22,8 +22,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -39,7 +37,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Optional;
-import org.fluidity.foundation.Command.Process;
 import org.fluidity.foundation.spi.PropertyProvider;
 
 /**
@@ -147,7 +144,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
             this.defaults = defaults;
             this.provider = provider;
 
-            this.loader = !Security.CONTROLLED ? api.getClassLoader() : AccessController.doPrivileged((PrivilegedAction<ClassLoader>) api::getClassLoader);
+            this.loader = Security.invoke(api::getClassLoader);
         }
 
         public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
@@ -159,28 +156,24 @@ final class ConfigurationImpl<T> implements Configuration<T> {
             final Class<?> type = method.getReturnType();
             final Type genericType = method.getGenericReturnType();
 
-            return Exceptions.wrap(method.toGenericString(), PropertyException.class, () -> {
-                final PrivilegedAction<Object> action = () -> {
-                    if (!method.isAccessible()) {
-                        method.setAccessible(true);
-                    }
+            return Exceptions.wrap(method.toGenericString(), PropertyException.class, () -> Security.invoke(() -> {
+                if (!method.isAccessible()) {
+                    method.setAccessible(true);
+                }
 
-                    return property(setting.split(),
-                                    setting.grouping(),
-                                    String.format(setting.ids(), arguments),
-                                    String.format(setting.list(), arguments),
-                                    String.format(setting.undefined(), arguments),
-                                    type,
-                                    genericType,
-                                    prefixes,
-                                    String.format(setting.key(), arguments),
-                                    defaults,
-                                    method,
-                                    arguments);
-                };
-
-                return Security.CONTROLLED ? AccessController.doPrivileged(action) : action.run();
-            });
+                return property(setting.split(),
+                                setting.grouping(),
+                                String.format(setting.ids(), arguments),
+                                String.format(setting.list(), arguments),
+                                String.format(setting.undefined(), arguments),
+                                type,
+                                genericType,
+                                prefixes,
+                                String.format(setting.key(), arguments),
+                                defaults,
+                                method,
+                                arguments);
+            }));
         }
 
         private Object property(final String split,
@@ -328,6 +321,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                 final Object instance = type.newInstance();
                 final Field[] fields = type.getFields();
 
+                // we are inside a PrivilegedAction from PropertyLoader.invoke()
                 AccessibleObject.setAccessible(fields, true);
 
                 for (final Field field : fields) {
@@ -354,7 +348,13 @@ final class ConfigurationImpl<T> implements Configuration<T> {
             }
         }
 
-        Object convert(final Object value, final Class<?> target, final Type generic, final String delimiter, final String groupers, final String suffix, final ClassLoader loader) {
+        Object convert(final Object value,
+                       final Class<?> target,
+                       final Type generic,
+                       final String delimiter,
+                       final String groupers,
+                       final String suffix,
+                       final ClassLoader loader) {
             if (value == null) {
                 final PrimitiveType type = PRIMITIVE_TYPES.get(target);
 
@@ -685,30 +685,27 @@ final class ConfigurationImpl<T> implements Configuration<T> {
         }
     }
 
-    private static Map<Class<?>, PrimitiveType> PRIMITIVE_TYPES = new HashMap<>();
-
-    static {
-        @SuppressWarnings({ "MismatchedReadAndWriteOfArray", "UnusedDeclaration" })
-        PrimitiveType[] types = PrimitiveType.values(); // makes sure the PRIMITIVE_TYPES map gets initialized
-    }
+    private static final String BASE_PACKAGE = Object.class.getPackage().getName() + '.';
+    private static final Map<Class<?>, PrimitiveType> PRIMITIVE_TYPES = new HashMap<>();
 
     private enum PrimitiveType {
-        CHARACTER(Character.class),
-        BYTE(Byte.class),
-        SHORT(Short.class),
-        INTEGER(Integer.class),
-        LONG(Long.class),
-        FLOAT(Float.class),
-        DOUBLE(Double.class),
-        BOOLEAN(Boolean.class);
+        CHARACTER, BYTE, SHORT, INTEGER, LONG, FLOAT, DOUBLE, BOOLEAN;
 
-        PrimitiveType(final Class<?> boxing) {
+        PrimitiveType() {
             try {
-                PRIMITIVE_TYPES.put(boxing, this);
-                PRIMITIVE_TYPES.put((Class<?>) boxing.getField("TYPE").get(null), this);
+                final String typeName = name();
+                final String className = BASE_PACKAGE + typeName.charAt(0) + typeName.substring(1).toLowerCase();
+                final Class<?> type = Security.invoke(ClassLoader::getSystemClassLoader).loadClass(className);
+
+                PRIMITIVE_TYPES.put(type, this);
+                PRIMITIVE_TYPES.put((Class<?>) type.getField("TYPE").get(null), this);
             } catch (final Exception e) {
                 assert false : e;
             }
         }
+    }
+
+    static {
+        PrimitiveType.values(); // makes sure the PRIMITIVE_TYPES map gets initialized
     }
 }

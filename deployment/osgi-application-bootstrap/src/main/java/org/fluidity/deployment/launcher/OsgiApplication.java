@@ -19,13 +19,10 @@ package org.fluidity.deployment.launcher;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.security.AccessController;
 import java.security.CodeSource;
 import java.security.Permission;
 import java.security.PermissionCollection;
 import java.security.Policy;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedExceptionAction;
 import java.security.ProtectionDomain;
 import java.security.Provider;
 import java.util.ArrayList;
@@ -46,7 +43,6 @@ import org.fluidity.deployment.cli.Application;
 import org.fluidity.deployment.osgi.Initialization;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
-import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.Security;
@@ -115,22 +111,10 @@ final class OsgiApplication implements Application {
     }
 
     public void run(final String... arguments) throws Exception {
-        Archives.Cache.access(() -> {
-            if (Security.CONTROLLED) {
-                try {
-                    Exceptions.wrap(() -> AccessController.doPrivileged((PrivilegedExceptionAction<Void>) () -> {
-                        start();
-                        return null;
-                    }));
-                } catch (final Exceptions.Wrapper wrapper) {
-                    throw wrapper.rethrow(Exception.class);
-                }
-            } else {
-                start();
-            }
-
+        Archives.Cache.access(() -> Security.invoke(Exception.class, () -> {
+            start();
             return null;
-        });
+        }));
     }
 
     private void start() throws Exception {
@@ -221,7 +205,7 @@ final class OsgiApplication implements Application {
                 switch (framework.getState()) {
                 case Framework.ACTIVE:
                 case Framework.STARTING:
-                    final PrivilegedAction<Void> stop = () -> {
+                    Security.invoke(() -> {
                         try {
                             framework.stop(0);
                         } catch (final BundleException e) {
@@ -229,13 +213,7 @@ final class OsgiApplication implements Application {
                         }
 
                         return null;
-                    };
-
-                    if (Security.CONTROLLED) {
-                        AccessController.doPrivileged(stop);
-                    } else {
-                        stop.run();
-                    }
+                    });
 
                     // fall through
                 case Framework.STOPPING:
@@ -306,11 +284,7 @@ final class OsgiApplication implements Application {
     }
 
     private InputStream resource(final String name) {
-        return AccessController.doPrivileged(new PrivilegedAction<InputStream>() {
-            public InputStream run() {
-                return ClassLoaders.readResource(getClass(), name);
-            }
-        });
+        return Security.invoke(() -> ClassLoaders.readResource(getClass(), name));
     }
 
     @SuppressWarnings("ThrowFromFinallyBlock")

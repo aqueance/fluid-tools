@@ -23,9 +23,6 @@ import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.net.URL;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -130,19 +127,15 @@ public final class ServiceProviders extends Utility {
             }
 
             public T next() {
-                return Exceptions.wrap(() -> {
-                    final PrivilegedExceptionAction<Constructor<T>> action = () -> {
-                        final Constructor<T> constructor = types[index++].getDeclaredConstructor();
+                return Exceptions.wrap(() -> Security.invoke(Exception.class, () -> {
+                    final Constructor<T> constructor = types[index++].getDeclaredConstructor();
 
-                        if (!constructor.isAccessible()) {
-                            constructor.setAccessible(true);
-                        }
+                    if (!constructor.isAccessible()) {
+                        constructor.setAccessible(true);
+                    }
 
-                        return constructor;
-                    };
-
-                    return (Security.CONTROLLED ? AccessController.doPrivileged(action) : action.run()).newInstance();
-                });
+                    return constructor;
+                }).newInstance());
             }
 
             public void remove() {
@@ -177,11 +170,7 @@ public final class ServiceProviders extends Utility {
                                              final boolean inherit,
                                              final Log log) {
         return Exceptions.wrap(() -> {
-            final ClassLoader classLoader = loader != null
-                ? loader
-                : !Security.CONTROLLED
-                    ? ClassLoaders.findClassLoader(api, true)
-                    : AccessController.doPrivileged((PrivilegedAction<ClassLoader>) () -> ClassLoaders.findClassLoader(api, true));
+            final ClassLoader classLoader = loader != null ? loader : Security.invoke(() -> ClassLoaders.findClassLoader(api, true));
 
             log.debug("Loading %s service provider files for %s using class loader %s", standard ? "standard" : String.format("'%s' type", type), api, classLoader);
 
@@ -209,8 +198,8 @@ public final class ServiceProviders extends Utility {
                                 continue;
                             }
 
-                            final boolean loadable = !strict || classLoader == (!Security.CONTROLLED ? rawClass.getClassLoader() : AccessController.doPrivileged((PrivilegedAction<ClassLoader>) rawClass::getClassLoader));
-                            final boolean visible = !standard || null != (!Security.CONTROLLED ? rawClass.getDeclaredConstructor() : AccessController.doPrivileged((PrivilegedExceptionAction<Object>) rawClass::getDeclaredConstructor));
+                            final boolean loadable = !strict || Security.invoke(rawClass::getClassLoader) == classLoader;
+                            final boolean visible = !standard || Security.invoke(Exception.class, rawClass::getDeclaredConstructor) != null;
 
                             if (loadable && visible) {
                                 final boolean compatible = api.isAssignableFrom(rawClass);

@@ -19,9 +19,7 @@ package org.fluidity.foundation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.security.AccessController;
 import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -269,7 +267,7 @@ public final class Exceptions extends Utility {
          *
          * @throws T as thrown by the command.
          */
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({ "unchecked", "ConstantConditions" })
         public <R, E extends Exception, T extends Exception> R wrap(final Object label, final Class<T> wrapper, final Process<R, E> command) throws T {
             try {
                 try {
@@ -297,10 +295,12 @@ public final class Exceptions extends Utility {
             }
         }
 
-        @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+        @SuppressWarnings({ "ThrowableResultOfMethodCallIgnored", "unchecked" })
         private <T extends Exception> T wrapped(final Object label, final Class<T> wrapper, final Throwable e) {
             if (wrapper == null) {
                 throw label == null ? new Wrapper(e) : new Wrapper(label.toString(), e);
+            } else if (label == null && wrapper.isAssignableFrom(e.getClass())) {
+                return (T) e;
             } else {
                 try {
                     return label == null
@@ -313,22 +313,15 @@ public final class Exceptions extends Utility {
         }
 
         private <T extends Exception> Constructor<T> constructor(final Class<T> type, final Class<?>... parameters) throws Exception {
-            try {
-                final PrivilegedExceptionAction<Constructor<T>> action = () -> {
-                    final Constructor<T> constructor = type.getDeclaredConstructor(parameters);
+            return Security.invoke(Exception.class, () -> {
+                final Constructor<T> constructor = type.getDeclaredConstructor(parameters);
 
-                    if (!constructor.isAccessible()) {
-                        constructor.setAccessible(true);
-                    }
+                if (!constructor.isAccessible()) {
+                    constructor.setAccessible(true);
+                }
 
-                    return constructor;
-                };
-
-                // we cannot wrap this call because we are in the scope of the wrapping method
-                return Security.CONTROLLED ? AccessController.doPrivileged(action) : action.run();
-            } catch (final PrivilegedActionException e) {
-                throw (Exception) e.getCause();
-            }
+                return constructor;
+            });
         }
 
         /**

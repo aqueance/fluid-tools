@@ -25,8 +25,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -648,7 +646,7 @@ public final class Generics extends Utility {
         if (missingTypes > 0) {
             for (int i = enclosingTypes; i < params.length - missingTypes + enclosingTypes; ++i) {
                 if (Generics.rawType(types[i - enclosingTypes]) != params[i]) {
-                    AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+                    Security.invoke(() -> {
                         throw new IllegalStateException(String.format("Could not match parameter types of %s constructor; "
                                                                       + "classes: %s, types: %s, annotations: %s, "
                                                                       + "on %s %s version %s virtual machine for %s Java %s",

@@ -16,9 +16,7 @@
 
 package org.fluidity.composition;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-
+import org.fluidity.foundation.Security;
 import org.fluidity.foundation.Utility;
 
 /**
@@ -29,7 +27,7 @@ import org.fluidity.foundation.Utility;
 @SuppressWarnings("UnusedDeclaration")
 public final class Containers extends Utility {
 
-    private static final ClassLoader LOADER = AccessController.doPrivileged((PrivilegedAction<ClassLoader>) Containers.class::getClassLoader);
+    private static final ClassLoader LOADER = Security.invoke(Containers.class::getClassLoader);
 
     private Containers() { }
 

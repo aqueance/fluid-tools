@@ -21,8 +21,6 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -250,7 +248,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
             }
         }
 
-        final ClassLoader loader = !Security.CONTROLLED ? type.getClassLoader() : AccessController.doPrivileged((PrivilegedAction<ClassLoader>) type::getClassLoader);
+        final ClassLoader loader = Security.invoke(type::getClassLoader);
 
         return (T) Proxies.create(loader, Lists.asArray(Class.class, interfaces), new InvocationHandler() {
 
@@ -261,7 +259,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
 
                 if (inject == null) {
                     LOOP:
-                    for (final Annotation[] annotations : method.getParameterAnnotations()) {
+                    for (final Annotation[] annotations : Security.access(method).getParameterAnnotations()) {
                         for (final Annotation annotation : annotations) {
                             if (annotation instanceof Inject) {
                                 injectMap.put(method, inject = true);
@@ -272,12 +270,6 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
 
                     if (inject == null) {
                         injectMap.put(method, inject = false);
-                    }
-
-                    final PrivilegedAction<Method> access = Security.setAccessible(method);
-
-                    if (access != null) {
-                        AccessController.doPrivileged(access);
                     }
                 }
 

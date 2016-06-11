@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.security.AccessController;
-import java.security.PrivilegedExceptionAction;
 import java.util.Enumeration;
 
 import org.fluidity.composition.Component;
@@ -61,18 +59,16 @@ final class BundleBoundaryImpl implements BundleBoundary {
     }
 
     private <T, E extends Exception> T tunnel(final Object remote, final Object local, final Tunnel<T, E> command) throws Exceptions.Wrapper {
-        final PrivilegedExceptionAction<T> action = () -> {
+        return Exceptions.wrap(() -> Security.invoke(Exception.class, () -> {
             final ClassLoader remoteCL = loader(remote);
             final ClassLoader localCL = loader(local);
 
             return command.run(remoteCL == localCL, new DelegatingClassLoader(remoteCL, localCL));
-        };
-
-        return Exceptions.wrap(() -> !Security.CONTROLLED ? action.run() : AccessController.doPrivileged(action));
+        }));
     }
 
     private ClassLoader loader(final Object remote) {
-        return (remote instanceof Class ? (Class) remote : remote.getClass()).getClassLoader();
+        return Security.invoke((remote instanceof Class ? (Class) remote : remote.getClass())::getClassLoader);
     }
 
     /**

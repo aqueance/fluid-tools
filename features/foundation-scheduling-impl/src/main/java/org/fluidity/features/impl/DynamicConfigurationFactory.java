@@ -16,11 +16,7 @@
 
 package org.fluidity.features.impl;
 
-import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -71,15 +67,9 @@ final class DynamicConfigurationFactory implements ComponentFactory {
             final Configuration.Query<T, T> all = settings -> {
                 final Map<Method, Object> cache = new HashMap<>();
 
-                final PrivilegedAction<Method[]> access = () -> {
-                    final Method[] methods = type.getMethods();
-                    AccessibleObject.setAccessible(methods, true);
-                    return methods;
-                };
-
-                for (final Method method : (Security.CONTROLLED ? AccessController.doPrivileged(access) : access.run())) {
+                for (final Method method : Security.invoke(type::getMethods)) {
                     assert method.getParameterTypes().length == 0 : method;
-                    cache.put(method, method.invoke(settings));
+                    cache.put(method, Security.access(method).invoke(settings));
                 }
 
                 return Proxies.create(type, (proxy, method, arguments) -> cache.get(method));

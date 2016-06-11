@@ -16,9 +16,6 @@
 
 package org.fluidity.composition;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-
 import org.fluidity.foundation.Security;
 
 /**
@@ -42,10 +39,8 @@ public abstract class BoundaryComponent {
      */
     protected BoundaryComponent() {
 
-        // 'this' can only be used after super() has been invoked (done automatically here)
-        this.container = Containers.global(!Security.CONTROLLED
-           ? this.getClass().getClassLoader()
-           : AccessController.doPrivileged((PrivilegedAction<ClassLoader>) () -> BoundaryComponent.this.getClass().getClassLoader()));
+        // 'this' (and thus getClass()) can only be used after super() has been invoked (done automatically here)
+        this.container = Containers.global(Security.invoke(getClass()::getClassLoader));
 
         this.container.initialize(this);
     }

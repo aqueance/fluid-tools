@@ -171,26 +171,26 @@ public class URLClassLoader extends SecureClassLoader {
 
     @Override
     protected Class<?> findClass(final String name) throws ClassNotFoundException {
-        final PrivilegedExceptionAction<Class<?>> action = () -> {
-            final String resource = ClassLoaders.classResourceName(name);
+        return access(name,
+                      ClassNotFoundException.class,
+                      (Process<Class<?>, Exception>) () -> Security.invoke(Exception.class, context, (PrivilegedExceptionAction<Class<?>>) () -> {
+                          final String resource = ClassLoaders.classResourceName(name);
 
-            for (final String key : keys.get()) {
-                final Archive.Entry entry = entry(key, resource);
+                          for (final String key : keys.get()) {
+                              final Archive.Entry entry = entry(key, resource);
 
-                if (entry != null) {
-                    return entry.define(name);
-                }
-            }
+                              if (entry != null) {
+                                  return entry.define(name);
+                              }
+                          }
 
-            throw new ClassNotFoundException(name);
-        };
-
-        return access(name, ClassNotFoundException.class, () -> context == null ? action.run() : AccessController.doPrivileged(action, context));
+                          throw new ClassNotFoundException(name);
+                      }));
     }
 
     @Override
     protected URL findResource(final String name) {
-        final PrivilegedAction<URL> action = () -> {
+        return access(null, null, () -> Security.invoke(context, () -> {
             for (final String key : keys.get()) {
                 try {
                     final Archive.Entry entry = entry(key, name);
@@ -204,14 +204,12 @@ public class URLClassLoader extends SecureClassLoader {
             }
 
             return null;
-        };
-
-        return access(null, Exceptions.Wrapper.class, () -> context == null ? action.run() : AccessController.doPrivileged(action, context));
+        }));
     }
 
     @Override
     protected Enumeration<URL> findResources(final String name) throws IOException {
-        final PrivilegedAction<Enumeration<URL>> action = () -> {
+        return access(null, null, () -> Security.invoke(context, () -> {
             final List<URL> list = new ArrayList<>();
 
             for (final String key : keys.get()) {
@@ -227,9 +225,7 @@ public class URLClassLoader extends SecureClassLoader {
             }
 
             return Collections.enumeration(list);
-        };
-
-        return access(null, Exceptions.Wrapper.class, () -> context == null ? action.run() : AccessController.doPrivileged(action, context));
+        }));
     }
 
     @Override

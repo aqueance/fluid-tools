@@ -16,8 +16,6 @@
 
 package org.fluidity.composition.spi;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
@@ -103,7 +101,7 @@ final class ContainerTerminationJobs<T> implements ContainerTermination.Jobs<T> 
             throw new IllegalArgumentException(String.format("Attempted to add null job to %s", Strings.formatClass(false, true, caller)));
         }
 
-        final PrivilegedAction<Boolean> check = () -> {
+        return Security.invoke(() -> {
             final ClassLoader _check = job.getClass().getClassLoader();
 
             for (ClassLoader loader = caller.getClassLoader(); loader != null; loader = loader.getParent()) {
@@ -113,9 +111,7 @@ final class ContainerTerminationJobs<T> implements ContainerTermination.Jobs<T> 
             }
 
             return caller.getClassLoader() == null && _check == null;
-        };
-
-        return Security.CONTROLLED ? AccessController.doPrivileged(check) : check.run();
+        });
     }
 
     public void add(final Command.Job<Exception> job) {

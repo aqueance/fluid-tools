@@ -16,8 +16,6 @@
 
 package org.fluidity.deployment.osgi.impl;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -109,9 +107,7 @@ public final class BundleBootstrap extends BoundaryComponent implements BundleAc
     @Component(automatic = false)
     private static class Activation {
 
-        private static final ClassLoader loader = !Security.CONTROLLED
-            ? Activation.class.getClassLoader()
-            : AccessController.doPrivileged((PrivilegedAction<ClassLoader>) Activation.class::getClassLoader);
+        private static final ClassLoader loader = Security.invoke(Activation.class::getClassLoader);
 
         private final BundleComponentContainer components;
         private final Activators activators;

@@ -21,8 +21,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -448,9 +446,8 @@ abstract class FactoryResolver extends AbstractResolver {
 
         private void fields(final Class<?> type) {
             assert type != null;
-            final Field[] fields = !Security.CONTROLLED ? type.getDeclaredFields() : AccessController.doPrivileged((PrivilegedAction<Field[]>) type::getDeclaredFields);
 
-            for (final Field field : fields) {
+            for (final Field field : Security.invoke(type::getDeclaredFields)) {
                 if (field.isAnnotationPresent(Inject.class)) {
                     final Annotation[] fieldAnnotations = field.getAnnotations();
 
@@ -514,14 +511,12 @@ abstract class FactoryResolver extends AbstractResolver {
 
         @Override
         public <T> T invoke(final Constructor<T> constructor, final Dependency<?>... arguments) throws Exception {
-            final PrivilegedAction<Constructor<T>> access = Security.setAccessible(constructor);
-            return (access != null ? AccessController.doPrivileged(access) : constructor).newInstance(instantiate(arguments));
+            return Security.access(constructor).newInstance(instantiate(arguments));
         }
 
         @Override
         public Object invoke(final Object target, final Method method, final Dependency<?>... arguments) throws Exception {
-            final PrivilegedAction<Method> access = Security.setAccessible(method);
-            return (access != null ? AccessController.doPrivileged(access) : method).invoke(target, instantiate(arguments));
+            return Security.access(method).invoke(target, instantiate(arguments));
         }
 
         private DependencyGraph.Node descend(final Class<?> api, final Type reference, final Annotation[] annotations, final Annotation[] params) {

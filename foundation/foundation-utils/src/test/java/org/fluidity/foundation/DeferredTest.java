@@ -52,11 +52,27 @@ public class DeferredTest {
 
         final Deferred.Reference<String> reference = reference(original, safe);
 
+        assert !reference.resolved();
+
         final String first = reference.get();
+        assert reference.resolved();
         assert original.equals(first) : first;
 
         final String second = reference.get();
         assert original.equals(second) : second;
+    }
+
+    @Test(dataProvider = "safety")
+    public void testInvalidation(final boolean safe) throws Exception {
+        final String original = "This is the original text";
+
+        final Deferred.Reference<String> reference = reference(original, safe);
+
+        reference.get();
+        assert reference.resolved();
+
+        reference.invalidate();
+        assert !reference.resolved();
     }
 
     @Test(dataProvider = "safety")

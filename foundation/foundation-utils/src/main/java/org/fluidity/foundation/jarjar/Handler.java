@@ -27,18 +27,13 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 import java.security.AccessControlException;
-import java.security.AccessController;
 import java.security.Permission;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.jar.JarEntry;
@@ -104,7 +99,7 @@ public final class Handler extends URLStreamHandler {
 
     private static final Deferred.Reference<Void> registration = Deferred.shared(() -> {
         try {
-            AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+            Security.invoke(() -> {
                 final String property = System.getProperty(PROTOCOL_HANDLERS_PROPERTY);
 
                 if (property == null || !Arrays.asList(property.split("\\|")).contains(PACKAGE)) {
@@ -217,13 +212,7 @@ public final class Handler extends URLStreamHandler {
      * @throws MalformedURLException when the Java URL cannot be created.
      */
     public static URL parseURL(final String specification) throws MalformedURLException {
-        try {
-            return !Security.CONTROLLED
-                   ? new URL(null, specification, Singleton.INSTANCE)
-                   : AccessController.doPrivileged((PrivilegedExceptionAction<URL>) () -> new URL(null, specification, Singleton.INSTANCE));
-        } catch (final PrivilegedActionException e) {
-            throw (MalformedURLException) e.getCause();
-        }
+        return Security.invoke(MalformedURLException.class, () -> new URL(null, specification, Singleton.INSTANCE));
     }
 
     /**

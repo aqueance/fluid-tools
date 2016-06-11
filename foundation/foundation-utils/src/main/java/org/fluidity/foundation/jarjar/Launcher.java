@@ -18,15 +18,12 @@ package org.fluidity.foundation.jarjar;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.AccessController;
-import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.Attributes;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
-import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Security;
 
 /**
@@ -72,22 +69,10 @@ public final class Launcher {
      * @throws Exception when anything goes wrong.
      */
     public static void main(final String[] arguments) throws Exception {
-        try {
-            Exceptions.wrap(() -> {
-                if (Security.CONTROLLED) {
-                    AccessController.doPrivileged((PrivilegedExceptionAction<Void>) () -> {
-                        start(arguments);
-                        return null;
-                    });
-                } else {
-                    start(arguments);
-                }
-
-                return null;
-            });
-        } catch (final Exceptions.Wrapper wrapper) {
-            throw wrapper.rethrow(Exception.class);
-        }
+        Security.invoke(Exception.class, () -> {
+            start(arguments);
+            return null;
+        });
     }
 
     private static void start(final String[] args) throws Exception {

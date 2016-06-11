@@ -18,7 +18,6 @@ package org.fluidity.composition;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -113,12 +112,10 @@ public final class ContainerBoundary implements ComponentContainer {
      * Creates a container boundary for the current class loader.
      */
     /* package */ ContainerBoundary() {
-        final PrivilegedAction<ClassLoader> action = () -> {
-            final ClassLoader cl = Thread.currentThread().getContextClassLoader();
-            return cl != null ? cl : ContainerBoundary.class.getClassLoader();
-        };
-
-        this.classLoader = Security.CONTROLLED ? AccessController.doPrivileged(action) : action.run();
+        this.classLoader = Security.invoke(() -> {
+            final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            return loader != null ? loader : ContainerBoundary.class.getClassLoader();
+        });
     }
 
     /**
@@ -298,21 +295,15 @@ public final class ContainerBoundary implements ComponentContainer {
         initFinder();
 
         // list of class loaders from current one up the hierarchy
-        final List<ClassLoader> classLoaders = new ArrayList<>();
+        final List<ClassLoader> classLoaders = Security.invoke(() -> {
+            final List<ClassLoader> list = new ArrayList<>();
 
-        final PrivilegedAction<Void> ancestry = () -> {
             for (ClassLoader loader = classLoader; loader != rootClassLoader; loader = loader.getParent()) {
-                classLoaders.add(loader);
+                list.add(loader);
             }
 
-            return null;
-        };
-
-        if (Security.CONTROLLED) {
-            AccessController.doPrivileged(ancestry);
-        } else {
-            ancestry.run();
-        }
+            return list;
+        });
 
         // top down: going in reverse order because the container for a given class loader has to use as its parent the container for the parent class loader
         for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious(); ) {
@@ -328,7 +319,7 @@ public final class ContainerBoundary implements ComponentContainer {
                     }
 
                     final Map map = propertiesMap.get(loader);
-                    final MutableContainer parent = populatedContainers.get(!Security.CONTROLLED ? loader.getParent() : AccessController.doPrivileged((PrivilegedAction<ClassLoader>) loader::getParent));
+                    final MutableContainer parent = populatedContainers.get(Security.invoke(loader::getParent));
 
                     final AtomicReference<MutableContainer> container = new AtomicReference<>();
 
@@ -348,13 +339,11 @@ public final class ContainerBoundary implements ComponentContainer {
                         }
                     };
 
-                    final PrivilegedAction<MutableContainer> populate = () -> {
-                        final Command.Function<MutableContainer, ClassLoader, RuntimeException> command
-                                = _loader -> containerBootstrap.populateContainer(findServices(_loader), containerProvider, map == null ? new HashMap() : map, parent, _loader, callback);
-                        return ClassLoaders.context(loader, command);
-                    };
+                    final Command.Function<MutableContainer, ClassLoader, RuntimeException> command
+                            = _loader -> containerBootstrap.populateContainer(findServices(_loader), containerProvider, map == null ? new HashMap() : map, parent, _loader, callback);
 
-                    container.set(Security.CONTROLLED ? AccessController.doPrivileged(populate) : populate.run());
+                    // won't compile without the cast
+                    container.set(Security.invoke((PrivilegedAction<MutableContainer>) () -> ClassLoaders.context(loader, command)));
 
                     populatedContainers.put(loader, container.get());
                 } else {
@@ -365,7 +354,7 @@ public final class ContainerBoundary implements ComponentContainer {
 
         assert populatedContainers.containsKey(classLoader) : classLoader;
 
-        final PrivilegedAction<List<MutableContainer>> list = () -> {
+        return Security.invoke(() -> {
 
             // bottom up: list of containers at and above current class loader
             final List<MutableContainer> containers = new ArrayList<>();
@@ -379,9 +368,7 @@ public final class ContainerBoundary implements ComponentContainer {
             }
 
             return containers;
-        };
-
-        return Security.CONTROLLED ? AccessController.doPrivileged(list) : list.run();
+        });
     }
 
     private BootstrapServices initFinder() {

@@ -40,6 +40,7 @@ import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Log;
+import org.fluidity.foundation.Security;
 import org.fluidity.foundation.Strings;
 
 /**
@@ -193,7 +194,7 @@ final class SimpleContainerImpl implements ParentContainer {
         }
 
         if (root != null && root != scope) {
-            for (final Class<?> dependency : services.componentDiscovery().findComponentClasses(Component.SCOPE, root, root.getClassLoader(), false, false)) {
+            for (final Class<?> dependency : services.componentDiscovery().findComponentClasses(Component.SCOPE, root, Security.invoke(root::getClassLoader), false, false)) {
                 if (dependency != component) {
                     bindComponent(scope == null ? root : scope, Components.inspect(dependency));
                 }

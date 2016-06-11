@@ -19,8 +19,6 @@ package org.fluidity.foundation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -93,7 +91,7 @@ public final class Proxies extends Utility {
      */
     @SuppressWarnings("unchecked")
     public static <T> T create(final Class<T> type, final Identity<? extends T> identity, final InvocationHandler handler) {
-        final ClassLoader loader = !Security.CONTROLLED ? type.getClassLoader() : AccessController.doPrivileged((PrivilegedAction<ClassLoader>) type::getClassLoader);
+        final ClassLoader loader = Security.invoke(type::getClassLoader);
 
         final AtomicReference<T> proxy = new AtomicReference<>();
         proxy.set((T) Proxy.newProxyInstance(loader, new Class<?>[] { type }, new MethodInvocations(handler, proxy, identity)));

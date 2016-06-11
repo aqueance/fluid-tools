@@ -18,9 +18,7 @@ package org.fluidity.foundation;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.security.AccessController;
 import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -94,9 +92,9 @@ public class ExceptionsTest {
     @Test(expectedExceptions = Exception.class, expectedExceptionsMessageRegExp = "Gotcha")
     public void testCommonWrapper() throws Exception {
         try {
-            Exceptions.wrap(() -> AccessController.doPrivileged((PrivilegedExceptionAction<Void>) () -> {
+            Exceptions.wrap(() -> {
                 throw new PrivilegedActionException(new Exception("Gotcha"));
-            }));
+            });
         } catch (final Exceptions.Wrapper wrapper) {
             throw wrapper.rethrow(Exception.class);
         }
@@ -230,7 +228,7 @@ public class ExceptionsTest {
                 throw original;
             });
         } catch (final CheckedWrapper e) {
-            assert e.getCause() == original;
+            assert e.getCause() == original : e.getCause().getClass();
         }
 
         final CheckedWrapper wrapped1 = new CheckedWrapper(original);
@@ -240,7 +238,8 @@ public class ExceptionsTest {
                 throw wrapped1;
             });
         } catch (final CheckedWrapper e) {
-            assert e.getCause() == wrapped1;
+            assert e == wrapped1 : e.getClass();
+            assert e.getCause() == original : e.getCause().getClass();
         }
 
         final String message = "message";
@@ -250,7 +249,9 @@ public class ExceptionsTest {
                 throw wrapped1;
             });
         } catch (final CheckedWrapper e) {
-            assert e.getCause() == wrapped1;
+            assert e != wrapped1 : e.getClass();
+            assert message.equals(e.getMessage()) : e.getMessage();
+            assert e.getCause() == wrapped1 : e.getCause().getClass();
         }
 
         final CheckedWrapper wrapped2 = new CheckedWrapper(message, original);

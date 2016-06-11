@@ -17,9 +17,12 @@
 package org.fluidity.foundation;
 
 import java.lang.reflect.AccessibleObject;
+import java.security.AccessControlContext;
 import java.security.AccessControlException;
 import java.security.AccessController;
+import java.security.Permission;
 import java.security.PrivilegedAction;
+import java.security.PrivilegedExceptionAction;
 
 /**
  * Security related convenience functions.
@@ -90,17 +93,94 @@ public final class Security extends Utility {
      *
      * @return a {@link PrivilegedAction} or <code>null</code>, as described above.
      */
-    public static <T extends AccessibleObject> PrivilegedAction<T> setAccessible(final T object) {
+    public static <T extends AccessibleObject> T access(final T object) {
         if (object.isAccessible()) {
-            return null;
+            return object;
         } else if (CONTROLLED) {
-            return () -> {
+            return AccessController.doPrivileged((PrivilegedAction<T>) () -> {
                 object.setAccessible(true);
                 return object;
-            };
+            });
         } else {
             object.setAccessible(true);
-            return null;
+            return object;
         }
+    }
+
+    /**
+     * Depending on the value of {@link Security#CONTROLLED}, either invokes {@link AccessController#doPrivileged(PrivilegedAction)} with <code>action</code>,
+     * or invokes the <code>action</code> directory.
+     *
+     * @param action the privileged action to invoke.
+     * @param <T>    the return type of <code>action</code>.
+     *
+     * @return the result of invoking <code>action</code>.
+     */
+    public static <T> T invoke(final PrivilegedAction<T> action) {
+        return Security.CONTROLLED ? AccessController.doPrivileged(action) : action.run();
+    }
+
+    /**
+     * Depending on the value of {@link Security#CONTROLLED}, either invokes {@link AccessController#doPrivileged(PrivilegedAction)} with <code>action</code>,
+     * or invokes the <code>action</code> directory.
+     *
+     * @param <T>         the return type of <code>action</code>.
+     * @param context     see {@link AccessController#doPrivileged(PrivilegedAction, AccessControlContext)}.
+     * @param action      the privileged action to invoke.
+     * @param permissions see {@link AccessController#doPrivileged(PrivilegedAction, AccessControlContext, Permission...)}.
+     *
+     * @return the result of invoking <code>action</code>.
+     */
+    public static <T> T invoke(final AccessControlContext context, final PrivilegedAction<T> action, final Permission... permissions) {
+        return Security.CONTROLLED && context != null
+               ? permissions.length == 0
+                 ? AccessController.doPrivileged(action, context)
+                 : AccessController.doPrivileged(action, context, permissions)
+               : action.run();
+    }
+
+    /**
+     * Depending on the value of {@link Security#CONTROLLED}, either invokes {@link AccessController#doPrivileged(PrivilegedExceptionAction)} with
+     * <code>action</code>, or invokes the <code>action</code> directory.
+     *
+     * @param error  the highest level {@link Exception} class that <code>action</code> can throw.
+     * @param action the privileged action to invoke.
+     * @param <T>    the return type of <code>action</code>.
+     * @param <E>    the highest level {@link Exception} type that <code>action</code> can throw.
+     *
+     * @return the result of invoking <code>action</code>.
+     *
+     * @throws E whatever <code>action</code>.
+     */
+    @SuppressWarnings({ "unchecked", "UnusedParameters" })
+    public static <T, E extends Exception> T invoke(final Class<E> error, final PrivilegedExceptionAction<T> action) throws E {
+        return Exceptions.wrap(error, () -> Security.CONTROLLED ? AccessController.doPrivileged(action) : action.run());
+    }
+
+    /**
+     * Depending on the value of {@link Security#CONTROLLED}, either invokes {@link AccessController#doPrivileged(PrivilegedExceptionAction)} with
+     * <code>action</code>, or invokes the <code>action</code> directory.
+     *
+     * @param error  the highest level {@link Exception} class that <code>action</code> can throw.
+     * @param context     see {@link AccessController#doPrivileged(PrivilegedAction, AccessControlContext)}.
+     * @param action      the privileged action to invoke.
+     * @param permissions see {@link AccessController#doPrivileged(PrivilegedAction, AccessControlContext, Permission...)}.
+     * @param <T>         the return type of <code>action</code>.
+     * @param <E>         the highest level {@link Exception} type <code>action</code> can throw.
+     *
+     * @return the result of invoking <code>action</code>.
+     *
+     * @throws E whatever <code>action</code>.
+     */
+    @SuppressWarnings({ "unchecked", "UnusedParameters" })
+    public static <T, E extends Exception> T invoke(final Class<E> error,
+                                                    final AccessControlContext context,
+                                                    final PrivilegedExceptionAction<T> action,
+                                                    final Permission... permissions) throws E {
+        return Exceptions.wrap(error, () -> Security.CONTROLLED && context != null
+                                            ? permissions.length == 0
+                                              ? AccessController.doPrivileged(action, context)
+                                              : AccessController.doPrivileged(action, context, permissions)
+                                            : action.run());
     }
 }
