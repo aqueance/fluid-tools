@@ -55,7 +55,7 @@ import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Proxies;
-import org.fluidity.foundation.Security;
+import org.fluidity.foundation.security.Security;
 
 import static org.fluidity.foundation.Command.Operation;
 import static org.fluidity.foundation.Command.Process;
@@ -73,7 +73,7 @@ public class URLClassLoader extends SecureClassLoader {
     private static final String FILE_ACCESS = "read";
     private static final String SOCKET_ACCESS = "connect,accept";
 
-    private final AccessControlContext context = Security.CONTROLLED ? AccessController.getContext() : null;
+    private final AccessControlContext context = AccessController.getContext();
 
     private final Deferred.Reference<String[]> keys;
     private final Map<String, Archive> entries;

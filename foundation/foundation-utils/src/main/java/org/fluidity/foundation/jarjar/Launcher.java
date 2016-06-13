@@ -24,7 +24,7 @@ import java.util.jar.Attributes;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
-import org.fluidity.foundation.Security;
+import org.fluidity.foundation.security.Security;
 
 /**
  * Launches a main class from a JAR file using a class loader that can load classes from JAR files nested inside the main JAR. Nested JAR files must be located

@@ -28,7 +28,7 @@ import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Log;
-import org.fluidity.foundation.Security;
+import org.fluidity.foundation.security.Security;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;

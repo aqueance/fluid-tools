@@ -24,8 +24,8 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Log;
-import org.fluidity.foundation.Security;
 import org.fluidity.foundation.Strings;
+import org.fluidity.foundation.security.Security;
 
 /**
  * @author Tibor Varga

@@ -29,6 +29,8 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import org.fluidity.foundation.security.Security;
+
 /**
  * Implements the Sun JDK service provider discovery. This class is used internally. Use the {@link org.fluidity.composition.ServiceProvider @ServiceProvider}
  * annotation to produce and the {@link org.fluidity.composition.container.ClassDiscovery} component to consume service providers, rather than directly using

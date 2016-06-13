@@ -24,6 +24,8 @@ import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 
+import org.fluidity.foundation.security.Security;
+
 /**
  * Common string related utilities.
  *

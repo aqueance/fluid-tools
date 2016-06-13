@@ -21,6 +21,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.fluidity.foundation.security.Security;
+
 /**
  * Convenience utilities concerning proxies.
  * <h3>Usage Example</h3>

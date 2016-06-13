@@ -51,8 +51,8 @@ import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Methods;
 import org.fluidity.foundation.Proxies;
-import org.fluidity.foundation.Security;
 import org.fluidity.foundation.Strings;
+import org.fluidity.foundation.security.Security;
 
 import static org.fluidity.composition.ComponentContainer.ResolutionException;
 

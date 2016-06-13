@@ -35,7 +35,7 @@ import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Exceptions;
-import org.fluidity.foundation.Security;
+import org.fluidity.foundation.security.Security;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**

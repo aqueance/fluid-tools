@@ -40,8 +40,8 @@ import org.fluidity.composition.spi.Dependency;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Lists;
-import org.fluidity.foundation.Security;
 import org.fluidity.foundation.Strings;
+import org.fluidity.foundation.security.Security;
 
 /**
  * Component resolver for a {@link ComponentFactory} component.

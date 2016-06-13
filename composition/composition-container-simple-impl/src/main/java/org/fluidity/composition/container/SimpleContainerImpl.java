@@ -40,8 +40,8 @@ import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Log;
-import org.fluidity.foundation.Security;
 import org.fluidity.foundation.Strings;
+import org.fluidity.foundation.security.Security;
 
 /**
  * @author Tibor Varga

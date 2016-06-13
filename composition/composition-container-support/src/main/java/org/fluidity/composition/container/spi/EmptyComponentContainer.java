@@ -38,7 +38,7 @@ import org.fluidity.composition.container.impl.CompositeObserver;
 import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Proxies;
-import org.fluidity.foundation.Security;
+import org.fluidity.foundation.security.Security;
 
 import static org.fluidity.foundation.Command.Function;
 

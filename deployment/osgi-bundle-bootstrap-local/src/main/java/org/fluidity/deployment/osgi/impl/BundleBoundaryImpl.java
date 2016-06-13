@@ -27,7 +27,7 @@ import org.fluidity.deployment.osgi.BundleBoundary;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Proxies;
-import org.fluidity.foundation.Security;
+import org.fluidity.foundation.security.Security;
 
 import static org.fluidity.foundation.Command.Process;
 

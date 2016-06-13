@@ -24,7 +24,7 @@ import org.fluidity.composition.spi.Dependency;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Proxies;
-import org.fluidity.foundation.Security;
+import org.fluidity.foundation.security.Security;
 
 /**
  * Implements the semantics of the {@link Defer @Defer} annotation.

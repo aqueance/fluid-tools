@@ -19,7 +19,7 @@ package org.fluidity.composition.cli.impl;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.foundation.Command;
-import org.fluidity.foundation.Security;
+import org.fluidity.foundation.security.Security;
 
 /**
  * Uses the {@link Runtime} object to add shutdown tasks to. The caller must make sure it has enough privileges to add a shutdown hook.

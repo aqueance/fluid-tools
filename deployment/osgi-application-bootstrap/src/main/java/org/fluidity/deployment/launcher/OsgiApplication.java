@@ -45,9 +45,9 @@ import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Log;
-import org.fluidity.foundation.Security;
 import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.Strings;
+import org.fluidity.foundation.security.Security;
 
 import org.codehaus.plexus.interpolation.PropertiesBasedValueSource;
 import org.codehaus.plexus.interpolation.RecursionInterceptor;

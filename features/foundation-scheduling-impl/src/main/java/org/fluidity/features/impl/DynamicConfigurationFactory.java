@@ -30,7 +30,7 @@ import org.fluidity.foundation.Configuration;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Proxies;
-import org.fluidity.foundation.Security;
+import org.fluidity.foundation.security.Security;
 
 /**
  * @author Tibor Varga

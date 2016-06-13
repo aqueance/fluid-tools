@@ -16,8 +16,8 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.foundation.Security;
 import org.fluidity.foundation.Utility;
+import org.fluidity.foundation.security.Security;
 
 /**
  * Static access to component containers.

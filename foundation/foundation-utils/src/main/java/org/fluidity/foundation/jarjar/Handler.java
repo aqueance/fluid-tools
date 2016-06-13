@@ -46,8 +46,8 @@ import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Lists;
-import org.fluidity.foundation.Security;
 import org.fluidity.foundation.Streams;
+import org.fluidity.foundation.security.Security;
 
 import static org.fluidity.foundation.Command.Process;
 

@@ -16,7 +16,7 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.foundation.Security;
+import org.fluidity.foundation.security.Security;
 
 /**
  * An abstract class to extend by components at the edge of the application to enjoy field based dependency injection. The class extending this one must
