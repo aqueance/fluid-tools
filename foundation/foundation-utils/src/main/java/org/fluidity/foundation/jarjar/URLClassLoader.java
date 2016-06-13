@@ -33,8 +33,6 @@ import java.security.CodeSigner;
 import java.security.CodeSource;
 import java.security.Permission;
 import java.security.PermissionCollection;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedExceptionAction;
 import java.security.SecureClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -173,7 +171,7 @@ public class URLClassLoader extends SecureClassLoader {
     protected Class<?> findClass(final String name) throws ClassNotFoundException {
         return access(name,
                       ClassNotFoundException.class,
-                      (Process<Class<?>, Exception>) () -> Security.invoke(Exception.class, context, (PrivilegedExceptionAction<Class<?>>) () -> {
+                      () -> Security.invoke(Exception.class, context, () -> {
                           final String resource = ClassLoaders.classResourceName(name);
 
                           for (final String key : keys.get()) {
@@ -277,14 +275,14 @@ public class URLClassLoader extends SecureClassLoader {
     }
 
     private Permission checkPermission(final Permission permission) {
-        assert context != null;
+        final SecurityManager security = System.getSecurityManager();
 
-        return AccessController.doPrivileged((PrivilegedAction<Permission>) () -> {
-            final SecurityManager security = System.getSecurityManager();
-            assert security != null;
-            security.checkPermission(permission);
-            return permission;
-        }, context);
+        if (security != null) {
+            assert context != null;
+            security.checkPermission(permission, context);
+        }
+
+        return permission;
     }
 
     private Class defineClass(final String name,

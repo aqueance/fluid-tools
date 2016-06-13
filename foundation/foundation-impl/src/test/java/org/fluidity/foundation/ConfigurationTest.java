@@ -687,6 +687,68 @@ public class ConfigurationTest extends Simulator {
         }));
     }
 
+    interface ComputedSettings {
+
+        @Configuration.Property(key = "one", undefined = "1")
+        int _one();
+
+        @Configuration.Property(key = "one", undefined = "2")
+        int _two();
+
+        default int sum() {
+            return _one() + _two();
+        }
+    }
+
+    @Test
+    public void testDefaultMethods() throws Exception {
+        final Configuration<ComputedSettings> bare = configure(ComputedSettings.class, null, null);
+
+        verify(() -> {
+            final int sum = bare.settings().sum();
+            assert sum == 3 : sum;
+        });
+
+        final Configuration<ComputedSettings> defaults = configure(ComputedSettings.class, null, new ComputedSettings() {
+            @Override
+            public int _one() {
+                return 2;
+            }
+
+            @Override
+            public int _two() {
+                return 4;
+            }
+        });
+
+        verify(() -> {
+            final int sum = defaults.settings().sum();
+            assert sum == 6 : sum;
+        });
+
+        final Configuration<ComputedSettings> override = configure(ComputedSettings.class, null, new ComputedSettings() {
+            @Override
+            public int _one() {
+                return 2;
+            }
+
+            @Override
+            public int _two() {
+                return 4;
+            }
+
+            @Override
+            public int sum() {
+                return 10;
+            }
+        });
+
+        verify(() -> {
+            final int sum = override.settings().sum();
+            assert sum == 10 : sum;
+        });
+    }
+
     private static void checkObjects(final Object expected, final Object actual) {
         if (expected == null) {
             assert actual == null : String.format("Expected null, got %s", actual);

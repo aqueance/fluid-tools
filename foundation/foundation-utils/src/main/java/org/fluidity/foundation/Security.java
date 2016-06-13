@@ -29,21 +29,17 @@ import java.security.PrivilegedExceptionAction;
  * <h3>Usage</h3>
  * <h4>Deciding whether to check access to some resource</h4>
  * <pre>
- * if (Security.CONTROLLED) {
- *     AccessController.doPrivileged(&hellip;);
+ * if (Security.{@linkplain #CONTROLLED CONTROLLED}) {
+ *     {@linkplain AccessController}.{@linkplain AccessController#doPrivileged(PrivilegedAction) doPrivileged}(&hellip;);
  * } else {
  *     &hellip;
  * }
  * </pre>
  * <h4>Object Accessibility</h4>
  * <pre>
- * final Method method = &hellip;;
- * final PrivilegedAction&lt;Method&gt; access = Security.setAccessible(method);
- * if (access != null) {
- *     AccessController.doPrivileged(access);
- * }
+ * final {@linkplain java.lang.reflect.Method Method} method = Security.{@linkplain Security#access(AccessibleObject) access}(&hellip;);
  *
- * method.invoke(&hellip;);
+ * method.{@linkplain java.lang.reflect.Method#invoke(Object, Object...) invoke}(&hellip;);
  * </pre>
  *
  * @author Tibor Varga
@@ -74,6 +70,7 @@ public final class Security extends Utility {
         CONTROLLED = controlled;
     }
 
+    // TODO: remove methods without AccessControlContext as they lend our privileges to the caller
     private Security() { }
 
     /**

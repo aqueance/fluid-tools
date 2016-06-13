@@ -16,8 +16,11 @@
 
 package org.fluidity.foundation;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -128,6 +131,28 @@ final class ConfigurationImpl<T> implements Configuration<T> {
         return list.isEmpty() ? new String[] { "" } : Lists.asArray(String.class, list);
     }
 
+    private static final int ACCESS_MODES = MethodHandles.Lookup.PUBLIC | MethodHandles.Lookup.PACKAGE | MethodHandles.Lookup.PROTECTED | MethodHandles.Lookup.PRIVATE;
+
+    private static MethodHandle lookup(final Method method) throws Exception {
+        assert method.isDefault() : method;
+
+        final Class<?> target = method.getDeclaringClass();
+
+        try {
+            return MethodHandles.lookup().unreflectSpecial(method, target);
+        } catch (final IllegalAccessException e) {
+            try {
+
+                // FIXME: This is a rude way to force the JRE to be consistent with itself. We can gain access to [target] and its [method] but we cannot call the it?
+
+                final Constructor<MethodHandles.Lookup> lookup = Security.access(MethodHandles.Lookup.class.getDeclaredConstructor(Class.class, int.class));
+                return lookup.newInstance(target, ACCESS_MODES).unreflectSpecial(method, target);
+            } catch (final NoSuchMethodException ignored) {
+                throw new IllegalArgumentException(String.format("%s is private, method %s is not accessible", Strings.formatClass(false, true, target), method.getName()));
+            }
+        }
+    }
+
     private static class PropertyLoader<T> implements InvocationHandler {
         private static final String TRUE = String.valueOf(true);
         private static final String FALSE = String.valueOf(false);
@@ -151,7 +176,29 @@ final class ConfigurationImpl<T> implements Configuration<T> {
             assert method.getDeclaringClass().isAssignableFrom(api) : method;
 
             final Property setting = method.getAnnotation(Property.class);
-            assert setting != null : String.format("No @%s specified for method %s", Property.class.getName(), method);
+
+            if (method.isDefault()) {
+                if (setting != null) {
+                    throw new IllegalArgumentException(String.format("@%s specified for default method %s", Property.class.getName(), method));
+                }
+
+                Method overridden;
+
+                try {
+                    overridden = defaults == null
+                                 ? null
+                                 : Security.invoke(NoSuchMethodException.class,
+                                                   () -> defaults.getClass().getDeclaredMethod(method.getName(), (Class[]) method.getParameterTypes()));
+                } catch (final NoSuchMethodException ignored) {
+                    overridden = null;
+                }
+
+                return overridden != null
+                       ? overridden.invoke(defaults, arguments)
+                       : lookup(method).bindTo(proxy).invokeWithArguments(arguments);
+            } else if (setting == null) {
+                throw new IllegalArgumentException(String.format("No @%s specified for method %s", Property.class.getName(), method));
+            }
 
             final Class<?> type = method.getReturnType();
             final Type genericType = method.getGenericReturnType();
