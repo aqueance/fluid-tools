@@ -19,6 +19,7 @@ package org.fluidity.composition.container.impl;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.function.Supplier;
 
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.container.ComponentCache;
@@ -40,7 +41,7 @@ final class ComponentCacheImpl implements ComponentCache {
         this.caches = stateless ? new WeakHashMap<>() : null;
     }
 
-    public Object lookup(final Domain domain, final String source, final ComponentContext context, final Class<?> api, final Entry factory) {
+    public Object lookup(final Domain domain, final String source, final ComponentContext context, final Class<?> api, final Supplier factory) {
         assert context != null : api;
         final boolean stateful = caches == null;
 
@@ -66,13 +67,13 @@ final class ComponentCacheImpl implements ComponentCache {
                                        final String source,
                                        final ComponentContext context,
                                        final Class<?> api,
-                                       final Entry factory,
+                                       final Supplier factory,
                                        final Log log) {
         final String key = context.key();
 
         if (factory != null) {
             if (!cache.containsKey(key)) {
-                final Object component = factory.create();
+                final Object component = factory.get();
 
                 if (!cache.containsKey(key)) {
                     cache.put(key, component);

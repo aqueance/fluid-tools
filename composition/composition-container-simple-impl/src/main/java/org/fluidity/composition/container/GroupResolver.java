@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.DependencyPath;
@@ -82,17 +83,11 @@ final class GroupResolver {
         return observer;
     }
 
-    @FunctionalInterface
-    public interface Node {
-
-        Collection<?> instance(DependencyGraph.Traversal traversal);
-    }
-
-    public Node resolve(final ParentContainer domain,
-                        final DependencyGraph.Traversal traversal,
-                        final SimpleContainer container,
-                        final ContextDefinition context,
-                        final Type reference) {
+    public Function<DependencyGraph.Traversal, Collection> resolve(final ParentContainer domain,
+                                                                   final DependencyGraph.Traversal traversal,
+                                                                   final SimpleContainer container,
+                                                                   final ContextDefinition context,
+                                                                   final Type reference) {
         final List<DependencyGraph.Node> nodes = new ArrayList<>();
 
         final List<ContextDefinition> consumed = new ArrayList<>();

@@ -16,8 +16,9 @@
 
 package org.fluidity.foundation.testing;
 
+import java.util.function.Supplier;
+
 import org.fluidity.features.DynamicConfiguration;
-import org.fluidity.features.Updates;
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Configuration;
 import org.fluidity.testing.Simulator;
@@ -192,13 +193,13 @@ public final class MockConfiguration {
     public static final class Cached<P> {
 
         private final DynamicConfiguration<P> configuration;
-        private final Updates.Snapshot<P> snapshot;
+        private final Supplier<P> snapshot;
         private final P settings;
 
         @SuppressWarnings("unchecked")
         Cached(final Class<P> type, final Simulator.MockObjects mocks) {
             configuration = (DynamicConfiguration<P>) mocks.normal(DynamicConfiguration.class);
-            snapshot = (Updates.Snapshot<P>) mocks.normal(Updates.Snapshot.class);
+            snapshot = (Supplier<P>) mocks.normal(Supplier.class);
             settings = mocks.lenient(type);
         }
 

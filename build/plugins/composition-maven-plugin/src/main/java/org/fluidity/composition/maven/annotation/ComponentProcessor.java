@@ -16,6 +16,8 @@
 
 package org.fluidity.composition.maven.annotation;
 
+import java.util.function.Consumer;
+
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -32,12 +34,12 @@ public final class ComponentProcessor extends AnnotationVisitor {
     private static final String ATR_AUTOMATIC = "automatic";
     private static final String ATR_SCOPE = "scope";
 
-    private final ProcessorCallback<ComponentProcessor> callback;
+    private final Consumer<ComponentProcessor> callback;
 
     private Type scope = OBJECT_TYPE;
     private boolean automatic = true;
 
-    public ComponentProcessor(final ProcessorCallback<ComponentProcessor> callback) {
+    public ComponentProcessor(final Consumer<ComponentProcessor> callback) {
         super(Opcodes.ASM5);
         this.callback = callback;
     }
@@ -61,6 +63,6 @@ public final class ComponentProcessor extends AnnotationVisitor {
 
     @Override
     public void visitEnd() {
-        callback.complete(this);
+        callback.accept(this);
     }
 }

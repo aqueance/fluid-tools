@@ -16,11 +16,12 @@
 
 package org.fluidity.foundation;
 
+import java.util.function.Supplier;
+
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Containers;
 import org.fluidity.features.DynamicConfiguration;
-import org.fluidity.features.Updates;
 
 import org.testng.annotations.Test;
 
@@ -46,7 +47,7 @@ public class DynamicConfigurationFactoryTest {
 
         @SuppressWarnings("UnusedDeclaration")
         private NoContextConfigured(final DynamicConfiguration<Settings> configuration) {
-            final Updates.Snapshot<Settings> snapshot = configuration.snapshot();
+            final Supplier<Settings> snapshot = configuration.snapshot();
 
             assert snapshot != null;
             final Settings settings = snapshot.get();

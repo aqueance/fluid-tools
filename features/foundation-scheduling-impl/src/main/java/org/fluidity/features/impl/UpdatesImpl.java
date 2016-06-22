@@ -17,6 +17,7 @@
 package org.fluidity.features.impl;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 import org.fluidity.composition.Component;
 import org.fluidity.features.Scheduler;
@@ -41,17 +42,17 @@ final class UpdatesImpl implements Updates {
         }
     }
 
-    public synchronized <T> Snapshot<T> snapshot(final long period, final Snapshot<T> loader) {
+    public synchronized <T> Supplier<T> snapshot(final long period, final Supplier<T> loader) {
         final long interval = period > 0 ? delay : period;  // period set: delay determines special behavior, period does otherwise
 
         if (interval < 0) {
 
             // transparent snapshot
-            return loader::get;
+            return loader;
         } else if (interval == 0) {
 
             // static snapshot
-            return new Snapshot<T>() {
+            return new Supplier<T>() {
                 private final T snapshot = loader.get();
 
                 public T get() {
@@ -61,7 +62,7 @@ final class UpdatesImpl implements Updates {
         } else {
 
             // periodic snapshot
-            return new Snapshot<T>() {
+            return new Supplier<T>() {
 
                 private long loaded = System.currentTimeMillis();   // not volatile: snapshot assignment is a write barrier, timestamp query is a read barrier
                 private volatile T snapshot = loader.get();
@@ -91,8 +92,8 @@ final class UpdatesImpl implements Updates {
     interface Settings {
 
         /**
-         * The minimum number in milliseconds between subsequent calls to {@link org.fluidity.features.Updates.Snapshot#get()} of a loader passed to
-         * {@link org.fluidity.features.Updates#snapshot(long, Updates.Snapshot)}.
+         * The minimum number in milliseconds between subsequent calls to {@link Supplier#get()} of a loader passed to
+         * {@link Updates#snapshot(long, Supplier)}.
          *
          * @return a number greater than 0.
          */

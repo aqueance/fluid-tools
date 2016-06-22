@@ -19,6 +19,7 @@ package org.fluidity.features.impl;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
@@ -57,7 +58,7 @@ final class DynamicConfigurationFactory implements ComponentFactory {
     @Component.Qualifiers(Component.Reference.class)
     private static class DynamicConfigurationImpl<T> implements DynamicConfiguration<T> {
 
-        private final Deferred.Reference<Updates.Snapshot<T>> snapshot;
+        private final Deferred.Reference<Supplier<T>> snapshot;
 
         DynamicConfigurationImpl(final ComponentContext context, final Configuration<T> delegate, final Configuration<Settings> configuration, final Updates updates) {
 
@@ -78,7 +79,7 @@ final class DynamicConfigurationFactory implements ComponentFactory {
             this.snapshot = Deferred.shared(() -> updates.snapshot(configuration.settings().period(), () -> delegate.query(all)));
         }
 
-        public Updates.Snapshot<T> snapshot() {
+        public Supplier<T> snapshot() {
             return snapshot.get();
         }
     }

@@ -168,7 +168,7 @@ public interface ComponentFactory {
      * }
      * </pre>
      *
-     * See {@link org.fluidity.foundation.Methods#get(Class, Methods.Invoker)} to see how you can get an <em>interface</em> method in a refactoring friendly
+     * See {@link org.fluidity.foundation.Methods#get(Class, Methods.Selector)} to see how you can get an <em>interface</em> method in a refactoring friendly
      * manner.
      *
      * @param context      the context under which component creation will take place. This context contains only those annotations that this factory lists in

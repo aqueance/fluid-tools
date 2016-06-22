@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
@@ -75,7 +76,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
     public DependencyGraph.Node follow(final Object identity,
                                        final Class<?> api,
                                        final ContextDefinition context,
-                                       final DependencyGraph.Node.Reference reference) {
+                                       final Supplier<DependencyGraph.Node> reference) {
         assert context != null;
 
         return descend(new ActualElement(api, identity, context), false, (path) -> {
@@ -87,7 +88,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
                 throw new ComponentContainer.CircularReferencesException(api);
             }
 
-            final DependencyGraph.Node resolved = reference.resolve();
+            final DependencyGraph.Node resolved = reference.get();
             assert resolved != null : api;
 
             if (observer != null) {

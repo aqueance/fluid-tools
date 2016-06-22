@@ -17,6 +17,7 @@
 package org.fluidity.features.impl;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import org.fluidity.features.Scheduler;
 import org.fluidity.features.Updates;
@@ -36,7 +37,7 @@ public class UpdatesTest extends Simulator {
     private final MockConfiguration.Direct<UpdatesImpl.Settings> configuration = MockConfiguration.direct(UpdatesImpl.Settings.class, dependencies);
 
     @SuppressWarnings("unchecked")
-    private final Updates.Snapshot<Object> loader = dependencies.normal(Updates.Snapshot.class);
+    private final Supplier<Object> loader = dependencies.normal(Supplier.class);
     private final Scheduler scheduler = dependencies.normal(Scheduler.class);
     private final Scheduler.Task.Control control = dependencies.normal(Scheduler.Task.Control.class);
 
@@ -76,7 +77,7 @@ public class UpdatesTest extends Simulator {
         final Object context = new Object();
 
         // initialization
-        final Updates.Snapshot<Object> snapshot = test(() -> {
+        final Supplier<Object> snapshot = test(() -> {
             EasyMock.expect(loader.get()).andReturn(context);
 
             return verify(() -> updates.snapshot(100, loader));
@@ -105,7 +106,7 @@ public class UpdatesTest extends Simulator {
         final Object context = new Object();
 
         // initialization
-        final Updates.Snapshot<Object> snapshot = test(() -> {
+        final Supplier<Object> snapshot = test(() -> {
             EasyMock.expect(loader.get()).andReturn(context);
 
             return verify(() -> updates.snapshot(100, loader));
@@ -129,7 +130,7 @@ public class UpdatesTest extends Simulator {
         final Object context = new Object();
 
         // initialization
-        final Updates.Snapshot<Object> snapshot = test(() -> {
+        final Supplier<Object> snapshot = test(() -> {
             EasyMock.expect(loader.get()).andReturn(context);
 
             return verify(() -> updates.snapshot(0, loader));
@@ -153,7 +154,7 @@ public class UpdatesTest extends Simulator {
         final Object context1 = new Object();
         final Object context2 = new Object();
 
-        final Updates.Snapshot<Object> snapshot = verify(() -> updates.snapshot(-1, loader));
+        final Supplier<Object> snapshot = verify(() -> updates.snapshot(-1, loader));
 
         test(() -> {
             EasyMock.expect(loader.get()).andReturn(context1);

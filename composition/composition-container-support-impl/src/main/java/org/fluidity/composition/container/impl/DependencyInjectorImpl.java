@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
@@ -391,30 +392,14 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return values;
     }
 
-    /**
-     * Processes a field. Used in {@link DependencyInjectorImpl#processFields(Class, DependencyInjectorImpl.FieldCommand)}.
-     *
-     * @author Tibor Varga
-     */
-    @FunctionalInterface
-    private interface FieldCommand {
-
-        /**
-         * Processes a field.
-         *
-         * @param field the field to process.
-         */
-        void process(Field field);
-    }
-
-    private void processFields(final Class<?> type, final FieldCommand command) {
+    private void processFields(final Class<?> type, final Consumer<Field> command) {
         for (final Field field : Security.invoke(type::getDeclaredFields)) {
             if ((field.getModifiers() & Modifier.FINAL) != 0) {
                 continue;
             }
 
             if (field.isAnnotationPresent(Inject.class)) {
-                command.process(Security.access(field));
+                command.accept(Security.access(field));
             }
         }
 

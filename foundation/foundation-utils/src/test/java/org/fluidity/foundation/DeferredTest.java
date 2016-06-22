@@ -18,6 +18,7 @@ package org.fluidity.foundation;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -30,7 +31,7 @@ public class DeferredTest {
     private Deferred.Reference<String> reference(final String original, final boolean safe) {
         final AtomicBoolean invoked = new AtomicBoolean(false);
 
-        final Deferred.Factory<String> factory = () -> {
+        final Supplier<String> factory = () -> {
             assert invoked.compareAndSet(false, true) : "Invoked multiple times";
             return original;
         };

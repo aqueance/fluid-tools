@@ -16,9 +16,11 @@
 
 package org.fluidity.features;
 
+import java.util.function.Supplier;
+
 /**
- * Periodic update facility. Components wishing to periodically update some data should call {@link #snapshot(long, Snapshot)} upon initialization and then
- * use {@link Snapshot#get()} on the returned snapshot every time they wish to access the periodically updated data.
+ * Periodic update facility. Components wishing to periodically update some data should call {@link #snapshot(long, Supplier)} upon initialization and then
+ * use {@link Supplier#get()} on the returned snapshot every time they wish to access the periodically updated data.
  * <p>
  * <b>NOTE</b>: This component is designed not to keep a hard reference to any object that registers for updates and thus is a preferred way to the
  * {@link Scheduler} component of implementing periodic updates.
@@ -72,38 +74,18 @@ public interface Updates {
      * more frequently</i> than every <code>period</code> milliseconds.
      * <p>
      * The actual data update is implemented by the supplied <code>loader</code>, which will be invoked at most once every <code>period</code> milliseconds.
-     * The data will be loaded once before this method returns and after that <i>only</i> when the {@link Snapshot#get()} method is invoked on the returned
+     * The data will be loaded once before this method returns and after that <i>only</i> when the {@link Supplier#get()} method is invoked on the returned
      * value.
      * <p>
      * The {@linkplain Updates#UPDATE_GRANULARITY update granularity} configured for this component will pose as the lower bound to any <i>positive</i>
      * <code>period</code> specified to this method.If the <code>period</code> specified is <code>0</code>, the snapshot will be taken once and then cached
-     * forever. If the <code>period</code> is negative, no snapshot will be cached and the loader will be invoked at every invocation of {@link Snapshot#get()}.
+     * forever. If the <code>period</code> is negative, no snapshot will be cached and the loader will be invoked at every invocation of {@link Supplier#get()}.
      *
-     * @param period the number of milliseconds that must pass between subsequent calls to {@link Snapshot#get()} on the provided <code>loader</code>.
-     * @param loader the object that can refresh the data.
      * @param <T>    the type of data the given <code>loader</code> provides.
      *
+     * @param period the number of milliseconds that must pass between subsequent calls to {@link Supplier#get()} on the provided <code>loader</code>.
+     * @param loader the object that can refresh the data.
      * @return an object through which the up-to-date data can be obtained.
      */
-    <T> Snapshot<T> snapshot(long period, Snapshot<T> loader);
-
-    /**
-     * Represents some data that may be periodically refreshed by the {@link Updates} component.
-     * <h3>Usage</h3>
-     * See {@link Updates}.
-     *
-     * @param <T> the type of data this snapshot represents.
-     *
-     * @author Tibor Varga
-     */
-    @FunctionalInterface
-    interface Snapshot<T> {
-
-        /**
-         * Returns the most recent snapshot of the represented data.
-         *
-         * @return the most recent snapshot of the represented data.
-         */
-        T get();
-    }
+    <T> Supplier<T> snapshot(long period, Supplier<T> loader);
 }

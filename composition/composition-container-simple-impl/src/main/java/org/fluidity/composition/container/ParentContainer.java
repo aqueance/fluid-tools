@@ -17,7 +17,9 @@
 package org.fluidity.composition.container;
 
 import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
@@ -53,7 +55,7 @@ interface ParentContainer extends SimpleContainer, ComponentCache.Domain {
      * @return a list of objects representing the group members in this container and its parent(s), if any, starting with those in the top level container
      *         and ending with those in this one.
      */
-    List<GroupResolver.Node> resolveGroup(ParentContainer domain, Class<?> api, Traversal traversal, ContextDefinition context, Type reference);
+    List<Function<Traversal, Collection>> resolveGroup(ParentContainer domain, Class<?> api, Traversal traversal, ContextDefinition context, Type reference);
 
     /**
      * Resolves a component group with the given traversal in the given context.

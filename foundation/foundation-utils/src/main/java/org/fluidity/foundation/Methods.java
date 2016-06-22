@@ -35,27 +35,27 @@ public final class Methods extends Utility {
      * Finds method objects in a refactoring friendly way.
      * <p>
      * <b>Note</b>: only works on interface methods.
-     * <h3>Usage</h3>
-     * Let's say you need to find the {@link java.io.Closeable#close()} method at run time:
+     * <h3>Usage</h3> Let's say you need to find the {@link java.io.Closeable#close()} method at run time:
      * <pre>
-     * final {@linkplain Method} closeMethod = <span class="hl1">Methods.get</span>(<span class="hl2">Closeable</span>.class, new <span class="hl1">Methods.Invoker</span>&lt;<span class="hl2">Closeable</span>&gt;() {
+     * final {@linkplain Method} closeMethod = <span class="hl1">Methods.get</span>(<span class="hl2">Closeable</span>.class, new <span
+     * class="hl1">Methods.Invoker</span>&lt;<span class="hl2">Closeable</span>&gt;() {
      *   public void <span class="hl1">invoke</span>(final <span class="hl2">Closeable</span> capture) {
      *     capture.<span class="hl2">close</span>();
      *   }
      * })[0];
      * </pre>
      *
-     * @param type    the interface that directly or indirectly defines the method you seek.
-     * @param invoker code that invokes the method on the supplied implementation of the specified interface <code>type</code>.
-     * @param <T>     the type of the interface to capture method calls on.
+     * @param type     the interface that directly or indirectly defines the method you seek.
+     * @param selector code that invokes the method on the supplied implementation of the specified interface <code>type</code>.
+     * @param <T>      the type of the interface to capture method calls on.
      *
      * @return the method object.
      */
-    public static <T> Method[] get(final Class<T> type, final Invoker<T> invoker) {
+    public static <T> Method[] get(final Class<T> type, final Selector<T> selector) {
         return Exceptions.wrap(() -> {
             final Collection<Method> methods = new ArrayList<>();
 
-            invoker.invoke(Proxies.create(type, (proxy, method, arguments) -> {
+            selector.invoke(Proxies.create(type, (proxy, method, arguments) -> {
                 methods.add(method);
 
                 final Class<?> _type = method.getReturnType();
@@ -105,19 +105,19 @@ public final class Methods extends Utility {
     }
 
     /**
-     * Allows the caller of {@link Methods#get(Class, Methods.Invoker) Methods.get()} to find a method without referring to it by name.
+     * Allows the caller of {@link Methods#get(Class, Selector) Methods.get()} to find a method without referring to it by name.
      * <h3>Usage</h3>
-     * See {@link Methods#get(Class, Methods.Invoker) Methods.get()}.
+     * See {@link Methods#get(Class, Selector) Methods.get()}.
      *
      * @param <T> the type of the interface to capture method invocations on.
      *
      * @author Tibor Varga
      */
     @FunctionalInterface
-    public interface Invoker<T> {
+    public interface Selector<T> {
 
         /**
-         * Invokes the method that the caller of {@link Methods#get(Class, Methods.Invoker) Methods.get()} intends to find.
+         * Invokes the method that the caller of {@link Methods#get(Class, Selector) Methods.get()} intends to find.
          *
          * @param capture a dummy implementation of the interface owning the method being sought. The implementation must call, on the supplied
          *                object, the method it is looking for.

@@ -29,12 +29,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.function.Function;
 
 import org.fluidity.foundation.security.Security;
 
 /**
  * Utility methods to access parameterized type information.
  */
+@SuppressWarnings("WeakerAccess")
 public final class Generics extends Utility {
 
     private static final Annotation[] NO_ANNOTATION = new Annotation[0];
@@ -159,7 +161,7 @@ public final class Generics extends Utility {
         return null;
     }
 
-    private static Collection<Type> unresolved(final Type reference, Collection<Type> list) {
+    private static Collection<Type> unresolved(final Type reference, final Collection<Type> list) {
         if (reference instanceof Class) {
             return list;
         } else if (reference instanceof ParameterizedType) {
@@ -193,47 +195,28 @@ public final class Generics extends Utility {
     }
 
     /**
-     * Visitor interface for {@link #abstractions(Type, org.fluidity.foundation.Generics.Inspector)}.
-     *
-     * @author Tibor Varga
-     */
-    @FunctionalInterface
-    public interface Inspector {
-
-        /**
-         * Invoked at points of a type hierarchy.
-         *
-         * @param type the curent point in a type hierarchy.
-         *
-         * @return whatever the selector wishes to return from {@link #abstractions(Type, org.fluidity.foundation.Generics.Inspector)}. The type hierarchy is traversed until this method
-         * returns not <code>null</code>, or there are no more types to inspect.
-         */
-        Type inspect(Type type);
-    }
-
-    /**
      * Inspects the superclass and interfaces of <code>reference</code> and invokes <code>inspector</code> with each until it returns a type.
      * <code>Object.class</code> is never passed to <code>inspector</code>. The <code>inspector</code> can invoke this method again to traverse the type's
-     * clas hierarchy.
+     * class hierarchy.
      *
      * @param reference the type to inspect the super and interfaces of.
      * @param inspector the inspector to invoke at every abstraction found.
      *
      * @return whatever the <code>inspector</code> returns; may be <code>null</code>.
      */
-    public static Type abstractions(final Type reference, final Inspector inspector) {
+    public static Type abstractions(final Type reference, final Function<Type, Type> inspector) {
         Type selected = null;
 
         final Class<?> referenceClass = rawType(reference);
         final Type superType = referenceClass.getGenericSuperclass();
 
         if (superType != null && superType != Object.class) {
-            selected = inspector.inspect(superType);
+            selected = inspector.apply(superType);
         }
 
         if (selected == null) {
             for (final Type interfaceType : referenceClass.getGenericInterfaces()) {
-                selected = inspector.inspect(interfaceType);
+                selected = inspector.apply(interfaceType);
 
                 if (selected != null) break;
             }

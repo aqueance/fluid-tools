@@ -16,6 +16,8 @@
 
 package org.fluidity.composition.container;
 
+import java.util.function.Supplier;
+
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.foundation.Log;
 
@@ -72,26 +74,7 @@ public interface ComponentCache {
      *
      * @return the component instance or <code>null</code>.
      */
-    Object lookup(Domain domain, String source, ComponentContext context, Class<?> api, Entry factory);
-
-    /**
-     * A factory to provide a component instance on {@linkplain ComponentCache cache} miss. This interface is used to tell a {@link ComponentCache} how to
-     * instantiate the cached component when it's missing from the cache.
-     * <h3>Usage</h3>
-     * See {@link ComponentCache}.
-     *
-     * @author Tibor Varga
-     */
-    @FunctionalInterface
-    interface Entry {
-
-        /**
-         * Creates and returns a new instance of the component.
-         *
-         * @return a new instance of the component, or <code>null</code>, which will also be cached.
-         */
-        Object create();
-    }
+    Object lookup(Domain domain, String source, ComponentContext context, Class<?> api, Supplier factory);
 
     /**
      * A caching domain.

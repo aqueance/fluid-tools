@@ -18,6 +18,7 @@ package org.fluidity.composition.maven.annotation;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.fluidity.deployment.maven.ClassReaders;
 import org.fluidity.deployment.maven.ClassRepository;
@@ -30,8 +31,6 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-import static org.fluidity.foundation.Command.Process;
-
 /**
  * Processes a {@link org.fluidity.composition.ServiceProvider @ServiceProvider} annotation.
  *
@@ -42,14 +41,14 @@ public final class ServiceProviderProcessor extends AnnotationVisitor {
     private static final String ATR_API = "api";
     private static final String ATR_TYPE = "type";
 
-    private final ProcessorCallback<ServiceProviderProcessor> callback;
+    private final Consumer<ServiceProviderProcessor> callback;
     private final ClassRepository repository;
 
     private final ClassReader classData;
     private final Set<String> apiSet = new HashSet<>();
     private String type;
 
-    public ServiceProviderProcessor(final ClassRepository repository, final ClassReader classData, final ProcessorCallback<ServiceProviderProcessor> callback) {
+    public ServiceProviderProcessor(final ClassRepository repository, final ClassReader classData, final Consumer<ServiceProviderProcessor> callback) {
         super(Opcodes.ASM5);
         this.repository = repository;
         this.classData = classData;
@@ -110,7 +109,7 @@ public final class ServiceProviderProcessor extends AnnotationVisitor {
                 throw new MojoExecutionException(String.format("No service provider interface could be identified for %s", className));
             }
 
-            callback.complete(ServiceProviderProcessor.this);
+            callback.accept(ServiceProviderProcessor.this);
 
             return null;
         });

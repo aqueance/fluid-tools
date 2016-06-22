@@ -16,6 +16,8 @@
 
 package org.fluidity.foundation;
 
+import java.util.function.Supplier;
+
 /**
  * Lazy instantiation with or without thread safety.
  * <h3>Usage</h3>
@@ -54,7 +56,7 @@ public final class Deferred extends Utility {
     private Deferred() { }
 
     /**
-     * Returns a lazy loading reference to some object. The object is instantiated by the given factory's {@link Factory#create() create()} method, which will
+     * Returns a lazy loading reference to some object. The object is instantiated by the given factory's {@link Supplier#get() create()} method, which will
      * be invoked the first time the returned object's {@link Reference#get() get()} method is invoked, and then its return value will be cached for use in
      * subsequent invocations. If the factory returns <code>null</code> instead of an object then the <code>null</code> value will be cached and returned in
      * subsequent queries by the returned reference.
@@ -63,17 +65,17 @@ public final class Deferred extends Utility {
      * <p>
      * Note: the returned object will maintain a strong reference to the provided factory.
      *
-     * @param factory the factory to create the referred to object.
      * @param <T>     the type of the lazily instantiated object.
      *
+     * @param factory the factory to create the referred to object.
      * @return a deferred reference to the object created by the given factory.
      */
-    public static <T> Reference<T> shared(final Factory<T> factory) {
+    public static <T> Reference<T> shared(final Supplier<T> factory) {
         return new SafeReference<>(factory);
     }
 
     /**
-     * Returns a lazy loading reference to some object. The object is instantiated by the given factory's {@link Factory#create() create()} method, which will
+     * Returns a lazy loading reference to some object. The object is instantiated by the given factory's {@link Supplier#get() create()} method, which will
      * be invoked the first time the returned object's {@link Reference#get() get()} method is invoked, and then its return value will be cached for use in
      * subsequent invocations. If the factory returns <code>null</code> instead of an object then the <code>null</code> value will be cached and returned in
      * subsequent queries by the returned reference.
@@ -82,12 +84,12 @@ public final class Deferred extends Utility {
      * <p>
      * Note: the returned object will maintain a strong reference to the provided factory.
      *
-     * @param factory the factory to create the referred to object.
      * @param <T>     the type of the lazily instantiated object.
      *
+     * @param factory the factory to create the referred to object.
      * @return a deferred reference to the object created by the given factory.
      */
-    public static <T> Reference<T> local(final Factory<T> factory) {
+    public static <T> Reference<T> local(final Supplier<T> factory) {
         return new BareReference<>(factory);
     }
 
@@ -116,7 +118,7 @@ public final class Deferred extends Utility {
      *
      * @return a lazily initialized {@link Label} object; never <code>null</code>.
      */
-    public static Label label(final Factory<String> factory) {
+    public static Label label(final Supplier<String> factory) {
         return new Label() {
             private final Deferred.Reference<String> label = Deferred.local(factory);
 
@@ -127,29 +129,8 @@ public final class Deferred extends Utility {
     }
 
     /**
-     * A factory of some object to be {@link Deferred lazily} instantiated. This is used by the {@link Deferred#shared(Deferred.Factory) Deferred.shared(&hellip;)},
-     * the {@link Deferred#local(Deferred.Factory) Deferred.local(&hellip;)}, and the <code>Deferred.label(&hellip;)</code> methods.
-     * <h3>Usage</h3>
-     * See {@link Deferred}.
-     *
-     * @param <T> the type of the object created by this factory.
-     *
-     * @author Tibor Varga
-     */
-    @FunctionalInterface
-    public interface Factory<T> {
-
-        /**
-         * Creates the object represented by this factory.
-         *
-         * @return a new instance.
-         */
-        T create();
-    }
-
-    /**
-     * A reference to some object that is {@link Deferred lazily} instantiated. Instances are created by {@link Deferred#shared(Deferred.Factory)} and
-     * {@link Deferred#local(Deferred.Factory)}.
+     * A reference to some object that is {@link Deferred lazily} instantiated. Instances are created by {@link Deferred#shared(Supplier)} and
+     * {@link Deferred#local(Supplier)}.
      * <h3>Usage</h3>
      * See {@link Deferred}.
      *
@@ -186,7 +167,7 @@ public final class Deferred extends Utility {
      * compute.
      *
      * @author Tibor Varga
-     * @see Deferred#label(Deferred.Factory)
+     * @see Deferred#label(Supplier)
      * @see Deferred#label(String, Object...)
      */
     public interface Label {
@@ -206,10 +187,10 @@ public final class Deferred extends Utility {
      */
     private static class SafeReference<T> implements Reference<T> {
 
-        private final Factory<T> factory;
+        private final Supplier<T> factory;
         private volatile DCL<T> state;
 
-        SafeReference(final Factory<T> factory) {
+        SafeReference(final Supplier<T> factory) {
             this.factory = factory;
             this.state = new DCL<>(factory);
         }
@@ -240,10 +221,10 @@ public final class Deferred extends Utility {
          */
         private static class DCL<T> {
 
-            private volatile Factory<T> factory;
+            private volatile Supplier<T> factory;
             private T object;
 
-            DCL(final Factory<T> factory) {
+            DCL(final Supplier<T> factory) {
                 assert factory != null;
                 this.factory = factory;
             }
@@ -251,10 +232,10 @@ public final class Deferred extends Utility {
             public final T get() {
                 if (factory != null) {
                     synchronized (this) {
-                        final Factory<T> cache = factory;   // avoid excessive volatile access
+                        final Supplier<T> cache = factory;  // avoid excessive volatile access
 
                         if (cache != null) {
-                            object = cache.create();
+                            object = cache.get();
                             factory = null;
                         }
                     }
@@ -276,18 +257,18 @@ public final class Deferred extends Utility {
      */
     private static class BareReference<T> implements Reference<T> {
 
-        private final Factory<T> factory;
+        private final Supplier<T> factory;
         private T object;
 
         private boolean pristine = true;
 
-        BareReference(final Factory<T> factory) {
+        BareReference(final Supplier<T> factory) {
             this.factory = factory;
         }
 
         public T get() {
             if (pristine) {
-                object = factory.create();
+                object = factory.get();
                 pristine = false;
             }
 

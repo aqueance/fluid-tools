@@ -18,6 +18,7 @@ package org.fluidity.composition;
 
 import java.lang.reflect.Type;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.composition.spi.Dependency;
@@ -36,7 +37,7 @@ final class DeferredReferenceInterceptor implements ComponentInterceptor {
 
     @SuppressWarnings("unchecked")
     public Dependency intercept(final Type reference, final ComponentContext context, final Dependency dependency) {
-        final Function<Deferred.Factory, Deferred.Reference> factory = context.qualifier(Defer.class, null).shared() ? Deferred::shared : Deferred::local;
+        final Function<Supplier, Deferred.Reference> factory = context.qualifier(Defer.class, null).shared() ? Deferred::shared : Deferred::local;
         final Deferred.Reference deferred = factory.apply(dependency::instance);
 
         return dependency.replace(() -> Proxies.create(Generics.rawType(reference),

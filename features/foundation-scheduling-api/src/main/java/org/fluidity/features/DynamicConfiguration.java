@@ -16,6 +16,8 @@
 
 package org.fluidity.features;
 
+import java.util.function.Supplier;
+
 /**
  * Configuration that is periodically updated. This is a wrapper around {@link org.fluidity.foundation.Configuration} that periodically refreshes the snapshot
  * of the settings object. The methods of the settings interface, if used with this variant of the configuration mechanism, may not have any parameters.
@@ -29,7 +31,7 @@ package org.fluidity.features;
  * {@linkplain org.fluidity.composition.Component @Component}
  * public final class <span class="hl3">MyComponent</span> {
  *
- *   private final <span class="hl1">{@linkplain Updates.Snapshot}</span>&lt;<span class="hl2">Settings</span>&gt; configuration;
+ *   private final <span class="hl1">{@linkplain Supplier}</span>&lt;<span class="hl2">Settings</span>&gt; configuration;
  *
  *   <span class="hl3">MyComponent</span>(final <span class="hl1">ReloadingConfiguration</span>&lt;<span class="hl2">Settings</span>&gt; configuration) {
  *     this.configuration = configuration.<span class="hl1">snapshot</span>();
@@ -60,5 +62,5 @@ public interface DynamicConfiguration<T> {
      *
      * @return an an automatically refreshing snapshot of the settings.
      */
-    Updates.Snapshot<T> snapshot();
+    Supplier<T> snapshot();
 }

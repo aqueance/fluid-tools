@@ -18,6 +18,7 @@ package org.fluidity.composition.container.spi;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.function.Supplier;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
@@ -93,24 +94,6 @@ public interface DependencyGraph {
          * @return the component context at this node.
          */
         ComponentContext context();
-
-        /**
-         * A resolvable reference to a {@linkplain DependencyGraph.Node node} in a {@linkplain DependencyGraph dependency graph}.
-         * <h3>Usage</h3>
-         * You don't interact with an internal interface.
-         *
-         * @author Tibor Varga
-         */
-        @FunctionalInterface
-        interface Reference {
-
-            /**
-             * Resolves the node.
-             *
-             * @return the resolved node.
-             */
-            Node resolve();
-        }
     }
 
     /**
@@ -133,7 +116,7 @@ public interface DependencyGraph {
          *
          * @return the resolved node.
          */
-        Node follow(Object identity, Class<?> api, ContextDefinition context, Node.Reference reference);
+        Node follow(Object identity, Class<?> api, ContextDefinition context, Supplier<Node> reference);
 
         /**
          * Returns a new instance, one that invokes the given observers in addition to invoking the observer this instance already has. The returned traversal

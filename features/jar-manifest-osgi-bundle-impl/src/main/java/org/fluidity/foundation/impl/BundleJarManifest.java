@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.jar.Attributes;
 
 import org.fluidity.composition.ComponentContainer;
@@ -265,7 +266,7 @@ final class BundleJarManifest implements JarManifest {
                     // find the method to call in the other class loader
                     final Method method = isolated
                             .loadClass(run.getDeclaringClass().getName())
-                            .getDeclaredMethod(run.getName(), (Class<?>[]) run.getParameterTypes());
+                            .getDeclaredMethod(run.getName(), (Class[]) run.getParameterTypes());
 
                     method.setAccessible(true);
                     return (T) method.invoke(command, arguments);
@@ -314,7 +315,7 @@ final class BundleJarManifest implements JarManifest {
         }
     }
 
-    private void addEntry(final Attributes attributes, final String entry, final Metadata metadata) {
+    private void addEntry(final Attributes attributes, final String entry, final Supplier<String> metadata) {
         if (attributes.getValue(entry) == null) {
             String value;
 
@@ -345,19 +346,5 @@ final class BundleJarManifest implements JarManifest {
         }
 
         return partCount;
-    }
-
-    /**
-     * Encapsulates the computation of some metadata. The idea is to be able to chain getters without considering <code>null</code> values along the way.
-     */
-    @FunctionalInterface
-    private interface Metadata {
-
-        /**
-         * Return some metadata without caring about calling methods on a <code>null</code> object.
-         *
-         * @return some metadata.
-         */
-        String get();
     }
 }
