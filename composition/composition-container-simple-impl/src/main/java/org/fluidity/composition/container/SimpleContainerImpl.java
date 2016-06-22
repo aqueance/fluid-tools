@@ -37,7 +37,6 @@ import org.fluidity.composition.Components;
 import org.fluidity.composition.container.spi.ContextNode;
 import org.fluidity.composition.container.spi.DependencyResolver;
 import org.fluidity.composition.spi.ComponentFactory;
-import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.Strings;
@@ -340,7 +339,7 @@ final class SimpleContainerImpl implements ParentContainer {
         final Class<?> type = component.getClass();
         final Node.Reference reference = () -> new ResolvedNode(type, injector.fields(component, traversal, resolver, descriptor, context), context.create());
 
-        return traversal.follow(component, type, type, context, reference).instance(traversal);
+        return traversal.follow(component, type, context, reference).instance(traversal);
     }
 
     public Object invoke(final Object component, final Method method, final ContextDefinition context, final Object[] arguments, final boolean explicit)
@@ -374,9 +373,7 @@ final class SimpleContainerImpl implements ParentContainer {
                      ? domain == null || domain == this ? null : domain.resolveComponent(null, false, api, context, traversal, reference)
                      : parent.resolveComponent(domain == null ? this.domain : domain, true, api, context, traversal, reference);
         } else {
-            final Class<?> group = Generics.rawType(Generics.arrayComponentType(reference));
-
-            return traversal.follow(resolver, group != null && group.isAssignableFrom(api) ? group : api, api, context, () -> {
+            return traversal.follow(resolver, api, context, () -> {
                 final Node node = resolver.resolve(domain, this, traversal, context, reference);
 
                 return new Node() {
@@ -440,8 +437,7 @@ final class SimpleContainerImpl implements ParentContainer {
                    : parent.resolveGroup(domain, api, context, traversal, reference);
         } else {
             final Class<?> arrayApi = Array.newInstance(api, 0).getClass();
-
-            return traversal.follow(group, arrayApi, arrayApi, context, () -> groupNode(api, resolveGroup(domain, api, traversal, context, reference), context));
+            return traversal.follow(group, arrayApi, context, () -> groupNode(api, resolveGroup(domain, api, traversal, context, reference), context));
         }
     }
 

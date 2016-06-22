@@ -353,10 +353,7 @@ abstract class FactoryResolver extends AbstractResolver {
         }
 
         public Dependency<?> resolve(final Class<?> type, final Method method, final int parameter) {
-            if (method == null) {
-                throw new ComponentContainer.ResolutionException("Provided method is null");
-            }
-
+            assert method != null;
             final Annotation[] parameterAnnotations = method.getParameterAnnotations()[parameter];
 
             final Class<?> api = type == null ? method.getDeclaringClass() : type;
@@ -371,9 +368,7 @@ abstract class FactoryResolver extends AbstractResolver {
         }
 
         public Dependency<?> resolve(final Class<?> type, final Field field) {
-            if (field == null) {
-                throw new ComponentContainer.ResolutionException("Provided field is null");
-            }
+            assert field != null;
 
             final Class<?> api = type == null ? field.getDeclaringClass() : type;
             return dependency(api,

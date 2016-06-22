@@ -170,7 +170,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
     }
 
     public Constructor<?> findConstructor(final Class<?> componentClass) throws ResolutionException {
-        Constructor<?> designated = null;
+        Constructor<?> found = null;
 
         final List<Constructor<?>> privateConstructors = new ArrayList<>();
         final List<Constructor<?>> packageConstructors = new ArrayList<>();
@@ -180,7 +180,17 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         for (final Constructor<?> constructor : constructors) {
             if (!constructor.isSynthetic()) {
-                if (designated == null) {
+                if (constructor.isAnnotationPresent(Inject.class)) {
+                    if (found != null) {
+                        throw new ResolutionException("Multiple @%s annotated constructors found in %s",
+                                                      Strings.formatClass(false, false, Inject.class),
+                                                      Strings.formatClass(false, true, componentClass));
+                    } else {
+                        found = constructor;
+                    }
+                }
+
+                if (found == null) {
                     final int modifiers = constructor.getModifiers();
 
                     if (Modifier.isPublic(modifiers)) {
@@ -192,38 +202,26 @@ final class DependencyInjectorImpl implements DependencyInjector {
                     }
 
                 }
+            }
+        }
 
-                if (constructor.isAnnotationPresent(Inject.class)) {
-                    if (designated != null) {
-                        throw new ResolutionException("Multiple @%s annotated constructors found in %s",
-                                                      Strings.formatClass(false, false, Inject.class),
-                                                      Strings.formatClass(false, true, componentClass));
-                    } else {
-                        designated = constructor;
+        if (found == null) {
+            found = selectConstructor(publicConstructors, componentClass);
+
+            if (found == null) {
+                found = selectConstructor(packageConstructors, componentClass);
+
+                if (found == null && Modifier.isPrivate(componentClass.getModifiers())) {
+                    found = selectConstructor(privateConstructors, componentClass);
+
+                    if (found == null) {
+                        throw new ResolutionException("No suitable constructor found for %s", componentClass);
                     }
                 }
             }
         }
 
-        if (designated != null) {
-            return designated;
-        }
-
-        try {
-            return selectConstructor(publicConstructors, componentClass);
-        } catch (final NoConstructorException dropped1) {
-            try {
-                return selectConstructor(packageConstructors, componentClass);
-            } catch (final NoConstructorException dropped2) {
-
-                // use compiler generated default constructor if present, complain otherwise
-                if (privateConstructors.size() == 1 && Modifier.isPrivate(componentClass.getModifiers())) {
-                    return selectConstructor(privateConstructors, componentClass);
-                } else {
-                    throw new ResolutionException("No suitable constructor found for %s", componentClass);
-                }
-            }
-        }
+        return found;
     }
 
     public DependencyGraph.Node resolve(final Class<?> api, final AccessGuard<ComponentContainer> guard, final Resolution resolution) {
@@ -244,7 +242,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
     private Constructor<?> selectConstructor(final List<Constructor<?>> constructors, final Class<?> componentClass) {
         switch (constructors.size()) {
         case 0:
-            throw new NoConstructorException();
+            return null;
         case 1:
             return constructors.get(0);
         case 2:
@@ -264,8 +262,6 @@ final class DependencyInjectorImpl implements DependencyInjector {
             throw new ResolutionException("Multiple constructors found for %s", componentClass);
         }
     }
-
-    private static class NoConstructorException extends ResolutionException { }
 
     public DependencyGraph.Node constructor(final Class<?> api,
                                             final DependencyGraph.Traversal traversal,

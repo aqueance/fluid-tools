@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
@@ -56,11 +56,17 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         this.observer = observer;
     }
 
-    private DependencyGraph.Node descend(final ActualPath path, final Supplier<DependencyGraph.Node> command) {
-        final ActualPath saved = resolutionPath.getAndSet(path);
+    private DependencyGraph.Node descend(final ActualElement element, final boolean replace, final Function<ActualPath, DependencyGraph.Node> command) {
+        final ActualPath saved = resolutionPath.get();
+        final ActualPath path = saved.descend(element, replace);
+
+        resolutionPath.set(path);
 
         try {
-            return command.get();
+            return command.apply(path);
+        } catch (final ComponentContainer.ResolutionException error) {
+            error.path(path);
+            throw error;
         } finally {
             resolutionPath.set(saved);
         }
@@ -68,22 +74,19 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
     public DependencyGraph.Node follow(final Object identity,
                                        final Class<?> api,
-                                       final Class<?> type,
                                        final ContextDefinition context,
                                        final DependencyGraph.Node.Reference reference) {
         assert context != null;
 
-        final ActualPath path = resolutionPath.get().descend(new ActualElement(type, identity, context), false);
+        return descend(new ActualElement(api, identity, context), false, (path) -> {
+            if (path.repeating) {
+                if (observer != null) {
+                    observer.circular(path);
+                }
 
-        if (path.repeating) {
-            if (observer != null) {
-                observer.circular(path);
+                throw new ComponentContainer.CircularReferencesException(api);
             }
 
-            throw new ComponentContainer.CircularReferencesException(api, path);
-        }
-
-        return descend(path, () -> {
             final DependencyGraph.Node resolved = reference.resolve();
             assert resolved != null : api;
 
@@ -149,15 +152,13 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
     }
 
     private Object instantiate(final DependencyGraph.Node node, final ActualElement element, final DependencyGraph.Traversal traversal) {
-        final ActualPath path = resolutionPath.get().descend(element, true);
-
-        final DependencyGraph.Node resolved = descend(path, () -> {
+        final DependencyGraph.Node resolved = descend(element, true, (path) -> {
             try {
                 return new ResolvedNode(node.type(), node.instance(traversal), node.context());
             } catch (final ComponentContainer.InjectionException e) {
                 throw e;
             } catch (final Exception e) {
-                throw new ComponentContainer.InstantiationException(path, e);
+                throw new ComponentContainer.InstantiationException(e);
             }
         });
 
@@ -198,10 +199,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
 
         ActualPath descend(final ActualElement element, final boolean replace) {
-            if (replace && map.remove(element) != null) {
-                map.put(element, element);
-            }
-
+            map.computeIfPresent(element, (key, value) -> replace ? element : value);
             return new ActualPath(list, map, element);
         }
 
@@ -218,8 +216,9 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             return toString(true);
         }
 
+        @Override
         public String toString(final boolean api) {
-            final Lists.Delimited text = Lists.delimited();
+            final Lists.Delimited text = Lists.delimited(" > ");
 
             for (final ActualElement type : list) {
                 @SuppressWarnings("MismatchedQueryAndUpdateOfStringBuilder")

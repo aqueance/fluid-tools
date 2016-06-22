@@ -630,6 +630,8 @@ public interface ComponentContainer {
      */
     class InjectionException extends RuntimeException {
 
+        private String path;
+
         /**
          * Creates a new instance using the given formatted text and with the given cause.
          *
@@ -652,19 +654,30 @@ public interface ComponentContainer {
         }
 
         /**
-         * Creates a new instance using the given message text and with the given cause.
+         * Creates a nondescript instance to be used internally.
          *
-         * @param cause   the exception that triggered this error.
-         * @param message the error message.
+         * @param cause the exception that triggered this error.
          */
-        InjectionException(final String message, final Throwable cause) {
-            super(message, cause);
+        InjectionException(final Throwable cause) {
+            super(cause);
         }
 
         /**
-         * Creates a nondescript instance to be used internally.
+         * Updates the dependency path at which the exception occurred.
+         *
+         * @param path the dependency path; never <code>null</code>.
          */
-        InjectionException() { }
+        public final void path(final DependencyPath path) {
+            if (this.path == null) {
+                this.path = path.toString(false);
+            }
+        }
+
+        @Override
+        public String getMessage() {
+            final String message = super.getMessage();
+            return path == null ? message : String.format("%s: %s", message, path);
+        }
     }
 
     /**
@@ -694,19 +707,13 @@ public interface ComponentContainer {
         }
 
         /**
-         * Creates a new instance using the given message text and with the given cause.
-         *
-         * @param cause   the exception that triggered this error.
-         * @param message the error message.
-         */
-        public ResolutionException(final String message, final Throwable cause) {
-            super(message, cause);
-        }
-
-        /**
          * Creates a nondescript instance to be used internally.
+         *
+         * @param cause the exception that triggered this error.
          */
-        public ResolutionException() { }
+        public ResolutionException(final Throwable cause) {
+            super(cause);
+        }
     }
 
     /**
@@ -718,10 +725,9 @@ public interface ComponentContainer {
          * Creates a new instance for the given component interface resolved with the given instantiation path.
          *
          * @param api  the component interface that could not be resolved.
-         * @param path the instantiation path that led to this error.
          */
-        public CircularReferencesException(final Class<?> api, final DependencyPath path) {
-            super("Circular dependency detected while resolving %s: %s", Strings.formatClass(true, true, api), path.toString(true));
+        public CircularReferencesException(final Class<?> api) {
+            super("Circular dependency detected while resolving %s", Strings.formatClass(true, true, api));
         }
     }
 
@@ -730,26 +736,13 @@ public interface ComponentContainer {
      */
     class InstantiationException extends ResolutionException {
 
-        private final DependencyPath path;
-
         /**
          * Creates a new instance for the given instantiation path and cause error.
          *
-         * @param path  the instantiation path that led to this error.
          * @param cause the error that occurred.
          */
-        public InstantiationException(final DependencyPath path, final Exception cause) {
-            super(cause, path.toString(false));
-            this.path = path;
-        }
-
-        /**
-         * Returns the instantiation path that led to the error.
-         *
-         * @return the instantiation path that led to the error.
-         */
-        public DependencyPath path() {
-            return path;
+        public InstantiationException(final Exception cause) {
+            super(cause);
         }
     }
 
@@ -777,16 +770,6 @@ public interface ComponentContainer {
          */
         public BindingException(final String format, final Object... data) {
             super(format, data);
-        }
-
-        /**
-         * Creates a new instance using the given message text and with the given cause.
-         *
-         * @param cause   the exception that triggered this error.
-         * @param message the error message.
-         */
-        public BindingException(final String message, final Throwable cause) {
-            super(message, cause);
         }
     }
 }

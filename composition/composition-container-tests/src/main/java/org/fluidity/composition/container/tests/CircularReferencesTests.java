@@ -105,7 +105,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         container.getComponent(CircularConstructor1.class);
     }
 
-    @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class, expectedExceptionsMessageRegExp = ".*CircularConstructor1.*CircularConstructor1.*")
+    @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class, expectedExceptionsMessageRegExp = ".*CircularConstructor2.*CircularConstructor2.*")
     public void circularInstantiationAndConstructorCalls1() throws Exception {
         registry.bindComponent(CircularConstructor1Impl.class);
         registry.bindComponent(CircularConstructor2Impl.class);
@@ -113,7 +113,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         container.getComponent(CircularConstructor2.class);
     }
 
-    @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class, expectedExceptionsMessageRegExp = ".*CircularConstructor1.*CircularConstructor1.*")
+    @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class, expectedExceptionsMessageRegExp = ".*CircularConstructor3.*CircularConstructor3.*")
     public void circularInstantiationAndConstructorCalls2() throws Exception {
         registry.bindComponent(CircularConstructor1Impl.class);
         registry.bindComponent(CircularConstructor2Impl.class);
@@ -138,7 +138,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         container.getComponent(HeadClass.class);
     }
 
-    @Test(dataProvider = "group-references", expectedExceptions = ComponentContainer.CircularReferencesException.class, expectedExceptionsMessageRegExp = ".*RecursiveGroup\\[\\].*RecursiveGroup\\[\\].*")
+    @Test(dataProvider = "group-references", expectedExceptions = ComponentContainer.CircularReferencesException.class, expectedExceptionsMessageRegExp = ".*GroupMember2.*RecursiveGroup\\[\\].*")
     public void testCircularGroupReferenceSameContext(final Class<? extends HeadInterface> reference) throws Exception {
         registry.bindComponent(HeadClass.class);
         registry.bindComponent(reference);
@@ -163,15 +163,6 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         registry.bindComponent(reference);
         registry.bindComponent(GroupMember1.class);
         registry.bindComponent(GroupMember3.class);
-
-        container.getComponent(HeadClass.class);
-    }
-
-    @Test(dataProvider = "group-references", expectedExceptions = ComponentContainer.CircularReferencesException.class, expectedExceptionsMessageRegExp = ".*RecursiveGroup\\[\\].*RecursiveGroup\\[\\].*")
-    public void testCircularGroupInstantiation(final Class<? extends HeadInterface> reference) throws Exception {
-        registry.bindComponent(HeadClass.class);
-        registry.bindComponent(reference);
-        registry.bindComponent(GroupMember1.class);
 
         container.getComponent(HeadClass.class);
     }

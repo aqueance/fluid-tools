@@ -128,13 +128,12 @@ public interface DependencyGraph {
          *
          * @param identity  identifies the reference; used to detect circular references.
          * @param api       the component interface the dependency refers to.
-         * @param type      the component API to list in instantiation paths.
          * @param context   the component context at the dependency reference.
          * @param reference the node reference that can resolve the graph node that the dependency leads to.
          *
          * @return the resolved node.
          */
-        Node follow(Object identity, Class<?> api, Class<?> type, ContextDefinition context, Node.Reference reference);
+        Node follow(Object identity, Class<?> api, ContextDefinition context, Node.Reference reference);
 
         /**
          * Returns a new instance, one that invokes the given observers in addition to invoking the observer this instance already has. The returned traversal
