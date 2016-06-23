@@ -18,14 +18,17 @@ package org.fluidity.composition.container.impl;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.DependencyPath;
@@ -217,22 +220,33 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             return toString(true);
         }
 
+        private static final Comparator<Class> CONTEXT_ORDER = Comparator.comparing(type -> Component.Reference.class.isAssignableFrom(type) ? "" : type.getName());
+
         @Override
         public String toString(final boolean api) {
             final Lists.Delimited text = Lists.delimited(" > ");
 
             for (final ActualElement type : list) {
+                final Class<?> component = api ? type.api() : type.type();
+
+                final Map<Class<? extends Annotation>, Annotation[]> context = new TreeMap<>(CONTEXT_ORDER);
+                context.putAll(type.context.defined());
+
+                if (type.context.reference().type() == component) {
+                    context.remove(Component.Reference.class);
+                }
+
                 @SuppressWarnings("MismatchedQueryAndUpdateOfStringBuilder")
                 final StringBuilder builder = text.next();
 
-                if (!type.definition.isEmpty()) {
-                    builder.append(type.definition).append(' ');
+                if (!context.isEmpty()) {
+                    builder.append('[').append(AnnotationMaps.descriptor(context)).append("] ");
                 }
 
-                builder.append(Strings.formatClass(true, true, api ? type.api() : type.type()));
+                builder.append(Strings.formatClass(true, true, component));
             }
 
-            return text.surround("[]").toString();
+            return text.toString();
         }
     }
 
@@ -243,14 +257,14 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
         final Class<?> api;
         final Object identity;
-        final ContextDefinition definition;
+        final ContextDefinition context;
 
         public Class<?> type;
 
-        ActualElement(final Class<?> api, final Object identity, final ContextDefinition definition) {
+        ActualElement(final Class<?> api, final Object identity, final ContextDefinition context) {
             this.api = api;
             this.identity = identity;
-            this.definition = definition;
+            this.context = context;
         }
 
         @Override
@@ -262,12 +276,12 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             }
 
             final ActualElement that = (ActualElement) o;
-            return identity == that.identity && definition.equals(that.definition);
+            return identity == that.identity && context.equals(that.context);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(identity, definition);
+            return Objects.hash(identity, context);
         }
 
         public Class<?> api() {

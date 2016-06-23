@@ -519,6 +519,114 @@ public class GenericsTest {
         assert I1.class == Generics.typeParameter(resolved, 2) : String.format("%s, %s", resolved, I1.class);
     }
 
+    @Test
+    public void testCanonicalType() throws Exception {
+
+        @SuppressWarnings({ "WeakerAccess", "unused" })
+        class X<T extends I1 & I2> {
+
+            public Q q;
+
+            public F1 f1;
+            public F1<?> f2;
+            public F1<T> f3;
+            public F1<I4> f4;
+
+            public C<F1> c1;
+            public C<F1<?>> c2;
+            public C<F1<T>> c3;
+            public C<F1<I4>> c4;
+
+            public A a1;
+            public A<?, Q, Q> a2;
+            public A<?, ?, Q> a3;
+            public A<?, ?, ?> a4;
+            public A<Q, Q, ?> a5;
+            public A<Q, Q, Q> a6;
+
+            public I i1;
+            public I<?, ?, ?> i2;
+            public I<T, ?, ?> i3;
+            public I<T, ?, T> i4;
+            public I<T, T, T> i5;
+
+            public I<A, A, A> ia1;
+            public I<A, A<?, ?, ?>, A> ia2;
+            public I<A, A<?, ?, ?>, ?> ia3;
+            public I<A<?, ?, ?>, A<?, ?, ?>, A<?, ?, ?>> ia4;
+            public I<A<T, ?, ?>, A<?, T, ?>, A<?, ?, T>> ia5;
+            public I<A<T, T, T>, A<T, T, T>, A<T, T, T>> ia6;
+            public I<A<Q, Q, Q>, A, A> ia7;
+
+            public I<?, ?, ?>[] aa1;
+            public I<A<Q, Q, Q>, A, A>[] aa2;
+        }
+
+        checkCanonical(Class.class, X.class.getField("q").getGenericType());
+
+        checkCanonical(Class.class, X.class.getField("f1").getGenericType());
+        checkCanonical(Class.class, X.class.getField("f2").getGenericType());
+        checkCanonical(Class.class, X.class.getField("f3").getGenericType());
+
+        checkParameters(X.class.getField("f4").getGenericType(), I4.class);
+
+        checkParameters(X.class.getField("c1").getGenericType(), F1.class);
+        checkParameters(X.class.getField("c2").getGenericType(), F1.class);
+        checkParameters(X.class.getField("c3").getGenericType(), F1.class);
+        checkParameters(X.class.getField("c4").getGenericType(), X.class.getField("f4").getGenericType());
+
+        checkCanonical(Class.class, X.class.getField("a1").getGenericType());
+        checkParameters(X.class.getField("a2").getGenericType(), Q.class, Q.class, Q.class);
+        checkParameters(X.class.getField("a3").getGenericType(), Q.class, Q.class, Q.class);
+        checkCanonical(Class.class, X.class.getField("a4").getGenericType());
+        checkParameters(X.class.getField("a5").getGenericType(), Q.class, Q.class, Q.class);
+        checkParameters(X.class.getField("a6").getGenericType(), Q.class, Q.class, Q.class);
+
+        checkCanonical(Class.class, X.class.getField("i1").getGenericType());
+        checkCanonical(Class.class, X.class.getField("i2").getGenericType());
+        checkCanonical(Class.class, X.class.getField("i3").getGenericType());
+        checkCanonical(Class.class, X.class.getField("i4").getGenericType());
+        checkCanonical(Class.class, X.class.getField("i5").getGenericType());
+
+        checkParameters(X.class.getField("ia1").getGenericType(), A.class, A.class, A.class);
+        checkParameters(X.class.getField("ia2").getGenericType(), A.class, A.class, A.class);
+        checkParameters(X.class.getField("ia3").getGenericType(), A.class, A.class, A.class);
+        checkParameters(X.class.getField("ia4").getGenericType(), A.class, A.class, A.class);
+        checkParameters(X.class.getField("ia5").getGenericType(), A.class, A.class, A.class);
+        checkParameters(X.class.getField("ia6").getGenericType(), A.class, A.class, A.class);
+
+        checkParameters(X.class.getField("ia7").getGenericType(), X.class.getField("a6").getGenericType(), ParameterizedType.class, ParameterizedType.class);
+
+        checkCanonical(Class.class, X.class.getField("aa1").getGenericType());
+        checkParameters(X.class.getField("aa2").getGenericType(), X.class.getField("a6").getGenericType(), ParameterizedType.class, ParameterizedType.class);
+    }
+
+    private void checkCanonical(final Class<?> expected, final Type type) {
+        final Type canonicalType = Generics.canonicalType(type);
+        final Class<?> canonicalClass = canonicalType instanceof GenericArrayType
+                                        ? ((GenericArrayType) canonicalType).getGenericComponentType().getClass()
+                                        : canonicalType.getClass();
+
+        assert expected.isAssignableFrom(canonicalClass) : canonicalClass;
+    }
+
+    private void checkParameters(final Type type, final Type... expected) {
+        checkCanonical(ParameterizedType.class, type);
+
+        checkParameters(expected, type instanceof GenericArrayType
+                        ? (ParameterizedType) ((GenericArrayType) type).getGenericComponentType()
+                        : (ParameterizedType) type);
+    }
+
+    private void checkParameters(final Type[] expected, final ParameterizedType type) {
+        final Type[] arguments = type.getActualTypeArguments();
+        assert arguments.length == expected.length : arguments.length;
+
+        for (int i = 0; i < expected.length; i++) {
+            checkCanonical(expected[i].getClass(), arguments[i]);
+        }
+    }
+
     private void checkText(final String actual, final String expected) {
         assert expected.equals(actual) : String.format("Expected %s, got %s", expected, actual);
     }

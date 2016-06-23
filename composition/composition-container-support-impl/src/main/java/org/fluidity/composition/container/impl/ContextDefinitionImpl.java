@@ -84,7 +84,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
             }
         }
 
-        this.defined.put(Component.Reference.class, new Annotation[] { new ComponentReferenceImpl(reference, inherited) });
+        this.defined.put(Component.Reference.class, new Annotation[] { new ComponentReference(reference, inherited) });
     }
 
     public ContextDefinition expand(final Annotation[] definition) {
@@ -155,10 +155,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
     }
 
     public ContextDefinition collect(final Collection<ContextDefinition> contexts) {
-        for (final ContextDefinition context : contexts) {
-            collectOne(context);
-        }
-
+        contexts.forEach(this::collectOne);
         return this;
     }
 
@@ -254,12 +251,14 @@ final class ContextDefinitionImpl implements ContextDefinition {
         return AnnotationMaps.descriptor(defined);
     }
 
-    private static class ComponentReferenceImpl implements Component.Reference {
+    private static class ComponentReference implements Component.Reference {
 
         private final Type reference;
+        private final Type canonical;
 
-        ComponentReferenceImpl(final Type reference, final Component.Reference inbound) {
+        ComponentReference(final Type reference, final Component.Reference inbound) {
             this.reference = inbound == null ? reference : Generics.propagate(inbound.type(), reference);
+            this.canonical = Generics.canonicalType(this.reference);
         }
 
         public Type type() {
@@ -282,17 +281,17 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
         @Override
         public int hashCode() {
-            return reference.hashCode();
+            return canonical.hashCode();
         }
 
         @Override
         public boolean equals(final Object obj) {
-            return obj instanceof Component.Reference && reference.equals(((Component.Reference) obj).type());
+            return obj instanceof Component.Reference && canonical.equals(((Component.Reference) obj).type());
         }
 
         @Override
         public String toString() {
-            return Strings.describeAnnotation(false, this);
+            return  '@' + Strings.formatClass(false, false, annotationType()) + '(' + Generics.toString(true, canonical) + ')';
         }
     }
 }

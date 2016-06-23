@@ -676,7 +676,7 @@ public interface ComponentContainer {
         @Override
         public String getMessage() {
             final String message = super.getMessage();
-            return path == null ? message : String.format("%s: %s", message, path);
+            return path == null ? message : String.format("%s (path: %s)", message, path);
         }
     }
 

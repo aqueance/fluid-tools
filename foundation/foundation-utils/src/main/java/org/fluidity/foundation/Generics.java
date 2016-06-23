@@ -510,6 +510,57 @@ public final class Generics extends Utility {
         return false;
     }
 
+    public static Type canonicalType(final Type type) {
+        if (type instanceof Class) {
+            return type;
+        } else if (type instanceof ParameterizedType) {
+            final Type[] arguments = ((ParameterizedType) type).getActualTypeArguments();
+
+            int unresolved = 0;
+            boolean changed = false;
+            for (int i = 0, ii = arguments.length; i < ii; i++) {
+                final Type argument = arguments[i];
+
+                if (argument instanceof WildcardType || argument instanceof TypeVariable) {
+                    arguments[i] = rawType(argument);
+                    ++unresolved;
+                } else {
+                    arguments[i] = canonicalType(argument);
+
+                    if (arguments[i] != argument) {
+                        changed = true;
+                    }
+                }
+            }
+
+            if (unresolved == arguments.length) {
+                return rawType(type);
+            } else if (unresolved > 0 || changed) {
+                return new ParameterizedTypeImpl((ParameterizedType) type, arguments);
+            } else {
+                return type;
+            }
+        } else if (type instanceof TypeVariable || type instanceof WildcardType) {
+            return rawType(type);
+        } else if (type instanceof GenericArrayType) {
+            final Type componentType = ((GenericArrayType) type).getGenericComponentType();
+
+            if (componentType instanceof WildcardType || componentType instanceof TypeVariable) {
+                return new GenericArrayTypeImpl(rawType(componentType));
+            } else {
+                final Type canonicalType = canonicalType(componentType);
+
+                if (canonicalType != componentType) {
+                    return new GenericArrayTypeImpl(canonicalType);
+                }
+            }
+
+            return type;
+        } else {
+            return type;
+        }
+    }
+
     private static class GenericArrayTypeImpl implements GenericArrayType {
         private final Type componentType;
 

@@ -20,6 +20,7 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.fluidity.foundation.Lists;
@@ -76,7 +77,7 @@ final class AnnotationMaps extends Utility {
     private static String toString(final boolean identity, final Map<Class<? extends Annotation>, Annotation[]> map) {
         final Lists.Delimited list = Lists.delimited(" ");
 
-        for (final Annotation[] annotations : sorted(map).values()) {
+        for (final Annotation[] annotations : (map instanceof SortedMap ? map : sorted(map)).values()) {
             for (final Annotation annotation : annotations) {
                 list.add(Strings.describeAnnotation(identity, annotation));
             }
@@ -87,7 +88,6 @@ final class AnnotationMaps extends Utility {
 
     private static Map<Class<? extends Annotation>, Annotation[]> sorted(final Map<Class<? extends Annotation>, Annotation[]> map) {
         final Map<Class<? extends Annotation>, Annotation[]> sorted = new TreeMap<>((o1, o2) -> o1.getName().compareTo(o2.getName()));
-
         sorted.putAll(map);
         return sorted;
     }
