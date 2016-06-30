@@ -158,7 +158,7 @@ public final class Components extends Utility {
     @SafeVarargs
     public static <T> Interfaces inspect(final Class<T> componentClass, final Class<? super T>... restrictions) throws ComponentContainer.BindingException {
         if (componentClass == null) {
-            throw new IllegalStateException("Component class to inspect is null");
+            throw new IllegalArgumentException("Component class to inspect is null");
         }
 
         final Map<Type, Set<Class<?>>> interfaceMap = new LinkedHashMap<>();

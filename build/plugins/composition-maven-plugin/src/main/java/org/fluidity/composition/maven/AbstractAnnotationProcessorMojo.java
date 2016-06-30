@@ -153,15 +153,15 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             assert false : e;
         }
 
+        final Logger log = Logger.initialize(getLog(), verbose);
+
         try {
-            processClasses(ClassLoaders.create(urls, null, null), classesDirectory, serviceProviderMap, componentMap, componentGroupMap);
+            processClasses(log, ClassLoaders.create(urls, null, null), classesDirectory, serviceProviderMap, componentMap, componentGroupMap);
         } catch (final MojoExecutionException e) {
             throw e;
         } catch (final Exception e) {
             throw new MojoExecutionException("Error processing service providers", e);
         }
-
-        final Logger log = Logger.initialize(getLog(), verbose);
 
         for (final Map.Entry<String, Map<String, Collection<String>>> entry : serviceProviderMap.entrySet()) {
             final String type = entry.getKey();
@@ -317,7 +317,8 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     }
 
     @SuppressWarnings({ "ResultOfMethodCallIgnored", "MismatchedQueryAndUpdateOfCollection" })
-    private void processClasses(final ClassLoader loader,
+    private void processClasses(final Logger log,
+                                final ClassLoader loader,
                                 final File classesDirectory,
                                 final Map<String, Map<String, Collection<String>>> serviceProviderMap,
                                 final Map<String, Collection<String>> componentMap,
@@ -449,6 +450,10 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                     final String externalName = ClassReaders.externalName(classData);
 
                     if (flags.scope != null) {
+                        if (flags.ignored) {
+                            log.warn("Superfluous 'automatic = false' setting for scoped component %s", externalName);
+                        }
+
                         addServiceProvider(providerMap(Component.SCOPE, serviceProviderMap), flags.scope.getClassName(), externalName);
                     } else if (!flags.ignored) {
                         if (flags.component) {
