@@ -27,7 +27,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
 @Component
 public class EchoPropertyProviderImpl implements PropertyProvider {
 
-    public static final String UNKNOWN = "unknown-";
+    static final String UNKNOWN = "unknown-";
 
     private static final String[] known = new String[] {
             Updates.UPDATE_GRANULARITY,
@@ -42,9 +42,5 @@ public class EchoPropertyProviderImpl implements PropertyProvider {
         }
 
         return key.startsWith(UNKNOWN) ? null : key;
-    }
-
-    public <T> T properties(final Query<T> query) throws Exception {
-        return query.run();
     }
 }

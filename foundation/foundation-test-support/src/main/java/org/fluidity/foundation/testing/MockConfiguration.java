@@ -71,7 +71,7 @@ public final class MockConfiguration {
      * public class <span class="hl2">Foo</span>Test extends {@linkplain Simulator} {
      *
      *   private final <span class="hl1">MockConfiguration.Direct</span>&lt;<span class="hl2">Foo.Settings</span>&gt; configuration
-     *       = <span class="hl1">MockConfiguration</span>.{@linkplain MockConfiguration#direct(Class, Simulator.MockObjects) direct}({@linkplain org.fluidity.testing.Simulator#dependencies() dependencies}(), <span class="hl2">Foo.Settings</span>.class);
+     *       = <span class="hl1">MockConfiguration</span>.{@linkplain MockConfiguration#direct(Class, Simulator.MockObjects) direct}(<span class="hl2">Foo.Settings</span>.class, {@linkplain org.fluidity.testing.Simulator#dependencies() dependencies}());
      *
      *   &hellip;
      *
@@ -166,7 +166,7 @@ public final class MockConfiguration {
      * public class <span class="hl2">Foo</span>Test extends {@linkplain Simulator} {
      *
      *   private final <span class="hl1">MockConfiguration.Cached</span>&lt;<span class="hl2">Foo.Settings</span>&gt; configuration
-     *       = <span class="hl1">MockConfiguration</span>.{@linkplain MockConfiguration#cached(Class, Simulator.MockObjects) cached}({@linkplain Simulator#dependencies() dependencies}(), <span class="hl2">Foo.Settings</span>.class);
+     *       = <span class="hl1">MockConfiguration</span>.{@linkplain MockConfiguration#cached(Class, Simulator.MockObjects) cached}(<span class="hl2">Foo.Settings</span>.class, {@linkplain Simulator#dependencies() dependencies}());
      *
      *   &hellip;
      *

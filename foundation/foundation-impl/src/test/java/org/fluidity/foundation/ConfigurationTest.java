@@ -51,10 +51,6 @@ public class ConfigurationTest extends Simulator {
         public Object property(final String key) {
             return mock.property(key);
         }
-
-        public <T> T properties(final Query<T> query) throws Exception {
-            return query.run();
-        }
     };
 
     private final ComponentContext context = dependencies.normal(ComponentContext.class);
@@ -198,7 +194,7 @@ public class ConfigurationTest extends Simulator {
         @Configuration.Property(key = "strings.none", split = ":")
         List<String> no_strings();
 
-        @Configuration.Property(key = "numbers", split = ",:", grouping = "<>")
+        @Configuration.Property(key = "numbers", grouping = "<>")
         Map<String, Integer> numbers();
 
         @Configuration.Property(key = "numbers.empty", split = ":")
@@ -207,7 +203,7 @@ public class ConfigurationTest extends Simulator {
         @Configuration.Property(key = "numbers.none", split = ":")
         Map<String, Integer> no_numbers();
 
-        @Configuration.Property(key = "insane", split = ",:")
+        @Configuration.Property(key = "insane")
         Map<List<Integer>, Map<String, List<long[]>>> insane();
     }
 

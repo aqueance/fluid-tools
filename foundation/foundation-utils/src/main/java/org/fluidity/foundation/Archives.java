@@ -401,10 +401,8 @@ public final class Archives extends Utility {
      * @param type the Java class to find.
      *
      * @return the JAR URL containing the given class.
-     *
-     * @throws IOException when the given URL cannot be accessed.
      */
-    public static URL containing(final Class<?> type) throws IOException {
+    public static URL containing(final Class<?> type) {
         final URL resource = ClassLoaders.findClassResource(type);
         final URL url = Archives.containing(resource);
 
@@ -415,7 +413,7 @@ public final class Archives extends Utility {
                 relative.append("../");
             }
 
-            return new URL(resource, relative.toString());
+            return validURL(() -> new URL(resource, relative.toString()));
         } else {
             return url;
         }
@@ -428,10 +426,8 @@ public final class Archives extends Utility {
      * @param url the nested URL.
      *
      * @return the URL for the Java archive that the given URL is relative to; may be <code>null</code> if the given URL is not relative to a Java archive.
-     *
-     * @throws MalformedURLException when the Java URL cannot be created.
      */
-    public static URL containing(final URL url) throws MalformedURLException {
+    public static URL containing(final URL url) {
         final String protocol = url == null ? null : url.getProtocol();
 
         if (protocol != null) {
@@ -439,13 +435,13 @@ public final class Archives extends Utility {
                 final String file = url.getFile();
                 final int delimiter = file.indexOf(DELIMITER);
 
-                return new URL(delimiter == -1 ? file : file.substring(0, delimiter));
+                return validURL(() -> new URL(delimiter == -1 ? file : file.substring(0, delimiter)));
             } else if (Nested.PROTOCOL.equals(protocol)) {
                 final String file = url.getFile();
                 final int delimiter = file.lastIndexOf(Nested.DELIMITER);
 
                 final String containing = delimiter == -1 ? file : file.substring(0, delimiter);
-                return containing.contains(Nested.DELIMITER) ? Archives.parseURL(String.format("%s:%s", Nested.PROTOCOL, containing)) : new URL(containing);
+                return validURL(() -> containing.contains(Nested.DELIMITER) ? Archives.parseURL(String.format("%s:%s", Nested.PROTOCOL, containing)) : new URL(containing));
             }
         }
 
@@ -459,7 +455,7 @@ public final class Archives extends Utility {
      *
      * @return an {@link URL} with the given specification.
      *
-     * @throws MalformedURLException when the Java URL cannot be created.
+     * @throws MalformedURLException when the specification does not make for a valid URL.
      */
     public static URL parseURL(final String specification) throws MalformedURLException {
         if (specification.startsWith(Nested.PROTOCOL.concat(":"))) {
@@ -490,6 +486,21 @@ public final class Archives extends Utility {
         return path == null ? relative(protocol, stem, url.getFile()) : path;
     }
 
+    /**
+     * Asserts that the created URL is valid and returns it.
+     *
+     * @param factory The factory to create the URL.
+     *
+     * @return The created URL.
+     */
+    private static URL validURL(final Process<URL, IOException> factory) {
+        try {
+            return factory.run();
+        } catch (final IOException e) {
+            throw new AssertionError(e);
+        }
+    }
+
     private static final String[] NO_STRING = new String[0];
 
     private static String[] relative(final String protocol, final String archive, final String url) {
@@ -513,10 +524,8 @@ public final class Archives extends Utility {
      * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
      *
      * @return the URL for the JAR file that loaded this class.
-     *
-     * @throws IOException when the given URL cannot be accessed.
      */
-    public static URL root() throws IOException {
+    public static URL root() {
         return Archives.containing(Archives.class);
     }
 

@@ -39,6 +39,8 @@ public interface PropertyProvider {
      * Runs the given command to read properties and if supported, guarantees that no property update takes place while the command executes. If properties are
      * read from a database, this method must open an isolated transaction before running the given command and then close the transaction afterwards. Other
      * implementation may use locking to prevent changes to the properties while this method executes.
+     * <p>
+     * The default implementation assumes a static set of properties or an atomic snapshot thereof.
      *
      * @param query the command that reads properties and expects no changes in the property values while doing so.
      * @param <T>   the return type of the given <code>query</code>.
@@ -47,13 +49,16 @@ public interface PropertyProvider {
      *
      * @throws Exception when some error occurs.
      */
-    <T> T properties(Query<T> query) throws Exception;
+    default <T> T properties(final Query<T> query) throws Exception {
+        return query.run();
+    }
 
     /**
      * Properties reader passed to {@link PropertyProvider#properties(PropertyProvider.Query)}.
      *
      * @param <T> the return type of the given <code>query</code>.
      */
+    @FunctionalInterface
     interface Query<T> {
 
         /**
