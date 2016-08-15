@@ -24,6 +24,7 @@ import java.util.jar.Attributes;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.security.Security;
 
 /**
@@ -69,10 +70,14 @@ public final class Launcher {
      * @throws Exception when anything goes wrong.
      */
     public static void main(final String[] arguments) throws Exception {
-        Security.invoke(Exception.class, () -> {
-            start(arguments);
-            return null;
-        });
+        try {
+            Exceptions.wrap(() -> Security.invoke(Exception.class, () -> {
+                start(arguments);
+                return null;
+            }));
+        } catch (final Exceptions.Wrapper wrapper) {
+            throw wrapper.rethrow(Exception.class);
+        }
     }
 
     private static void start(final String[] args) throws Exception {

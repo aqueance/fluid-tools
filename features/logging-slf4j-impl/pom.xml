@@ -65,7 +65,7 @@ containing top level application wrappers that wish to use SLF4 for logging.
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.7</version>
+            <version>1.7.21</version>
             <scope>provided</scope>
         </dependency>
 

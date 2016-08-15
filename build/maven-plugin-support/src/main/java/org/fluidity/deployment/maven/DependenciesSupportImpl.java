@@ -390,9 +390,13 @@ final class DependenciesSupportImpl implements DependenciesSupport {
     @Override
     public void list(final Collection<Artifact> artifacts, final String prefix, final Logger log) {
         assert log.active();
-        for (final Artifact artifact : artifacts) {
-            log.detail(prefix.concat(artifact.getFile().getName()));
-        }
+
+        artifacts.stream()
+                .map(Artifact::getFile)
+                .map(File::getName)
+                .sorted()
+                .map(prefix::concat)
+                .forEach(log::detail);
     }
 
     /*
