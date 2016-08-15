@@ -85,7 +85,7 @@ final class ComponentCacheImpl implements ComponentCache {
                                    "%s: using %s%s",
                                    source,
                                    component == null ? String.format("no %s", api.getName()) : Strings.formatId(component),
-                                   context.types().isEmpty() ? "" : String.format(" for %s", key));
+                                   context.types().isEmpty() ? "" : String.format(" for %s", context.descriptor()));
                     }
                 }
             }

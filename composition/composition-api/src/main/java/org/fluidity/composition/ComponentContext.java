@@ -115,14 +115,21 @@ public interface ComponentContext {
     /**
      * Returns the set of qualifier annotation types the context contains instances of.
      *
-     * @return the set of qualifier annotation types the context contains instances of.
+     * @return a Set; never <code>null</code>.
      */
     Set<Class<? extends Annotation>> types();
 
     /**
      * Returns a textual representation of this context that uniquely identifies it. Used internally by Fluid Tools.
      *
-     * @return a textual representation of this context that uniquely identifies it.
+     * @return a String; never <code>null</code>.
      */
     String key();
+
+    /**
+     * Returns a textual representation of this context that describes it. Used internally by Fluid Tools.
+     *
+     * @return a String; never <code>null</code>.
+     */
+    String descriptor();
 }

@@ -185,14 +185,14 @@ public final class Strings extends Utility {
 
         final Lists.Delimited list = Lists.delimited(", ");
 
-        final boolean proxy = !Proxy.isProxyClass(annotation.getClass());
+        final boolean custom = !identity && !Proxy.isProxyClass(annotation.getClass());
         final Method[] methods = Security.invoke(type::getDeclaredMethods);
 
         try {
-            if (methods.length == 1 && methods[0].getName().equals("value")) {
-                appendValue(identity, list.text, Security.access(methods[0]).invoke(annotation));
-            } else if (proxy) {
+            if (custom) {
                 list.append(annotation);
+            } else if (methods.length == 1 && methods[0].getName().equals("value")) {
+                appendValue(identity, list.text, Security.access(methods[0]).invoke(annotation));
             } else {
                 Arrays.sort(methods, (method1, method2) -> method1.getName().compareTo(method2.getName()));
 
@@ -220,7 +220,7 @@ public final class Strings extends Utility {
 
         final StringBuilder output = new StringBuilder();
 
-        if (!proxy) {
+        if (!custom) {
             output.append('@').append(Strings.className(type, false, false));
 
             if (!list.isEmpty()) {

@@ -16,6 +16,7 @@
 
 package org.fluidity.foundation;
 
+import java.lang.annotation.Annotation;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -195,6 +196,22 @@ public class StringsTest extends Simulator {
         checkClassName(Name$1.Name$2.class, "class org.fluidity.foundation.StringsTest.Name$1.Name$2", true, true);
     }
 
+    @Test
+    public void testCustomAnnotationIdentity() throws Exception {
+        final CustomAnnotationImpl annotation1 = new CustomAnnotationImpl("1");
+        final CustomAnnotationImpl annotation2 = new CustomAnnotationImpl("2");
+
+        final String nirvana1 = Strings.describeAnnotation(false, annotation1);
+        final String nirvana2 = Strings.describeAnnotation(false, annotation2);
+
+        assert nirvana1.equals(nirvana2) : String.format("%s != %s", nirvana1, nirvana2);
+
+        final String identity1 = Strings.describeAnnotation(true, annotation1);
+        final String identity2 = Strings.describeAnnotation(true, annotation2);
+
+        assert !identity1.equals(identity2) : String.format("%s == %s", identity1, identity2);
+    }
+
     private void checkClassName(final Class<?> type, final String expected, final boolean textual, final boolean qualified) {
         final String actual = Strings.formatClass(textual, qualified, type);
         assert expected.equals(actual) : String.format("Expected '%s', got '%s'", expected, actual);
@@ -230,5 +247,36 @@ public class StringsTest extends Simulator {
     @SuppressWarnings("UnusedDeclaration")
     private static class Name$1 {
         private static class Name$2 { }
+    }
+
+    // A custom annotation type with a value.
+    private interface CustomAnnotation extends Annotation {
+
+        String value();
+    }
+
+    // A custom annotation that hides its values.
+    private static class CustomAnnotationImpl implements CustomAnnotation {
+
+        private final String value;
+
+        private CustomAnnotationImpl(final String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String value() {
+            return value;
+        }
+
+        @Override
+        public Class<? extends Annotation> annotationType() {
+            return CustomAnnotation.class;
+        }
+
+        @Override
+        public String toString() {
+            return "@" + annotationType().getSimpleName();
+        }
     }
 }

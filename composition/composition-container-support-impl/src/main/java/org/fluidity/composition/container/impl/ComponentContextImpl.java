@@ -36,6 +36,7 @@ final class ComponentContextImpl implements ComponentContext {
 
     private final Deferred.Reference<Integer> hashCode = Deferred.shared(() -> AnnotationMaps.hashCode(annotations));
     private final Deferred.Reference<String> identity = Deferred.shared(() -> AnnotationMaps.identity(annotations));
+    private final Deferred.Reference<String> descriptor = Deferred.shared(() -> AnnotationMaps.descriptor(annotations));
 
     ComponentContextImpl(final Map<Class<? extends Annotation>, Annotation[]> map) {
         for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
@@ -43,6 +44,7 @@ final class ComponentContextImpl implements ComponentContext {
         }
     }
 
+    @Override
     @SuppressWarnings({ "unchecked", "SuspiciousSystemArraycopy" })
     public <T extends Annotation> T[] qualifiers(final Class<T> type) {
         final Annotation[] array = annotations.get(type);
@@ -56,6 +58,7 @@ final class ComponentContextImpl implements ComponentContext {
         }
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public <T extends Annotation> T qualifier(final Class<T> type, final Class<?> caller) {
         final Annotation[] annotations = qualifiers(type);
@@ -69,17 +72,25 @@ final class ComponentContextImpl implements ComponentContext {
         }
     }
 
+    @Override
     public boolean defines(final Class<? extends Annotation> type) {
         final Annotation[] annotations = qualifiers(type);
         return annotations != null && annotations.length > 0;
     }
 
+    @Override
     public Set<Class<? extends Annotation>> types() {
         return Collections.unmodifiableSet(annotations.keySet());
     }
 
+    @Override
     public String key() {
         return identity.get();
+    }
+
+    @Override
+    public String descriptor() {
+        return descriptor.get();
     }
 
     @Override
