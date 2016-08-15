@@ -102,7 +102,7 @@ public interface ComponentFactory {
      * of which are {@link Container#instance(Class) instance(Class)} and {@link Container#instance(Class, ComponentFactory.Bindings) instance(Class, Bindings)}.
      * <p>
      * More elaborate factory logic may require acquisition of a {@link ComponentFactory.Resolver resolver} via {@link Container#resolver()},
-     * {@link Container#resolver(Class)}, or {@link Container#resolver(Class, Bindings)}, and then calls to {@link
+     * {@link Container#resolver(Class)}, or {@link Container#resolver(Class, ComponentFactory.Bindings)}, and then calls to {@link
      * ComponentFactory.Resolver#discover(Class) discover(Class)} to resolve dependencies of specific component classes, and even more elaborate cases may
      * require other, more specific, calls to {@link ComponentFactory.Resolver}.
      * <p>
