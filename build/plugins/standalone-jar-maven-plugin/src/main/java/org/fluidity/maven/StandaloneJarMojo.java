@@ -225,7 +225,8 @@ public final class StandaloneJarMojo extends AbstractMojo {
                     final JarManifest handler = handlers.get(0);
                     final Class<?> handlerClass = handler.getClass();
 
-                    final Artifact handlerArtifact = dependencies.dependencyArtifact(dependencies.dependency(handlerClass, pluginDependencies));
+                    final Artifact handlerArtifact = dependencies.resolve(session, repositories, dependencies.dependency(handlerClass, pluginDependencies));
+
                     final Collection<Artifact> includedClosure = dependencies.dependencyClosure(included, repositories, handlerArtifact, false, false, null);
                     includedClosure.remove(handlerArtifact);
 

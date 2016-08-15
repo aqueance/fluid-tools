@@ -376,6 +376,16 @@ final class DependenciesSupportImpl implements DependenciesSupport {
     }
 
     @Override
+    public Artifact resolve(final RepositorySystemSession session, final List<RemoteRepository> repositories, final Dependency dependency) throws MojoExecutionException {
+        final List<Artifact> artifacts = new ArrayList<>();
+
+        artifacts.addAll(closure(session, repositories, NO_SELECTOR, false, dependencyArtifact(dependency), dependency.getExclusions()));
+
+        assert artifacts.size() == 1 : artifacts;
+        return artifacts.get(0);
+    }
+
+    @Override
     public Collection<Artifact> resolve(final RepositorySystemSession session, final List<RemoteRepository> repositories, final List<Dependency> dependencies) throws MojoExecutionException {
         final DependencySelector selector = new TransitiveDependencySelector(false, false);
         final Collection<Artifact> artifacts = new LinkedHashSet<>();

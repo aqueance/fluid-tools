@@ -144,10 +144,23 @@ public interface DependenciesSupport {
     void saveArtifact(MavenProject project, File file, String finalName, String classifier, String packaging, Logger log) throws MojoExecutionException;
 
     /**
+     * Attempts to find the given dependency in a Maven repository.
+     *
+     * @param session      required by Maven to traverse dependencies.
+     * @param repositories the repositories used by the Maven build.
+     * @param dependency   the dependency to resolve.
+     *
+     * @return a collection of artifacts that may or may not be resolved.
+     *
+     * @throws MojoExecutionException when anything goes wrong.
+     */
+    Artifact resolve(RepositorySystemSession session, List<RemoteRepository> repositories, Dependency dependency) throws MojoExecutionException;
+
+    /**
      * Attempts to find each artifact in the given list of dependencies in a Maven repository.
      *
      * @param session      required by Maven to traverse dependencies.
-     * @param repositories the reposotories used by the Maven build.
+     * @param repositories the repositories used by the Maven build.
      * @param dependencies the list of dependencies to resolve.
      *
      * @return a collection of artifacts that may or may not be resolved.
