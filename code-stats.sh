@@ -6,8 +6,8 @@ function jars {
     ls -l $JARS | awk '{printf "%-15s %s\n", $5, $9}'
     local SIZE=$[($(find $1 -name \*.jar | grep target | egrep $3 $2 | xargs stat -f "%z" | xargs | tr " " "+")+512)/1024]
     local DIRS=$(for f in $JARS; do echo $f | cut -d/ -f1,2; done)
-    local CLASSES=$(for d in $DIRS; do find $d -name \*.class; done | wc -l)
-    local LINES=$(for d in $DIRS; do for file in `find $d -name \*.java`; do cat $file | tr -d "\r" | clang -E - 2>/dev/null | egrep -v "^#|^import|^package|^$"; done; done | wc -l)
+    local CLASSES=$(for d in $DIRS; do find "$d/target/classes" -name \*.class | grep -v 'PackageBindings\$'; done | wc -l)
+    local LINES=$(for d in $DIRS; do for file in `find "$d/src/main" -name \*.java`; do cat $file | tr -d "\r" | clang -E - 2>/dev/null | egrep -v "^#|^import|^package|^$"; done; done | wc -l)
     echo Total $SIZE KB, $CLASSES classes, $LINES lines, $[$LINES/$CLASSES] lines/class
 }
 
