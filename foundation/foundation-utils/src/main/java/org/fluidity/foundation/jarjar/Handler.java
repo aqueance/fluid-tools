@@ -45,8 +45,8 @@ import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Exceptions;
+import org.fluidity.foundation.IOStreams;
 import org.fluidity.foundation.Lists;
-import org.fluidity.foundation.Streams;
 import org.fluidity.foundation.security.Security;
 
 import static org.fluidity.foundation.Command.Process;
@@ -484,7 +484,7 @@ public final class Handler extends URLStreamHandler {
 
                                 return !file.equals(name) ? null : (_url, _entry, stream) -> {
                                     if (++index == paths.length) {
-                                        found[0] = new ByteArrayInputStream(Streams.pipe(stream, new ByteArrayOutputStream(), buffer).toByteArray());
+                                        found[0] = new ByteArrayInputStream(IOStreams.pipe(stream, new ByteArrayOutputStream(), buffer).toByteArray());
                                     } else {
                                         file = paths[index];
                                         directory = directory(file);
@@ -819,7 +819,7 @@ public final class Handler extends URLStreamHandler {
 
                     try (final InputStream input = Archives.connect(root, true).getInputStream()) {
                         final byte[] buffer = new byte[1024 * 1024];
-                        return archive.load(Streams.load(input, buffer), buffer);
+                        return archive.load(IOStreams.load(input, buffer), buffer);
                     }
                 }
             } else {
@@ -1049,7 +1049,7 @@ public final class Handler extends URLStreamHandler {
 
                                     if (directory(root.getPath())) {
                                         try (final InputStream input = Archives.connect(url, true).getInputStream()) {
-                                            bytes = Streams.load(input, buffer);
+                                            bytes = IOStreams.load(input, buffer);
                                             archive = new ArchiveEntry(url, key, this);
                                         } catch (final FileNotFoundException ignored) {
                                             // empty, thrown later below
@@ -1095,7 +1095,7 @@ public final class Handler extends URLStreamHandler {
 
                         if (!directory(name)) {
                             final String entry = String.format("%s%s%s", base, DELIMITER, name);
-                            final byte[] bytes = Streams.load(stream, buffer);
+                            final byte[] bytes = IOStreams.load(stream, buffer);
                             final Metadata metadata = new Metadata(name, next.getSize(), next.getCrc());
 
                             final String reference = meta.get(metadata);

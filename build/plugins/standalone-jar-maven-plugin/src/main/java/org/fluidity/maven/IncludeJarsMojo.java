@@ -39,8 +39,8 @@ import org.fluidity.deployment.maven.DependenciesSupport;
 import org.fluidity.deployment.maven.Logger;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
+import org.fluidity.foundation.IOStreams;
 import org.fluidity.foundation.Lists;
-import org.fluidity.foundation.Streams;
 import org.fluidity.foundation.Strings;
 
 import org.apache.maven.artifact.Artifact;
@@ -245,7 +245,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
 
                     policy.save((name, content) -> {
                         output.putNextEntry(new JarEntry(name));
-                        Streams.store(output, content, Strings.UTF_8, buffer);
+                        IOStreams.store(output, content, Strings.UTF_8, buffer);
                     });
 
                     final String policyName = policy.name(packageFile);
@@ -266,7 +266,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
 
                         return name.equals(policyName) ? null : (_url, _entry, input) -> {
                             output.putNextEntry(new JarEntry(_entry.getName()));
-                            Streams.pipe(input, output, buffer);
+                            IOStreams.pipe(input, output, buffer);
                             return true;
                         };
                     });
@@ -281,7 +281,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
                             output.putNextEntry(new JarEntry(dependencyPath.concat(dependency.getName())));
 
                             try (final InputStream input = new FileInputStream(dependency)) {
-                                Streams.pipe(input, output, buffer);
+                                IOStreams.pipe(input, output, buffer);
                             }
                         }
                     }

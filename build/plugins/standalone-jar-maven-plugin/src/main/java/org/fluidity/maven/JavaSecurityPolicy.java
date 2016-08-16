@@ -29,8 +29,8 @@ import java.util.regex.Pattern;
 import org.fluidity.deployment.maven.Logger;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
+import org.fluidity.foundation.IOStreams;
 import org.fluidity.foundation.Lists;
-import org.fluidity.foundation.Streams;
 import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.jarjar.Handler;
 
@@ -109,7 +109,7 @@ final class JavaSecurityPolicy implements SecurityPolicy {
 
         if (entry != null) {
             try (final InputStream input = Archives.open(Archives.Nested.formatURL(url, entry), cached)) {
-                final String content = Streams.load(input, Strings.UTF_8, buffer);
+                final String content = IOStreams.load(input, Strings.UTF_8, buffer);
 
                 if (!content.isEmpty()) {
                     final String file = archive.getName();

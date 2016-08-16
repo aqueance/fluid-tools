@@ -44,9 +44,9 @@ import org.fluidity.deployment.maven.Logger;
 import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
+import org.fluidity.foundation.IOStreams;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.ServiceProviders;
-import org.fluidity.foundation.Streams;
 import org.fluidity.foundation.Strings;
 
 import org.apache.maven.artifact.Artifact;
@@ -384,7 +384,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
                 policy.save((name, content) -> {
                     output.putNextEntry(new JarEntry(name));
-                    Streams.store(output, content, Strings.UTF_8, buffer);
+                    IOStreams.store(output, content, Strings.UTF_8, buffer);
                 });
 
                 archives.expand(output, buffer, providerMap, new DependencyFeed(policy, unpackedDependencies));
@@ -408,7 +408,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
                             // got to check if our project artifact is something we have created in a previous run
                             // i.e., if it contains the project artifact we're about to copy
                             final int processed = Archives.read(url, false, (_url, _entry) -> !entryName.equals(_entry.getName()) ? null : (__url, __entry, input) -> {
-                                Streams.pipe(input, output, buffer);
+                                IOStreams.pipe(input, output, buffer);
                                 return false;
                             });
 
@@ -418,7 +418,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
                         }
 
                         try (final InputStream input = new FileInputStream(dependency)) {
-                            Streams.pipe(input, output, buffer);
+                            IOStreams.pipe(input, output, buffer);
                         }
                     }
                 }

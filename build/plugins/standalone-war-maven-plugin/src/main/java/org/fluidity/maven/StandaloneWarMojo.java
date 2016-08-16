@@ -40,7 +40,7 @@ import org.fluidity.deployment.maven.ArchivesSupport;
 import org.fluidity.deployment.maven.DependenciesSupport;
 import org.fluidity.deployment.maven.Logger;
 import org.fluidity.foundation.Archives;
-import org.fluidity.foundation.Streams;
+import org.fluidity.foundation.IOStreams;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
@@ -268,7 +268,7 @@ public final class StandaloneWarMojo extends AbstractMojo {
                         output.putNextEntry(new JarEntry(bootDirectory + dependency.getName()));
 
                         try (final InputStream input = new FileInputStream(dependency)) {
-                            Streams.pipe(input, output, buffer);
+                            IOStreams.pipe(input, output, buffer);
                         }
                     }
                 }

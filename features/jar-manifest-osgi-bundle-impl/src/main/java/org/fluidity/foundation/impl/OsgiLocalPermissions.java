@@ -47,10 +47,10 @@ import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
+import org.fluidity.foundation.IOStreams;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Methods;
 import org.fluidity.foundation.ServiceProviders;
-import org.fluidity.foundation.Streams;
 import org.fluidity.foundation.Strings;
 
 import org.apache.maven.artifact.Artifact;
@@ -452,7 +452,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
 
             // check if the bundle has a local permissions file
             try (final InputStream input = Archives.open(Archives.Nested.formatURL(archive.toURI().toURL(), SECURITY_POLICY_FILE), false)) {
-                return Streams.load(input, Strings.UTF_8, buffer);
+                return IOStreams.load(input, Strings.UTF_8, buffer);
             } catch (final FileNotFoundException ignored) {
 
                 // do not generate one if the bundle has none

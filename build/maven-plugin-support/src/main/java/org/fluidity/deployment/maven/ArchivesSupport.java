@@ -27,6 +27,7 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
 import org.fluidity.foundation.Archives;
+import org.fluidity.foundation.IOStreams;
 
 /**
  * Common JAR processing utilities for standalone archive processing plugins.
@@ -57,7 +58,7 @@ public interface ArchivesSupport {
      * The service providers in the given map loaded by {@link #load(Map, Map, byte[], Logger, ArchivesSupport.Feed)} are saved as well.
      *
      * @param output   the JAR output stream to add entries to; the stream will <b>not</b> be {@link OutputStream#close() closed}.
-     * @param buffer   the buffer to use when {@linkplain org.fluidity.foundation.Streams#pipe(InputStream, OutputStream, byte[]) copying} data.
+     * @param buffer   the buffer to use when {@linkplain IOStreams#pipe(InputStream, OutputStream, byte[]) copying} data.
      * @param services the service provider map computed by {@link #load(Map, Map, byte[], Logger, ArchivesSupport.Feed)}.
      * @param feed     the provider of the list of JAR inputs to expand.
      *

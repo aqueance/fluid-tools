@@ -30,7 +30,7 @@ import java.util.jar.Manifest;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ServiceProviders;
-import org.fluidity.foundation.Streams;
+import org.fluidity.foundation.IOStreams;
 import org.fluidity.foundation.Strings;
 
 import org.codehaus.plexus.component.annotations.Component;
@@ -60,7 +60,7 @@ final class ArchivesSupportImpl implements ArchivesSupport {
                         } else if (entryName.startsWith(Archives.META_INF) && entryName.toUpperCase().endsWith(".SF")) {
                             throw new IOException(String.format("JAR signatures not supported in %s", _url));
                         } else if (entryName.startsWith(ServiceProviders.LOCATION) && !_entry.isDirectory()) {
-                            final String[] list = Streams.load(stream, Strings.UTF_8, buffer).split("[\n\r]+");
+                            final String[] list = IOStreams.load(stream, Strings.UTF_8, buffer).split("[\n\r]+");
                             final String[] present = providers.get(entryName);
 
                             if (present == null) {
@@ -100,7 +100,7 @@ final class ArchivesSupportImpl implements ArchivesSupport {
                 }
 
                 output.putNextEntry(new JarEntry(entryName));
-                Streams.store(output, contents.toString(), Strings.UTF_8, buffer);
+                IOStreams.store(output, contents.toString(), Strings.UTF_8, buffer);
             }
         }
 
@@ -116,7 +116,7 @@ final class ArchivesSupportImpl implements ArchivesSupport {
                 return done || manifest || index || signature || !feed.include(entry) ? null : (_url, _entry, stream) -> {
                     copied.add(_entry.getName());
                     output.putNextEntry(_entry);
-                    Streams.pipe(stream, output, buffer);
+                    IOStreams.pipe(stream, output, buffer);
 
                     return true;
                 };

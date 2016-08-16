@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.JarEntry;
 
 import org.fluidity.foundation.Archives;
-import org.fluidity.foundation.Streams;
+import org.fluidity.foundation.IOStreams;
 import org.fluidity.foundation.Strings;
 
 import org.testng.annotations.DataProvider;
@@ -89,7 +89,7 @@ public class HandlerTest {
             connection.setUseCaches(cached);
 
             try (final InputStream stream = connection.getInputStream()) {
-                verify("level 3", Streams.load(stream, Strings.ASCII, BUFFER).replaceAll("\n", ""));
+                verify("level 3", IOStreams.load(stream, Strings.ASCII, BUFFER).replaceAll("\n", ""));
             }
         }
     }
@@ -334,7 +334,7 @@ public class HandlerTest {
         assert content instanceof InputStream : content.getClass();
 
         try (final InputStream input = (InputStream) content) {
-            final String value = Streams.load(input, Strings.UTF_8, new byte[128]).replaceAll("\n", "");
+            final String value = IOStreams.load(input, Strings.UTF_8, new byte[128]).replaceAll("\n", "");
 
             assert value.equals("level 3") : value;
         }
@@ -360,7 +360,7 @@ public class HandlerTest {
 
     private void assertContent(final boolean cached, final String content, final String... path) throws IOException {
         try (final InputStream input = Archives.open(Handler.formatURL(container, path), cached)) {
-            verify(content, Streams.load(input, Strings.ASCII, BUFFER).replaceAll("\n", ""));
+            verify(content, IOStreams.load(input, Strings.ASCII, BUFFER).replaceAll("\n", ""));
         }
     }
 }

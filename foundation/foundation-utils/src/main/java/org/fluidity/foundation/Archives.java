@@ -144,7 +144,7 @@ public final class Archives extends Utility {
      * @throws IOException when something goes wrong reading the JAR file.
      */
     public static int read(final InputStream input, final URL url, final Entry matcher) throws IOException {
-        return read(Streams.load(input, new byte[16384]), url, matcher);
+        return read(IOStreams.load(input, new byte[16384]), url, matcher);
     }
 
     /**
@@ -222,7 +222,7 @@ public final class Archives extends Utility {
     }
 
     /**
-     * Opens an {@link InputStream} to the contents of the given URL.
+     * Opens an {@link InputStream} for the contents of the given URL.
      *
      * @param url    the URL to open.
      * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).

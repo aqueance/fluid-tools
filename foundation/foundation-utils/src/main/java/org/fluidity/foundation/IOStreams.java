@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.function.Consumer;
 
 /**
  * General I/O stream related convenience methods.
@@ -29,9 +30,9 @@ import java.nio.charset.Charset;
  * @author Tibor Varga
  */
 @SuppressWarnings("WeakerAccess")
-public final class Streams extends Utility {
+public final class IOStreams extends Utility {
 
-    private Streams() { }
+    private IOStreams() { }
 
     /**
      * Fully copies the contents of one stream into another. Neither stream will be closed; use the try-with-resource construct to close them automatically.
@@ -56,6 +57,24 @@ public final class Streams extends Utility {
     }
 
     /**
+     * Sends the contents of input stream to the consumer. Neither stream will be closed; use the try-with-resource construct to close them automatically.
+     *
+     * @param input    the input stream to copy data from.
+     * @param buffer   the buffer to use.
+     * @param consumer the consumer to send data to; the data is sent in the specified buffer, and the consumer receives the number of content bytes in that
+     *                 buffer.
+     *
+     * @throws IOException thrown when reading fails.
+     */
+    public static void send(final InputStream input, final byte[] buffer, final Consumer<Integer> consumer) throws IOException {
+        int len;
+
+        while ((len = input.read(buffer)) != -1) {
+            consumer.accept(len);
+        }
+    }
+
+    /**
      * Reads into a byte array all content from the given <code>stream</code>. The stream will <b>not</b> be closed; use the try-with-resource construct to
      * close it automatically.
      *
@@ -67,7 +86,7 @@ public final class Streams extends Utility {
      * @throws IOException thrown when reading fails.
      */
     public static byte[] load(final InputStream stream, final byte[] buffer) throws IOException {
-        return Streams.pipe(stream, new ByteArrayOutputStream(), buffer).toByteArray();
+        return IOStreams.pipe(stream, new ByteArrayOutputStream(), buffer).toByteArray();
     }
 
     /**
@@ -83,7 +102,7 @@ public final class Streams extends Utility {
      * @throws IOException thrown when reading fails.
      */
     public static String load(final InputStream stream, final Charset charset, final byte[] buffer) throws IOException {
-        return new String(Streams.load(stream, buffer), charset);
+        return new String(IOStreams.load(stream, buffer), charset);
     }
 
     /**
@@ -97,7 +116,7 @@ public final class Streams extends Utility {
      * @throws IOException thrown when writing fails.
      */
     public static void store(final OutputStream stream, final byte[] data, final byte[] buffer) throws IOException {
-        Streams.pipe(new ByteArrayInputStream(data), stream, buffer);
+        IOStreams.pipe(new ByteArrayInputStream(data), stream, buffer);
     }
 
     /**
@@ -112,6 +131,6 @@ public final class Streams extends Utility {
      * @throws IOException thrown when writing fails.
      */
     public static void store(final OutputStream stream, final String text, final Charset charset, final byte[] buffer) throws IOException {
-        Streams.store(stream, text.getBytes(charset), buffer);
+        IOStreams.store(stream, text.getBytes(charset), buffer);
     }
 }

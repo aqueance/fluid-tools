@@ -30,10 +30,10 @@ import java.util.List;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.IOStreams;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.ServiceProviders;
-import org.fluidity.foundation.Streams;
 
 import org.testng.annotations.Test;
 
@@ -136,7 +136,7 @@ public class ComponentDiscoveryImplTest {
         try (final InputStream input = ClassLoaders.readClassResource(impl);
              final OutputStream output = new FileOutputStream(outputFile)) {
             assert input != null : fileName;
-            Streams.pipe(input, output, new byte[1024]);
+            IOStreams.pipe(input, output, new byte[1024]);
         }
     }
 

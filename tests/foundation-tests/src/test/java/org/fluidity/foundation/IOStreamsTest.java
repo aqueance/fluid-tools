@@ -28,7 +28,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class StreamsTest extends Simulator {
+public class IOStreamsTest extends Simulator {
 
     @Test
     public void testCopying() throws Exception {
@@ -36,7 +36,7 @@ public class StreamsTest extends Simulator {
 
         try (final InputStream input = new ByteArrayInputStream(original.getBytes());
              final ByteArrayOutputStream output = new ByteArrayOutputStream()) {
-            final String copy = new String(Streams.pipe(input, output, new byte[128]).toByteArray());
+            final String copy = new String(IOStreams.pipe(input, output, new byte[128]).toByteArray());
 
             assert original.equals(copy) : copy;
         }
@@ -49,7 +49,7 @@ public class StreamsTest extends Simulator {
         final byte[] bytes = Stream
                 .of(content)
                 .reduce(new ByteArrayOutputStream(),
-                        (stream, text) -> Exceptions.wrap(() -> Streams.pipe(new ByteArrayInputStream(text.getBytes()), stream, new byte[128])),
+                        (stream, text) -> Exceptions.wrap(() -> IOStreams.pipe(new ByteArrayInputStream(text.getBytes()), stream, new byte[128])),
                         (stream, ignored) -> stream)
                 .toByteArray();
 
