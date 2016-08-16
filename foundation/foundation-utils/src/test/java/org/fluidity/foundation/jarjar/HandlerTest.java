@@ -32,6 +32,7 @@ import java.util.jar.JarEntry;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.Streams;
+import org.fluidity.foundation.Strings;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -58,25 +59,25 @@ public class HandlerTest {
     }
 
     @Test(dataProvider = "caching")
-    public void testHandler(final boolean caching) throws Exception {
-        assertContent(caching, "level 0", "level0.txt");
-        assertContent(caching, "level 1", "level1-1.jar", "level1.txt");
-        assertContent(caching, "level 1", "level1-2.jar", "level1.txt");
-        assertContent(caching, "level 2", "level1-1.jar", "level2.jar", "level2.txt");
-        assertContent(caching, "level 2", "level1-2.jar", "level2.jar", "level2.txt");
-        assertContent(caching, "level 3", "level1-1.jar", "level2.jar", "level3.jar", "level3.txt");
-        assertContent(caching, "level 3", "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
+    public void testHandler(final boolean cached) throws Exception {
+        assertContent(cached, "level 0", "level0.txt");
+        assertContent(cached, "level 1", "level1-1.jar", "level1.txt");
+        assertContent(cached, "level 1", "level1-2.jar", "level1.txt");
+        assertContent(cached, "level 2", "level1-1.jar", "level2.jar", "level2.txt");
+        assertContent(cached, "level 2", "level1-2.jar", "level2.jar", "level2.txt");
+        assertContent(cached, "level 3", "level1-1.jar", "level2.jar", "level3.jar", "level3.txt");
+        assertContent(cached, "level 3", "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
     }
 
     @Test(dataProvider = "caching")
-    public void testURL(final boolean caching) throws Exception {
-        assertContent(caching, "level 0", "level0.txt");
-        assertContent(caching, "level 1", "level1-1.jar", "level1.txt");
-        assertContent(caching, "level 1", "level1-2.jar", "level1.txt");
-        assertContent(caching, "level 2", "level1-1.jar", "level2.jar", "level2.txt");
-        assertContent(caching, "level 2", "level1-2.jar", "level2.jar", "level2.txt");
-        assertContent(caching, "level 3", "level1-1.jar", "level2.jar", "level3.jar", "level3.txt");
-        assertContent(caching, "level 3", "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
+    public void testURL(final boolean cached) throws Exception {
+        assertContent(cached, "level 0", "level0.txt");
+        assertContent(cached, "level 1", "level1-1.jar", "level1.txt");
+        assertContent(cached, "level 1", "level1-2.jar", "level1.txt");
+        assertContent(cached, "level 2", "level1-1.jar", "level2.jar", "level2.txt");
+        assertContent(cached, "level 2", "level1-2.jar", "level2.jar", "level2.txt");
+        assertContent(cached, "level 3", "level1-1.jar", "level2.jar", "level3.jar", "level3.txt");
+        assertContent(cached, "level 3", "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
 
         {
             final URL root = container;
@@ -85,9 +86,11 @@ public class HandlerTest {
             final URL level3 = Handler.formatURL(level2, "level3.jar");
 
             final URLConnection connection = Handler.formatURL(level3, "level3.txt").openConnection();
-            connection.setUseCaches(caching);
+            connection.setUseCaches(cached);
 
-            verify("level 3", Streams.load(connection.getInputStream(), "ASCII", BUFFER, true).replaceAll("\n", ""));
+            try (final InputStream stream = connection.getInputStream()) {
+                verify("level 3", Streams.load(stream, Strings.ASCII, BUFFER).replaceAll("\n", ""));
+            }
         }
     }
 
@@ -240,10 +243,10 @@ public class HandlerTest {
     }
 
     @Test(dataProvider = "caching")
-    public void testExploration(final boolean caching) throws Exception {
+    public void testExploration(final boolean cached) throws Exception {
         final List<String> files = new ArrayList<>();
 
-        Archives.read(caching, container, new Archives.Entry() {
+        Archives.read(container, cached, new Archives.Entry() {
             public Reader matches(final URL url, final JarEntry entry) throws IOException {
                 final String name = entry.getName();
 
@@ -252,7 +255,7 @@ public class HandlerTest {
                 }
 
                 return (_url, _entry, stream) -> {
-                    Archives.read(caching, Archives.Nested.formatURL(_url, _entry.getName()), this);
+                    Archives.read(Archives.Nested.formatURL(_url, _entry.getName()), cached, this);
                     return true;
                 };
             }
@@ -262,10 +265,10 @@ public class HandlerTest {
     }
 
     @Test(dataProvider = "caching")
-    public void testMetadata(final boolean caching) throws Exception {
+    public void testMetadata(final boolean cached) throws Exception {
         {
             final URL url = this.container;
-            final URLConnection connection = Archives.connection(caching, url);
+            final URLConnection connection = Archives.connect(url, cached);
 
             assert connection.getContentLength() != 0 : String.format("Content length of %s", url);
             assert connection.getContentType() != null : String.format("Content type of %s", url);
@@ -274,7 +277,7 @@ public class HandlerTest {
 
         {
             final URL url = Handler.formatURL(container, "level0.txt");
-            final URLConnection connection = Archives.connection(caching, url);
+            final URLConnection connection = Archives.connect(url, cached);
 
             assert connection.getContentLength() != 0 : String.format("Content length of %s", url);
             assert connection.getContentType().equals("text/plain") : String.format("Content type of %s", url);
@@ -283,7 +286,7 @@ public class HandlerTest {
 
         {
             final URL url = Handler.formatURL(container, "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
-            final URLConnection connection = Archives.connection(caching, url);
+            final URLConnection connection = Archives.connect(url, cached);
 
             assert connection.getContentLength() != 0 : String.format("Content length of %s", url);
             assert connection.getContentType().equals("text/plain") : String.format("Content type of %s", url);
@@ -292,9 +295,9 @@ public class HandlerTest {
     }
 
     @Test(dataProvider = "caching")
-    public void testHeaders(final boolean caching) throws Exception {
+    public void testHeaders(final boolean cached) throws Exception {
         final URL url = Handler.formatURL(container, "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
-        final URLConnection connection = Archives.connection(caching, url);
+        final URLConnection connection = Archives.connect(url, cached);
 
         {
             assert connection.getHeaderField(0).equals("text/plain") : String.format("Content type of %s", url);
@@ -321,18 +324,20 @@ public class HandlerTest {
     }
 
     @Test(dataProvider = "caching")
-    public void testContent(final boolean caching) throws Exception {
+    public void testContent(final boolean cached) throws Exception {
         final URL url = Handler.formatURL(container, "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
-        final URLConnection connection = Archives.connection(caching, url);
+        final URLConnection connection = Archives.connect(url, cached);
 
         final Object content = connection.getContent();
 
         assert content != null : url;
         assert content instanceof InputStream : content.getClass();
 
-        final String value = Streams.load((InputStream) content, "UTF-8", new byte[128], true).replaceAll("\n", "");
+        try (final InputStream input = (InputStream) content) {
+            final String value = Streams.load(input, Strings.UTF_8, new byte[128]).replaceAll("\n", "");
 
-        assert value.equals("level 3") : value;
+            assert value.equals("level 3") : value;
+        }
     }
 
     @Test
@@ -353,7 +358,9 @@ public class HandlerTest {
         assert Archives.Nested.PROTOCOL.equals(archive.getProtocol()) : archive;
     }
 
-    private void assertContent(final boolean caching, final String content, final String... path) throws IOException {
-        verify(content, Streams.load(Archives.open(caching, Handler.formatURL(container, path)), "ASCII", BUFFER, true).replaceAll("\n", ""));
+    private void assertContent(final boolean cached, final String content, final String... path) throws IOException {
+        try (final InputStream input = Archives.open(Handler.formatURL(container, path), cached)) {
+            verify(content, Streams.load(input, Strings.ASCII, BUFFER).replaceAll("\n", ""));
+        }
     }
 }

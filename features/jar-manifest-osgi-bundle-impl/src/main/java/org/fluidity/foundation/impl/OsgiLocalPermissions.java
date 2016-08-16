@@ -46,7 +46,6 @@ import org.fluidity.deployment.osgi.Service;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
-import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Methods;
@@ -304,7 +303,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
 
                     try (final InputStream provider = provider(file)) {
                         if (provider != null) {
-                            final BufferedReader metadata = new BufferedReader(new InputStreamReader(provider, "UTF-8"));
+                            final BufferedReader metadata = new BufferedReader(new InputStreamReader(provider, Strings.UTF_8));
                             String content;
 
                             while ((content = metadata.readLine()) != null) {
@@ -386,7 +385,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
             final URL url = Archives.Nested.formatURL(file, String.format("%s/%s", ServiceProviders.location(serviceType), BundleComponents.Managed.class.getName()));
 
             try {
-                return Archives.open(true, url);
+                return Archives.open(url, true);
             } catch (final FileNotFoundException e) {
                 return null;
             }
@@ -450,10 +449,11 @@ final class OsgiLocalPermissions implements SecurityPolicy {
         }
 
         private String permissions(final File archive) throws IOException {
-            try {
-                // check if the bundle has a local permissions file
-                return Streams.load(Archives.open(false, Archives.Nested.formatURL(archive.toURI().toURL(), SECURITY_POLICY_FILE)), "UTF-8", buffer, true);
-            } catch (final FileNotFoundException e) {
+
+            // check if the bundle has a local permissions file
+            try (final InputStream input = Archives.open(Archives.Nested.formatURL(archive.toURI().toURL(), SECURITY_POLICY_FILE), false)) {
+                return Streams.load(input, Strings.UTF_8, buffer);
+            } catch (final FileNotFoundException ignored) {
 
                 // do not generate one if the bundle has none
                 return null;

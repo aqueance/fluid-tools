@@ -186,7 +186,7 @@ final class DependenciesSupportImpl implements DependenciesSupport {
 
     private static String[] projectId(final Class<?> type) throws MojoExecutionException {
         try {
-            final String[] spec = Archives.attributes(true, Archives.containing(type), MANIFEST_MAVEN_GROUP_ID, MANIFEST_MAVEN_ARTIFACT_ID);
+            final String[] spec = Archives.attributes(Archives.containing(type), true, MANIFEST_MAVEN_GROUP_ID, MANIFEST_MAVEN_ARTIFACT_ID);
 
             if (spec[0] == null || spec[1] == null) {
                 throw new MojoExecutionException(String.format("Could not find Maven project for %s", type));

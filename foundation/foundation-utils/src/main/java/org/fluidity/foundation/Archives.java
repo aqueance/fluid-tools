@@ -19,7 +19,6 @@ package org.fluidity.foundation;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -49,7 +48,7 @@ import static org.fluidity.foundation.Command.Process;
  * Convenience methods to work with Java archives.
  * <h3>Usage Example</h3>
  * <pre>
- * {@link Archives#read(boolean, URL, Archives.Entry) Archives.read}({@linkplain Archives#containing(Class) Archives.containing}(getClass()), (url, entry) -&gt; {
+ * {@link Archives#read(URL, boolean, Entry) Archives.read}({@linkplain Archives#containing(Class) Archives.containing}(getClass()), (url, entry) -&gt; {
  *     &hellip;
  *
  *     return (_url, _entry, stream) -&gt; {
@@ -116,24 +115,27 @@ public final class Archives extends Utility {
      * Reads entries from a JAR file. If the archive manifest is the first entry in the archive, its {@linkplain JarEntry entry details} will be restricted to
      * those available in a {@link ZipEntry}.
      *
-     * @param cached  tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      * @param url     the URL of the Java archive; this will be passed to the {@link Entry} methods.
+     * @param cached  tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      * @param matcher the processor to send the entries to.
      *
      * @return the number of entries read.
      *
      * @throws IOException when something goes wrong reading the JAR file.
      */
-    public static int read(final boolean cached, final URL url, final Entry matcher) throws IOException {
+    public static int read(final URL url, final boolean cached, final Entry matcher) throws IOException {
         assert url != null;
-        return Archives.read(Archives.open(cached, url), url, matcher);
+
+        try (final InputStream input = Archives.open(url, cached)) {
+            return Archives.read(input, url, matcher);
+        }
     }
 
     /**
      * Reads entries from a JAR file contained in the given stream. If the archive manifest is the first entry in the archive, its {@linkplain JarEntry entry
      * details} will be restricted to those available in a {@link ZipEntry}.
      *
-     * @param input   the archive's content; the stream will be {@linkplain InputStream#close() closed} after reading it.
+     * @param input   the archive's content; the stream will <b>not</b> be automatically {@linkplain InputStream#close() closed}.
      * @param url     the URL archive is coming from; this will be passed to the {@link Entry} methods.
      * @param matcher the processor to send the entries to.
      *
@@ -142,7 +144,7 @@ public final class Archives extends Utility {
      * @throws IOException when something goes wrong reading the JAR file.
      */
     public static int read(final InputStream input, final URL url, final Entry matcher) throws IOException {
-        return read(Streams.load(input, new byte[16384], true), url, matcher);
+        return read(Streams.load(input, new byte[16384]), url, matcher);
     }
 
     /**
@@ -158,57 +160,61 @@ public final class Archives extends Utility {
      * @throws IOException when something goes wrong reading the JAR file.
      */
     public static int read(final byte[] data, final URL url, final Entry matcher) throws IOException {
-        final InputStream content = new ByteArrayInputStream(data);
-
         int count = 0;
-        final JarInputStream jar = new JarInputStream(content, true);
 
-        ZipEntry manifest;
+        // Can be close to your heart's content, so this can safely be outside the try-with-resource constructs
+        final ByteArrayInputStream input = new ByteArrayInputStream(data);
 
-        final ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(data));
-        manifest = zip.getNextEntry();
+        // Use a ZIP stream to access the JAR manifest, if present
 
-        if (manifest != null) {
-            if (manifest.getName().equals(META_INF.concat("/"))) {
-                zip.closeEntry();
-                manifest = zip.getNextEntry();
-            }
-
-            if (manifest != null && !manifest.getName().equals(JarFile.MANIFEST_NAME)) {
-                manifest = null;
-            }
+        try (final ZipInputStream zip = new ZipInputStream(input)) {
+            ZipEntry manifest = zip.getNextEntry();
 
             if (manifest != null) {
-                final JarEntry entry = new JarEntry(manifest);
-                final Entry.Reader reader = matcher.matches(url, entry);
-
-                if (reader != null) {
-                    ++count;
-
-                    if (!reader.read(url, entry, new OpenInputStream(zip))) {
-                        return count;
-                    }
+                if (manifest.getName().equals(META_INF.concat("/"))) {
+                    zip.closeEntry();
+                    manifest = zip.getNextEntry();
                 }
-            }
-        }
 
-        final InputStream stream = new OpenInputStream(jar);
+                if (manifest != null && !manifest.getName().equals(JarFile.MANIFEST_NAME)) {
+                    manifest = null;
+                }
 
-        for (JarEntry entry; (entry = jar.getNextJarEntry()) != null; ) {
-            try {
-                if (!entry.isDirectory()) {
+                if (manifest != null) {
+                    final JarEntry entry = new JarEntry(manifest);
                     final Entry.Reader reader = matcher.matches(url, entry);
 
                     if (reader != null) {
                         ++count;
 
-                        if (!reader.read(url, entry, stream)) {
+                        if (!reader.read(url, entry, zip)) {
                             return count;
                         }
                     }
                 }
-            } finally {
-                jar.closeEntry();
+            }
+        }
+
+        input.reset();
+
+        // The JAR stream hides the manifest entry, if present
+        try (final JarInputStream jar = new JarInputStream(input, true)) {
+            for (JarEntry entry; (entry = jar.getNextJarEntry()) != null; ) {
+                try {
+                    if (!entry.isDirectory()) {
+                        final Entry.Reader reader = matcher.matches(url, entry);
+
+                        if (reader != null) {
+                            ++count;
+
+                            if (!reader.read(url, entry, jar)) {
+                                return count;
+                            }
+                        }
+                    }
+                } finally {
+                    jar.closeEntry();
+                }
             }
         }
 
@@ -218,29 +224,29 @@ public final class Archives extends Utility {
     /**
      * Opens an {@link InputStream} to the contents of the given URL.
      *
-     * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      * @param url    the URL to open.
+     * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      *
      * @return an {@link InputStream}; never <code>null</code>.
      *
      * @throws IOException if the stream cannot be open.
      */
-    public static InputStream open(final boolean cached, final URL url) throws IOException {
+    public static InputStream open(final URL url, final boolean cached) throws IOException {
         final byte[] data = cached ? Handler.cached(url) : null;
-        return data != null ? new ByteArrayInputStream(data) : connection(cached, url).getInputStream();
+        return data != null ? new ByteArrayInputStream(data) : connect(url, cached).getInputStream();
     }
 
     /**
      * Creates a connection to the given URL.
      *
-     * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      * @param url    the URL to connect to.
+     * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      *
      * @return an {@link URLConnection}; never <code>null</code>.
      *
      * @throws IOException when getting the connection fails.
      */
-    public static URLConnection connection(final boolean cached, final URL url) throws IOException {
+    public static URLConnection connect(final URL url, final boolean cached) throws IOException {
         final URLConnection connection = url.openConnection();
         connection.setUseCaches(cached);
         return connection;
@@ -249,20 +255,20 @@ public final class Archives extends Utility {
     /**
      * Returns the main attributes with the given names from manifest of the JAR file identified by the given URL.
      *
-     * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      * @param url    the URL, pointing either to a JAR resource or an archive itself.
+     * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      * @param names  the list of attribute names to load.
      *
-     * @return an array of strings, each being the value of the attribute name at the same index in the <code>names</code> parameter or <code>null</code>;
-     *         never <code>null</code>.
+     * @return an array of strings, each being the value of the attribute name at the same index in the <code>names</code> parameter or <code>null</code>; never
+     * <code>null</code>.
      *
      * @throws IOException when an I/O error occurs when accessing its manifest
      */
-    public static String[] attributes(final boolean cached, final URL url, final String... names) throws IOException {
+    public static String[] attributes(final URL url, final boolean cached, final String... names) throws IOException {
         final String[] list = new String[names.length];
 
         if (url != null) {
-            final Attributes attributes = Archives.manifest(cached, url).getMainAttributes();
+            final Attributes attributes = Archives.manifest(url, cached).getMainAttributes();
 
             if (attributes != null) {
                 for (int i = 0, limit = names.length; i < limit; i++) {
@@ -277,20 +283,20 @@ public final class Archives extends Utility {
     /**
      * Returns the main attributes with the given names from manifest of the JAR file identified by the given URL.
      *
-     * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      * @param url    the URL, pointing either to a JAR resource or an archive itself.
+     * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      * @param names  the list of attribute names to load.
      *
-     * @return an array of strings, each being the value of the attribute name at the same index in the <code>names</code> parameter or <code>null</code>;
-     *         never <code>null</code>.
+     * @return an array of strings, each being the value of the attribute name at the same index in the <code>names</code> parameter or <code>null</code>; never
+     * <code>null</code>.
      *
      * @throws IOException when an I/O error occurs when accessing its manifest
      */
-    public static String[] attributes(final boolean cached, final URL url, final Attributes.Name... names) throws IOException {
+    public static String[] attributes(final URL url, final boolean cached, final Attributes.Name... names) throws IOException {
         final String[] list = new String[names.length];
 
         if (url != null) {
-            final Attributes attributes = Archives.manifest(cached, url).getMainAttributes();
+            final Attributes attributes = Archives.manifest(url, cached).getMainAttributes();
 
             if (attributes != null) {
                 for (int i = 0, limit = names.length; i < limit; i++) {
@@ -306,25 +312,25 @@ public final class Archives extends Utility {
      * Loads the JAR manifest from the given URL. Supports URLs pointing to a Java archive, URLs pointing to any resource in a Java archive, URLs
      * pointing to a {@link JarFile#MANIFEST_NAME}, and URLs from which {@link JarFile#MANIFEST_NAME} can be loaded.
      *
-     * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      * @param url    the URL.
+     * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      *
      * @return the JAR manifest; may be <code>null</code> if not found or has neither main nor entry attributes.
      *
      * @throws IOException when reading the URL contents fails.
      */
-    public static Manifest manifest(final boolean cached, final URL url) throws IOException {
+    public static Manifest manifest(final URL url, final boolean cached) throws IOException {
         final String protocol = url.getProtocol();
         InputStream stream;
 
         if (url.toExternalForm().endsWith(JarFile.MANIFEST_NAME)) {
 
             // the URL points to the manifest file
-            stream = Archives.open(cached, url);
+            stream = Archives.open(url, cached);
         } else if (Nested.PROTOCOL.equals(protocol)) {
 
             // the URL points to a nested archive
-            stream = Archives.open(cached, Nested.formatURL(url, JarFile.MANIFEST_NAME));
+            stream = Archives.open(Nested.formatURL(url, JarFile.MANIFEST_NAME), cached);
         } else if (Archives.FILE.equals(protocol) && localFile(url).isDirectory()) {
 
             // directories don't have manifest files
@@ -333,14 +339,14 @@ public final class Archives extends Utility {
             try {
 
                 // assume URL is an archive and see if it contains a manifest
-                stream = Archives.open(cached, Nested.formatURL(url, JarFile.MANIFEST_NAME));
+                stream = Archives.open(Nested.formatURL(url, JarFile.MANIFEST_NAME), cached);
             } catch (final IOException e) {
 
                 // apparently not an archive, give up
                 try {
 
                     // try simple relative URL for the manifest
-                    stream = Archives.open(cached, new URL(url, JarFile.MANIFEST_NAME));
+                    stream = Archives.open(new URL(url, JarFile.MANIFEST_NAME), cached);
                 } catch (final FileNotFoundException ignored) {
 
                     // relative URL not found
@@ -376,7 +382,7 @@ public final class Archives extends Utility {
         final String path = url.getPath().replace('/', File.separatorChar);
 
         try {
-            final File file = new File(URLDecoder.decode(path, "UTF-8"));
+            final File file = new File(URLDecoder.decode(path, Strings.UTF_8.name()));
             boolean found = false;
 
             try {
@@ -556,7 +562,7 @@ public final class Archives extends Utility {
     }
 
     /**
-     * Selects and reads entries in a JAR file. The reader will not be invoked for directory entries. Used by {@link Archives#read(boolean, URL, Entry)}, {@link
+     * Selects and reads entries in a JAR file. The reader will not be invoked for directory entries. Used by {@link Archives#read(URL, boolean, Entry)}, {@link
      * Archives#read(byte[], URL, Entry)}, and {@link Archives#read(InputStream, URL, Entry)}.
      * <h3>Usage</h3>
      * See {@link Archives}.
@@ -569,7 +575,7 @@ public final class Archives extends Utility {
         /**
          * Determines on an entry by entry basis whether to read an archive identified by its URL.
          *
-         * @param url   the URL passed to the originating {@link Archives#read(boolean, URL, Entry) Archives.read()} call.
+         * @param url   the URL passed to the originating {@link Archives#read(URL, boolean, Entry) Archives.read()} call.
          * @param entry the entry in <code>url</code> to decide about; never <code>null</code>.
          *
          * @return An entry reader if the given entry should be read, <code>null</code> otherwise.
@@ -589,9 +595,9 @@ public final class Archives extends Utility {
             /**
              * Reads the given entry.
              *
-             * @param url    the URL passed to the originating {@link Archives#read(boolean, URL, Archives.Entry) Archives.read()} call.
+             * @param url    the URL passed to the originating {@link Archives#read(URL, boolean, Entry) Archives.read()} call.
              * @param entry  the entry in <code>url</code> to read.
-             * @param stream the stream containing the entry's content; ignores {@link InputStream#close()} calls.
+             * @param stream the stream containing the entry's content; this stream must <b>not</b> be {@link InputStream#close() closed}.
              *
              * @return <code>true</code> if further searching is needed, <code>false</code> if search should terminate.
              *
@@ -609,7 +615,7 @@ public final class Archives extends Utility {
      *
      *     // make sure to select only those archives that have the
      *     // mandatory "Widget-Name" manifest attribute
-     *     if ({@linkplain Archives}.{@linkplain Archives#attributes(boolean, URL, String...) attributes}(<span class="hl2">url</span>, "Widget-Name")[0] != null) {
+     *     if ({@linkplain Archives}.{@linkplain Archives#attributes(URL, boolean, String...) attributes}(<span class="hl2">url</span>, "Widget-Name")[0] != null) {
      *         &hellip;
      *     }
      * }
@@ -737,7 +743,7 @@ public final class Archives extends Utility {
          * @throws IOException when I/O error occurs when accessing the archive.
          */
         public static Collection<URL> dependencies(final boolean cached, final URL archive, final String name) throws IOException {
-            final String dependencies = Archives.attributes(cached, archive, Nested.attribute(name))[0];
+            final String dependencies = Archives.attributes(archive, cached, Nested.attribute(name))[0];
             final Collection<URL> urls = new ArrayList<>();
 
             if (dependencies != null) {
@@ -762,22 +768,22 @@ public final class Archives extends Utility {
          * @throws IOException when reading the archive fails.
          */
         public static String[] list(final boolean cached) throws IOException {
-            return list(Archives.manifest(cached, Archives.root()));
+            return list(Archives.manifest(Archives.root(), cached));
         }
 
         /**
          * Returns the list of custom nested dependency names in the given archive. The returned names can then be fed to {@link #dependencies(boolean, URL,
          * String)}.
          *
-         * @param cached  tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
          * @param archive the archive to look for nested dependencies in.
          *
+         * @param cached  tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
          * @return a possibly empty list of nested dependencies; never <code>null</code>.
          *
          * @throws IOException when reading the archive fails.
          */
-        public static String[] list(final boolean cached, final URL archive) throws IOException {
-            return list(Archives.manifest(cached, archive));
+        public static String[] list(final URL archive, final boolean cached) throws IOException {
+            return list(Archives.manifest(archive, cached));
         }
 
         /**
@@ -895,23 +901,6 @@ public final class Archives extends Utility {
          */
         public static <T, E extends Exception> T access(final Object context, final Process<T, E> command) throws E {
             return Handler.access(context, command);
-        }
-    }
-
-    /**
-     * Ignores calls to {@link #close()} and delegates all other methods to an actual stream.
-     *
-     * @author Tibor Varga
-     */
-    private static class OpenInputStream extends FilterInputStream {
-
-        OpenInputStream(final InputStream delegate) {
-            super(delegate);
-        }
-
-        @Override
-        public void close() throws IOException {
-            // ignored
         }
     }
 }

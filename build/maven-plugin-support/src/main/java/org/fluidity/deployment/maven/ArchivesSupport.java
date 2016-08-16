@@ -18,6 +18,8 @@ package org.fluidity.deployment.maven;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -54,9 +56,8 @@ public interface ArchivesSupport {
      * manifest, JAR indexes, signatures, and whatever else is not {@linkplain ArchivesSupport.Feed#include(JarEntry) included} by the <code>feed</code>.
      * The service providers in the given map loaded by {@link #load(Map, Map, byte[], Logger, ArchivesSupport.Feed)} are saved as well.
      *
-     * @param output   the JAR output stream to add entries to.
-     * @param buffer   the buffer to use when {@linkplain org.fluidity.foundation.Streams#copy(java.io.InputStream, java.io.OutputStream, byte[], boolean,
-     *                 boolean) copying} data.
+     * @param output   the JAR output stream to add entries to; the stream will <b>not</b> be {@link OutputStream#close() closed}.
+     * @param buffer   the buffer to use when {@linkplain org.fluidity.foundation.Streams#pipe(InputStream, OutputStream, byte[]) copying} data.
      * @param services the service provider map computed by {@link #load(Map, Map, byte[], Logger, ArchivesSupport.Feed)}.
      * @param feed     the provider of the list of JAR inputs to expand.
      *

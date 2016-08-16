@@ -422,29 +422,31 @@ public final class Handler extends URLStreamHandler {
 
                 final String resource = Archives.resourcePath(entry, enclosing)[0];
 
-                Archives.read(Archives.open(true, enclosing), entry, (_url, _entry) -> !resource.equals(_entry.getName()) ? null : (__url, __entry, stream) -> {
-                    final String type = URLConnection.getFileNameMap().getContentTypeFor(resource);
-                    headers.put(CONTENT_TYPE, Collections.singletonList(type == null ? UNKNOWN_TYPE : type));
+                try (final InputStream input = Archives.open(enclosing, true)) {
+                    Archives.read(input, entry, (_url, _entry) -> !resource.equals(_entry.getName()) ? null : (__url, __entry, stream) -> {
+                        final String type = URLConnection.getFileNameMap().getContentTypeFor(resource);
+                        headers.put(CONTENT_TYPE, Collections.singletonList(type == null ? UNKNOWN_TYPE : type));
 
-                    headers.put(LAST_MODIFIED, Collections.singletonList(String.valueOf(__entry.getTime())));
+                        headers.put(LAST_MODIFIED, Collections.singletonList(String.valueOf(__entry.getTime())));
 
-                    long size = __entry.getSize();
+                        long size = __entry.getSize();
 
-                    if (size != -1) {
-                        headers.put(CONTENT_LENGTH, Collections.singletonList(String.valueOf(size)));
-                    } else {
-                        final byte[] buffer = new byte[4096];
+                        if (size != -1) {
+                            headers.put(CONTENT_LENGTH, Collections.singletonList(String.valueOf(size)));
+                        } else {
+                            final byte[] buffer = new byte[4096];
 
-                        size = 0;
-                        for (int length; (length = stream.read(buffer)) != -1; ) {
-                            size += length;
+                            size = 0;
+                            for (int length; (length = stream.read(buffer)) != -1; ) {
+                                size += length;
+                            }
+
+                            headers.put(CONTENT_LENGTH, Collections.singletonList(String.valueOf(size)));
                         }
 
-                        headers.put(CONTENT_LENGTH, Collections.singletonList(String.valueOf(size)));
-                    }
-
-                    return false;
-                });
+                        return false;
+                    });
+                }
 
                 return Collections.unmodifiableMap(headers);
             }));
@@ -462,41 +464,43 @@ public final class Handler extends URLStreamHandler {
                     final byte[] buffer = new byte[16384];
                     final InputStream found[] = { null };
 
-                    Archives.read(root.getInputStream(), url, new Archives.Entry() {
+                    try (final InputStream input = root.getInputStream()) {
+                        Archives.read(input, url, new Archives.Entry() {
 
-                        // each successive path is nested in the archive at the previous index
-                        private final String[] paths = Cache.path(url).split(DELIMITER);
+                            // each successive path is nested in the archive at the previous index
+                            private final String[] paths = Cache.path(url).split(DELIMITER);
 
-                        // the first path is ignored since that is the enclosing archive
-                        private int index = 1;
-                        private String file = paths[index];
-                        private String directory = directory(file);
+                            // the first path is ignored since that is the enclosing archive
+                            private int index = 1;
+                            private String file = paths[index];
+                            private String directory = directory(file);
 
-                        public Reader matches(final URL url, final JarEntry entry) throws IOException {
-                            final String name = entry.getName();
+                            public Reader matches(final URL url, final JarEntry entry) throws IOException {
+                                final String name = entry.getName();
 
-                            if (entry.isDirectory() && name.equals(directory)) {
-                                throw new IOException(String.format("Nested entry '%s' is a directory, URL is invalid: %s", name, url.toExternalForm()));
-                            }
-
-                            return !file.equals(name) ? null : (_url, _entry, stream) -> {
-                                if (++index == paths.length) {
-                                    found[0] = new ByteArrayInputStream(Streams.copy(stream, new ByteArrayOutputStream(), buffer, false, false).toByteArray());
-                                } else {
-                                    file = paths[index];
-                                    directory = directory(file);
-
-                                    Archives.read(stream, _url, this);
+                                if (entry.isDirectory() && name.equals(directory)) {
+                                    throw new IOException(String.format("Nested entry '%s' is a directory, URL is invalid: %s", name, url.toExternalForm()));
                                 }
 
-                                return false;
-                            };
-                        }
+                                return !file.equals(name) ? null : (_url, _entry, stream) -> {
+                                    if (++index == paths.length) {
+                                        found[0] = new ByteArrayInputStream(Streams.pipe(stream, new ByteArrayOutputStream(), buffer).toByteArray());
+                                    } else {
+                                        file = paths[index];
+                                        directory = directory(file);
 
-                        private String directory(final String name) {
-                            return name.endsWith("/") ? name : name.concat("/");
-                        }
-                    });
+                                        Archives.read(stream, _url, this);
+                                    }
+
+                                    return false;
+                                };
+                            }
+
+                            private String directory(final String name) {
+                                return name.endsWith("/") ? name : name.concat("/");
+                            }
+                        });
+                    }
 
                     if (found[0] == null) {
                         throw new FileNotFoundException(url.toExternalForm());
@@ -813,8 +817,10 @@ public final class Handler extends URLStreamHandler {
                         }
                     }
 
-                    final byte[] buffer = new byte[1024 * 1024];
-                    return archive.load(Streams.load(Archives.connection(true, root).getInputStream(), buffer, true), buffer);
+                    try (final InputStream input = Archives.connect(root, true).getInputStream()) {
+                        final byte[] buffer = new byte[1024 * 1024];
+                        return archive.load(Streams.load(input, buffer), buffer);
+                    }
                 }
             } else {
                 synchronized (archive) {
@@ -1042,19 +1048,24 @@ public final class Handler extends URLStreamHandler {
                                     final URL url = relativeURL(root, relative);
 
                                     if (directory(root.getPath())) {
-                                        try {
-                                            bytes = Streams.load(Archives.connection(true, url).getInputStream(), buffer, true);
+                                        try (final InputStream input = Archives.connect(url, true).getInputStream()) {
+                                            bytes = Streams.load(input, buffer);
                                             archive = new ArchiveEntry(url, key, this);
-
-                                            content.put(key, archive);
-                                        } catch (final FileNotFoundException e) {
-                                            content.put(key, archive = new ArchiveEntry(url, null));
+                                        } catch (final FileNotFoundException ignored) {
+                                            // empty, thrown later below
                                         }
-                                    } else {
-                                        content.put(key, archive = new ArchiveEntry(url, null));
                                     }
+
+                                    if (archive == null) {
+
+                                        // loading this archive will throw a FileNotFoundException
+                                        archive = new ArchiveEntry(url, null);
+                                    }
+
+                                    content.put(key, archive);
                                 }
 
+                                // bytes may be null, but only if the archive is but a placeholder that throws FileNotFoundException when loaded
                                 archive.load(bytes, buffer);
                             }
                         }
@@ -1084,7 +1095,7 @@ public final class Handler extends URLStreamHandler {
 
                         if (!directory(name)) {
                             final String entry = String.format("%s%s%s", base, DELIMITER, name);
-                            final byte[] bytes = Streams.load(stream, buffer, false);
+                            final byte[] bytes = Streams.load(stream, buffer);
                             final Metadata metadata = new Metadata(name, next.getSize(), next.getCrc());
 
                             final String reference = meta.get(metadata);

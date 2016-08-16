@@ -31,6 +31,7 @@ import java.util.jar.Manifest;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.Streams;
+import org.fluidity.foundation.Strings;
 
 import org.codehaus.plexus.component.annotations.Component;
 
@@ -47,7 +48,7 @@ final class ArchivesSupportImpl implements ArchivesSupport {
                      final Logger log,
                      final Feed feed) throws IOException {
         for (File input; (input = feed.next()) != null; ) {
-            Archives.read(true, input.toURI().toURL(), (url, entry) -> {
+            Archives.read(input.toURI().toURL(), true, (url, entry) -> {
 
                 // read all entries except the MANIFEST
                 return !feed.include(entry) || entry.getName().equals(JarFile.MANIFEST_NAME) ? null : (_url, _entry, stream) -> {
@@ -59,7 +60,7 @@ final class ArchivesSupportImpl implements ArchivesSupport {
                         } else if (entryName.startsWith(Archives.META_INF) && entryName.toUpperCase().endsWith(".SF")) {
                             throw new IOException(String.format("JAR signatures not supported in %s", _url));
                         } else if (entryName.startsWith(ServiceProviders.LOCATION) && !_entry.isDirectory()) {
-                            final String[] list = Streams.load(stream, "UTF-8", buffer, false).split("[\n\r]+");
+                            final String[] list = Streams.load(stream, Strings.UTF_8, buffer).split("[\n\r]+");
                             final String[] present = providers.get(entryName);
 
                             if (present == null) {
@@ -99,12 +100,12 @@ final class ArchivesSupportImpl implements ArchivesSupport {
                 }
 
                 output.putNextEntry(new JarEntry(entryName));
-                Streams.store(output, contents.toString(), "UTF-8", buffer, false);
+                Streams.store(output, contents.toString(), Strings.UTF_8, buffer);
             }
         }
 
         for (File input; (input = feed.next()) != null; ) {
-            Archives.read(true, input.toURI().toURL(), (url, entry) -> {
+            Archives.read(input.toURI().toURL(), true, (url, entry) -> {
                 final String entryName = entry.getName();
 
                 final boolean done = copied.contains(entryName);
@@ -115,7 +116,7 @@ final class ArchivesSupportImpl implements ArchivesSupport {
                 return done || manifest || index || signature || !feed.include(entry) ? null : (_url, _entry, stream) -> {
                     copied.add(_entry.getName());
                     output.putNextEntry(_entry);
-                    Streams.copy(stream, output, buffer, false, false);
+                    Streams.pipe(stream, output, buffer);
 
                     return true;
                 };

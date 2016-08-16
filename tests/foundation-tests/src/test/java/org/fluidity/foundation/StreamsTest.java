@@ -18,9 +18,8 @@ package org.fluidity.foundation;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
+import java.util.stream.Stream;
 
 import org.fluidity.testing.Simulator;
 
@@ -33,57 +32,29 @@ public class StreamsTest extends Simulator {
 
     @Test
     public void testCopying() throws Exception {
-        final byte[] buffer = new byte[128];
-        final String original = "some rubbish to copy";
+        final String original = "some text to copy";
 
-        final ByteArrayOutputStream stream = Streams.copy(new ByteArrayInputStream(original.getBytes()), new ByteArrayOutputStream(), buffer, true, true);
+        try (final InputStream input = new ByteArrayInputStream(original.getBytes());
+             final ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            final String copy = new String(Streams.pipe(input, output, new byte[128]).toByteArray());
 
-        final String copy = new String(stream.toByteArray());
-        assert original.equals(copy) : copy;
+            assert original.equals(copy) : copy;
+        }
     }
 
     @Test
     public void testChainedCopying() throws Exception {
-        final byte[] buffer = new byte[128];
-        final String[] input = "Hello World!".split("\\b");
+        final String[] content = "This a sentence with several words in it".split("\\b");
 
-        final ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        final StringBuilder format = new StringBuilder();
+        final byte[] bytes = Stream
+                .of(content)
+                .reduce(new ByteArrayOutputStream(),
+                        (stream, text) -> Exceptions.wrap(() -> Streams.pipe(new ByteArrayInputStream(text.getBytes()), stream, new byte[128])),
+                        (stream, ignored) -> stream)
+                .toByteArray();
 
-        for (final String text : input) {
-            format.append("%s");
+        final String copy = new String(bytes);
 
-            Streams.copy(new ByteArrayInputStream(text.getBytes()), stream, buffer, true, false);
-        }
-
-        final String copy = new String(stream.toByteArray());
-        assert String.format(format.toString(), (Object[]) input).equals(copy) : copy;
-    }
-
-    @Test
-    public void testClosing() throws Exception {
-        final Closeable closeable = arguments().normal(Closeable.class);
-
-        final OutputStream output = new OutputStream() {
-            @Override
-            public void write(final int ignored) throws IOException {
-                assert false : "There was no input to copy";
-            }
-
-            @Override
-            public void close() throws IOException {
-                closeable.close();
-            }
-        };
-
-        final byte[] buffer = new byte[0];
-
-        verify((Task) () -> Streams.copy(new ByteArrayInputStream("".getBytes()), output, buffer, true, false));
-
-        test(() -> {
-            closeable.close();
-
-            verify((Task) () -> Streams.copy(new ByteArrayInputStream("".getBytes()), output, buffer, true, true));
-        });
+        assert String.join("", (CharSequence[]) content).equals(copy) : copy;
     }
 }

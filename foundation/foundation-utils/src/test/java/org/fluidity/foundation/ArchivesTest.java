@@ -72,7 +72,7 @@ public class ArchivesTest {
     @Test
     public void testFileNames() throws Exception {
         final URL url = ClassLoaders.findClassResource(getClass());
-        final File target = new File(URLDecoder.decode(url.getPath(), "UTF-8")).getParentFile();
+        final File target = new File(URLDecoder.decode(url.getPath(), Strings.UTF_8.name())).getParentFile();
 
         File[] files = null;
 
@@ -128,7 +128,7 @@ public class ArchivesTest {
             assert Archives.localFile(url(file.getAbsolutePath())).exists() : file;
 
             final String path = file.getParent();
-            if (URLDecoder.decode(path, "UTF-8").equals(path)) {
+            if (URLDecoder.decode(path, Strings.UTF_8.name()).equals(path)) {
                 assert Archives.localFile(url(String.format("%s%s%s", path, File.separator, encode(file.getName())))).exists() : file;
                 assert Archives.localFile(url(encode(file.getPath()))).exists() : file;
             }
@@ -150,6 +150,6 @@ public class ArchivesTest {
     }
 
     private String encode(final String text) throws UnsupportedEncodingException {
-        return URLEncoder.encode(text, "UTF-8");
+        return URLEncoder.encode(text, Strings.UTF_8.name());
     }
 }

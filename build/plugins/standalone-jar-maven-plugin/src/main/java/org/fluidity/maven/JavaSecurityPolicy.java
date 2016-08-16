@@ -19,6 +19,7 @@ package org.fluidity.maven;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,7 @@ import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Streams;
+import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.jarjar.Handler;
 
 /**
@@ -79,7 +81,7 @@ final class JavaSecurityPolicy implements SecurityPolicy {
     }
 
     private String entry(final File file) throws IOException {
-        return Archives.attributes(cached, file.toURI().toURL(), Archives.SECURITY_POLICY)[0];
+        return Archives.attributes(file.toURI().toURL(), cached, Archives.SECURITY_POLICY)[0];
     }
 
     public File archive() {
@@ -106,8 +108,8 @@ final class JavaSecurityPolicy implements SecurityPolicy {
         final String entry = entry(archive);
 
         if (entry != null) {
-            try {
-                final String content = Streams.load(Archives.open(cached, Archives.Nested.formatURL(url, entry)), "UTF-8", buffer, true);
+            try (final InputStream input = Archives.open(Archives.Nested.formatURL(url, entry), cached)) {
+                final String content = Streams.load(input, Strings.UTF_8, buffer);
 
                 if (!content.isEmpty()) {
                     final String file = archive.getName();

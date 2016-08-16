@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -164,7 +165,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
         final List<RemoteRepository> repositories = project.getRemoteProjectRepositories();
 
         try {
-            final Manifest manifest = Archives.manifest(false, packageFile.toURI().toURL());
+            final Manifest manifest = Archives.manifest(packageFile.toURI().toURL(), false);
 
             if (Archives.Nested.list(manifest).length > 0) {
                 throw new MojoExecutionException(String.format("Will not embed project artifact as it contains custom nested dependencies; configure the '%s' goal to follow this one", IncludeJarsMojo.name));
@@ -177,7 +178,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
             }
 
             final File file = createTempFile();
-            try (final JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(file))) {
+            try (final JarOutputStream output = new JarOutputStream(new FileOutputStream(file))) {
 
                 final String dependencyPath = Archives.META_INF.concat("/dependencies/");
                 final Collection<Artifact> compileDependencies = dependencies.compileDependencies(session, repositories, project, true);
@@ -378,15 +379,15 @@ public final class StandaloneJarMojo extends AbstractMojo {
                 });
 
                 // create the new manifest
-                outputStream.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
-                manifest.write(outputStream);
+                output.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
+                manifest.write(output);
 
                 policy.save((name, content) -> {
-                    outputStream.putNextEntry(new JarEntry(name));
-                    Streams.store(outputStream, content, "UTF-8", buffer, false);
+                    output.putNextEntry(new JarEntry(name));
+                    Streams.store(output, content, Strings.UTF_8, buffer);
                 });
 
-                archives.expand(outputStream, buffer, providerMap, new DependencyFeed(policy, unpackedDependencies));
+                archives.expand(output, buffer, providerMap, new DependencyFeed(policy, unpackedDependencies));
 
                 final String projectId = project.getArtifact().getId();
 
@@ -399,15 +400,15 @@ public final class StandaloneJarMojo extends AbstractMojo {
                         assert !dependency.isDirectory() : dependency;
 
                         final String entryName = inclusion.folder.concat(dependency.getName());
-                        outputStream.putNextEntry(new JarEntry(entryName));
+                        output.putNextEntry(new JarEntry(entryName));
 
                         if (artifact.getId().equals(projectId)) {
                             final URL url = dependency.toURI().toURL();
 
                             // got to check if our project artifact is something we have created in a previous run
                             // i.e., if it contains the project artifact we're about to copy
-                            final int processed = Archives.read(false, url, (_url, _entry) -> !entryName.equals(_entry.getName()) ? null : (__url, __entry, stream) -> {
-                                Streams.copy(stream, outputStream, buffer, true, false);
+                            final int processed = Archives.read(url, false, (_url, _entry) -> !entryName.equals(_entry.getName()) ? null : (__url, __entry, input) -> {
+                                Streams.pipe(input, output, buffer);
                                 return false;
                             });
 
@@ -416,7 +417,9 @@ public final class StandaloneJarMojo extends AbstractMojo {
                             }
                         }
 
-                        Streams.copy(new FileInputStream(dependency), outputStream, buffer, true, false);
+                        try (final InputStream input = new FileInputStream(dependency)) {
+                            Streams.pipe(input, output, buffer);
+                        }
                     }
                 }
             }

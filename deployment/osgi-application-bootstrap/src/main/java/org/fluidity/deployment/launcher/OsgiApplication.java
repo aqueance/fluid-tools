@@ -150,12 +150,12 @@ final class OsgiApplication implements Application {
         final String application = global.getProperty(APPLICATION_PROPERTIES);
         final Properties distribution = loadProperties(application == null
                                                        ? resource(APPLICATION_PROPERTIES)
-                                                       : Archives.open(cached, new URL(placeholders.interpolate(application, recursion))), defaults);
+                                                       : Archives.open(new URL(placeholders.interpolate(application, recursion)), cached), defaults);
 
         final String deployment = global.getProperty(DEPLOYMENT_PROPERTIES);
         final Properties properties = deployment == null
                                       ? distribution
-                                      : loadProperties(Archives.open(cached, new URL(placeholders.interpolate(deployment, recursion))), distribution);
+                                      : loadProperties(Archives.open(new URL(placeholders.interpolate(deployment, recursion)), cached), distribution);
 
         final Map<String, String> config = new HashMap<>();
 
@@ -182,13 +182,13 @@ final class OsgiApplication implements Application {
 
         final URL archive = Archives.containing(Archives.containing(getClass()));
 
-        for (final String list : Archives.Nested.list(cached, archive)) {
+        for (final String list : Archives.Nested.list(archive, cached)) {
             log.debug("Checking packaged archives '%s' in %s", list, archive);
 
             for (final URL url : Archives.Nested.dependencies(cached, archive, list)) {
 
                 // make sure to select only those archives that have an OSGi bundle symbolic name (it is a mandatory OSGi header)
-                if (Archives.attributes(cached, url, Constants.BUNDLE_SYMBOLICNAME)[0] != null) {
+                if (Archives.attributes(url, cached, Constants.BUNDLE_SYMBOLICNAME)[0] != null) {
                     jars.add(url);
                 }
             }

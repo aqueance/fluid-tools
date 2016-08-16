@@ -29,6 +29,7 @@ import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.ServiceProviders;
+import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.security.Security;
 
 /**
@@ -62,7 +63,7 @@ public final class WebApplicationBootstrap {
         final Class<? extends WebApplicationBootstrap> bootstrapClass = getClass();
         final String name = ClassLoaders.classResourceName(bootstrapClass);
         final ClassLoader bootstrapLoader = Security.invoke(bootstrapClass::getClassLoader);
-        final String bootUrl = URLDecoder.decode(bootstrapLoader.getResource(name).toExternalForm(), "UTF-8");
+        final String bootUrl = URLDecoder.decode(bootstrapLoader.getResource(name).toExternalForm(), Strings.UTF_8.name());
 
         final List<File> managedApps = new ArrayList<>();
 
@@ -122,7 +123,7 @@ public final class WebApplicationBootstrap {
 
                 final String bootEntry = String.format("%s/boot/", Archives.WEB_INF);
 
-                Archives.read(true, war, (url, entry) -> {
+                Archives.read(war, true, (url, entry) -> {
                     final String entryName = entry.getName();
                     final boolean matches = entryName.startsWith(bootEntry) && !entryName.equals(bootEntry);
 

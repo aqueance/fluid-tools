@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,6 +41,7 @@ import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Streams;
+import org.fluidity.foundation.Strings;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Profile;
@@ -143,11 +145,11 @@ public final class IncludeJarsMojo extends AbstractMojo {
         try {
             final File file = createTempFile();
 
-            try (final JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(file))) {
+            try (final JarOutputStream output = new JarOutputStream(new FileOutputStream(file))) {
                 final Map<String, Collection<Artifact>> dependencyMap = new LinkedHashMap<>();
 
                 final URL packageURL = packageFile.toURI().toURL();
-                final Manifest manifest = Archives.manifest(false, packageURL);
+                final Manifest manifest = Archives.manifest(packageURL, false);
                 final Attributes mainAttributes = manifest.getMainAttributes();
 
                 for (final Profile profile : project.getModel().getProfiles()) {
@@ -238,18 +240,18 @@ public final class IncludeJarsMojo extends AbstractMojo {
                     });
 
                     // create the new manifest
-                    outputStream.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
-                    manifest.write(outputStream);
+                    output.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
+                    manifest.write(output);
 
                     policy.save((name, content) -> {
-                        outputStream.putNextEntry(new JarEntry(name));
-                        Streams.store(outputStream, content, "UTF-8", buffer, false);
+                        output.putNextEntry(new JarEntry(name));
+                        Streams.store(output, content, Strings.UTF_8, buffer);
                     });
 
                     final String policyName = policy.name(packageFile);
 
                     // copy the original archive, excluding entries from our dependency paths
-                    Archives.read(false, packageURL, (url, entry) -> {
+                    Archives.read(packageURL, false, (url, entry) -> {
                         final String name = entry.getName();
 
                         if (name.equals(JarFile.MANIFEST_NAME) || name.equals(ArchivesSupport.META_INF)) {
@@ -262,9 +264,9 @@ public final class IncludeJarsMojo extends AbstractMojo {
                             }
                         }
 
-                        return name.equals(policyName) ? null : (_url, _entry, stream) -> {
-                            outputStream.putNextEntry(new JarEntry(_entry.getName()));
-                            Streams.copy(stream, outputStream, buffer, false, false);
+                        return name.equals(policyName) ? null : (_url, _entry, input) -> {
+                            output.putNextEntry(new JarEntry(_entry.getName()));
+                            Streams.pipe(input, output, buffer);
                             return true;
                         };
                     });
@@ -276,8 +278,11 @@ public final class IncludeJarsMojo extends AbstractMojo {
                         for (final Artifact artifact : entry.getValue()) {
                             final File dependency = artifact.getFile();
 
-                            outputStream.putNextEntry(new JarEntry(dependencyPath.concat(dependency.getName())));
-                            Streams.copy(new FileInputStream(dependency), outputStream, buffer, true, false);
+                            output.putNextEntry(new JarEntry(dependencyPath.concat(dependency.getName())));
+
+                            try (final InputStream input = new FileInputStream(dependency)) {
+                                Streams.pipe(input, output, buffer);
+                            }
                         }
                     }
 

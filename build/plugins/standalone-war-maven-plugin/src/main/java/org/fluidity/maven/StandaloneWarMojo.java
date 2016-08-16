@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -191,7 +192,7 @@ public final class StandaloneWarMojo extends AbstractMojo {
                 public File next() throws IOException {
                     if (iterator.hasNext()) {
                         final File file = iterator.next().getFile();
-                        mainClass.compareAndSet(null, Archives.attributes(false, file.toURI().toURL(), Attributes.Name.MAIN_CLASS.toString())[0]);
+                        mainClass.compareAndSet(null, Archives.attributes(file.toURI().toURL(), false, Attributes.Name.MAIN_CLASS.toString())[0]);
                         return file;
                     } else {
                         return null;
@@ -204,7 +205,7 @@ public final class StandaloneWarMojo extends AbstractMojo {
             });
 
             final File file = createTempFile();
-            try (final JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(file))) {
+            try (final JarOutputStream output = new JarOutputStream(new FileOutputStream(file))) {
                 if (mainClass.get() == null) {
                     throw new MojoExecutionException(String.format("None of the following dependencies specified a main class (manifest entry '%s'): %s",
                                                                    Attributes.Name.MAIN_CLASS,
@@ -220,7 +221,7 @@ public final class StandaloneWarMojo extends AbstractMojo {
 
                 final String bootDirectory = Archives.WEB_INF.concat("/boot/");
 
-                final Manifest manifest = Archives.manifest(false, packageFile.toURI().toURL());
+                final Manifest manifest = Archives.manifest(packageFile.toURI().toURL(), false);
                 final Attributes mainAttributes = manifest.getMainAttributes();
 
                 if (mainAttributes.getValue(Attributes.Name.MAIN_CLASS) != null) {
@@ -233,10 +234,10 @@ public final class StandaloneWarMojo extends AbstractMojo {
 
                 archives.include(attributesMap, manifest);
 
-                outputStream.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
-                manifest.write(outputStream);
+                output.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
+                manifest.write(output);
 
-                archives.expand(outputStream, buffer, providerMap, new ArchivesSupport.Feed() {
+                archives.expand(output, buffer, providerMap, new ArchivesSupport.Feed() {
                     private final Iterator<Artifact> iterator = bootstrapDependencies.iterator();
                     private final AtomicReference<Boolean> last = new AtomicReference<>(false);
 
@@ -264,8 +265,11 @@ public final class StandaloneWarMojo extends AbstractMojo {
                             throw new MojoExecutionException(String.format("Dependency %s not found (tried: %s)", artifact, dependency));
                         }
 
-                        outputStream.putNextEntry(new JarEntry(bootDirectory + dependency.getName()));
-                        Streams.copy(new FileInputStream(dependency), outputStream, buffer, true, false);
+                        output.putNextEntry(new JarEntry(bootDirectory + dependency.getName()));
+
+                        try (final InputStream input = new FileInputStream(dependency)) {
+                            Streams.pipe(input, output, buffer);
+                        }
                     }
                 }
             }

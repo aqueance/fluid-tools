@@ -88,7 +88,7 @@ public final class Launcher {
             final URL url;
             final String[] arguments;
 
-            if (Archives.attributes(true, root, START_CLASS)[0] == null && args.length > 0 && args[0].startsWith(URL_PARAM)) {
+            if (Archives.attributes(root, true, START_CLASS)[0] == null && args.length > 0 && args[0].startsWith(URL_PARAM)) {
                 final String parameter = args[0].substring(URL_PARAM.length());
 
                 try {
@@ -104,7 +104,7 @@ public final class Launcher {
                 arguments = args;
             }
 
-            final String[] attributes = Archives.attributes(true, url, MAIN_CLASS, START_CLASS);
+            final String[] attributes = Archives.attributes(url, true, MAIN_CLASS, START_CLASS);
             final String main = attributes[attributes[1] == null ? 0 : 1];
 
             if (main == null || main.equals(me.getName())) {

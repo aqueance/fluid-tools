@@ -183,7 +183,7 @@ public final class ServiceProviders extends Utility {
 
                 final Collection<Class<T>> localList = new LinkedHashSet<>();
 
-                try (final BufferedReader reader = new BufferedReader(new InputStreamReader(Archives.open(true, url), "UTF-8"))) {
+                try (final BufferedReader reader = new BufferedReader(new InputStreamReader(Archives.open(url, true), Strings.UTF_8))) {
                     String content;
 
                     while ((content = reader.readLine()) != null) {

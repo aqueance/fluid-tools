@@ -55,6 +55,7 @@ import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Proxies;
+import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.security.Security;
 
 import static org.fluidity.foundation.Command.Operation;
@@ -235,7 +236,7 @@ public class URLClassLoader extends SecureClassLoader {
         Permission permission;
 
         try {
-            permission = Archives.connection(true, url).getPermission();
+            permission = Archives.connect(url, true).getPermission();
         } catch (final IOException e) {
             permission = null;
         }
@@ -249,7 +250,7 @@ public class URLClassLoader extends SecureClassLoader {
         }  else if (permission == null) {
             if (Archives.FILE.equals(url.getProtocol())) {
                 try {
-                    final String path = URLDecoder.decode(url.getPath().replace('/', File.separatorChar), "UTF-8");
+                    final String path = URLDecoder.decode(url.getPath().replace('/', File.separatorChar), Strings.UTF_8.name());
                     permission = new FilePermission(path.endsWith(File.separator) ? path.concat("-") : path, FILE_ACCESS);
                 } catch (final UnsupportedEncodingException e) {
                     assert false : e;

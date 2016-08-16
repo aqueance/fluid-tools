@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,7 +40,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-@SuppressWarnings({ "unchecked", "ResultOfMethodCallIgnored" })
+@SuppressWarnings({ "unchecked", "ResultOfMethodCallIgnored", "WeakerAccess" })
 public class ComponentDiscoveryImplTest {
 
     private static final String SERVICES = String.format("%s/%s/", Archives.META_INF, ServiceProviders.TYPE);
@@ -132,10 +133,11 @@ public class ComponentDiscoveryImplTest {
         outputFile.delete();
         outputFile.createNewFile();
 
-        final InputStream input = ClassLoaders.readClassResource(impl);
-        assert input != null : fileName;
-
-        Streams.copy(input, new FileOutputStream(outputFile), new byte[1024], true, true);
+        try (final InputStream input = ClassLoaders.readClassResource(impl);
+             final OutputStream output = new FileOutputStream(outputFile)) {
+            assert input != null : fileName;
+            Streams.pipe(input, output, new byte[1024]);
+        }
     }
 
     private void deleteDirectory(final File rootDir, final List<File> fileList) {

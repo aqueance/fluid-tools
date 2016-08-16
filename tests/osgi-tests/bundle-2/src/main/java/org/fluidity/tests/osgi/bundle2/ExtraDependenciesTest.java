@@ -56,8 +56,8 @@ public final class ExtraDependenciesTest implements BundleTest {
         assert !nested.isEmpty() : NESTED;
 
         for (final URL url : nested) {
-            assert Archives.manifest(true, url) != null : url;
-            assert !Archives.manifest(true, url).getMainAttributes().isEmpty() : url;
+            assert Archives.manifest(url, true) != null : url;
+            assert !Archives.manifest(url, true).getMainAttributes().isEmpty() : url;
         }
     }
 

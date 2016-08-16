@@ -22,6 +22,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import org.fluidity.foundation.security.Security;
@@ -32,6 +34,9 @@ import org.fluidity.foundation.security.Security;
  * @author Tibor Varga
  */
 public final class Strings extends Utility {
+
+    public static final Charset UTF_8 = StandardCharsets.UTF_8;
+    public static final Charset ASCII = StandardCharsets.US_ASCII;
 
     private Strings() { }
 
