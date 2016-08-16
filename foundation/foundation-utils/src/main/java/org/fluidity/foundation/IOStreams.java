@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.util.function.Consumer;
 
 /**
  * General I/O stream related convenience methods.
@@ -33,6 +32,26 @@ import java.util.function.Consumer;
 public final class IOStreams extends Utility {
 
     private IOStreams() { }
+
+    /**
+     * Sends the contents of input stream to the consumer. Neither stream will be closed; use the try-with-resource construct to close them automatically.
+     *
+     * @param input    the input stream to copy data from.
+     * @param buffer   the buffer to use.
+     * @param output the consumer to send data to; the data is sent in the specified buffer, and the consumer receives the number of content bytes in that
+     *                 buffer.
+     *
+     * @return the input stream.
+     *
+     * @throws IOException thrown when reading fails.
+     */
+    public static InputStream send(final InputStream input, final byte[] buffer, final Output output) throws IOException {
+        for (int len; (len = input.read(buffer)) != -1; ) {
+            output.write(buffer, 0, len);
+        }
+
+        return input;
+    }
 
     /**
      * Fully copies the contents of one stream into another. Neither stream will be closed; use the try-with-resource construct to close them automatically.
@@ -47,31 +66,8 @@ public final class IOStreams extends Utility {
      * @throws IOException thrown when reading or writing fails.
      */
     public static <T extends OutputStream> T pipe(final InputStream input, final T output, final byte[] buffer) throws IOException {
-        int len;
-
-        while ((len = input.read(buffer)) != -1) {
-            output.write(buffer, 0, len);
-        }
-
+        send(input, buffer, (Output) output::write);        // Java compiler 1.8.0_101 chokes if this method reference is not cast
         return output;
-    }
-
-    /**
-     * Sends the contents of input stream to the consumer. Neither stream will be closed; use the try-with-resource construct to close them automatically.
-     *
-     * @param input    the input stream to copy data from.
-     * @param buffer   the buffer to use.
-     * @param consumer the consumer to send data to; the data is sent in the specified buffer, and the consumer receives the number of content bytes in that
-     *                 buffer.
-     *
-     * @throws IOException thrown when reading fails.
-     */
-    public static void send(final InputStream input, final byte[] buffer, final Consumer<Integer> consumer) throws IOException {
-        int len;
-
-        while ((len = input.read(buffer)) != -1) {
-            consumer.accept(len);
-        }
     }
 
     /**
@@ -113,10 +109,12 @@ public final class IOStreams extends Utility {
      * @param data   the contents to save; may not be <code>null</code>.
      * @param buffer the buffer to use; may not be <code>null</code>.
      *
+     * @return the output stream.
+     *
      * @throws IOException thrown when writing fails.
      */
-    public static void store(final OutputStream stream, final byte[] data, final byte[] buffer) throws IOException {
-        IOStreams.pipe(new ByteArrayInputStream(data), stream, buffer);
+    public static OutputStream store(final OutputStream stream, final byte[] data, final byte[] buffer) throws IOException {
+        return IOStreams.pipe(new ByteArrayInputStream(data), stream, buffer);
     }
 
     /**
@@ -128,9 +126,26 @@ public final class IOStreams extends Utility {
      * @param charset the character set of the <code>text</code>; may not be <code>null</code>.
      * @param buffer  the buffer to use; may not be <code>null</code>.
      *
+     * @return the output stream.
+     *
      * @throws IOException thrown when writing fails.
      */
-    public static void store(final OutputStream stream, final String text, final Charset charset, final byte[] buffer) throws IOException {
-        IOStreams.store(stream, text.getBytes(charset), buffer);
+    public static OutputStream store(final OutputStream stream, final String text, final Charset charset, final byte[] buffer) throws IOException {
+        return IOStreams.store(stream, text.getBytes(charset), buffer);
+    }
+
+    /**
+     * Byte array sink.
+     */
+    public interface Output {
+
+        /**
+         * Consumes contents of a byte array.
+         *
+         * @param bytes the byte array.
+         * @param from  the starting index of the consumable content.
+         * @param count the length of the consumable content.
+         */
+        void write(byte[] bytes, int from, int count) throws IOException;
     }
 }
