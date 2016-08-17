@@ -24,7 +24,6 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>fluid-tools-osgi-bundle</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Fluid Tools: Complete OSGi Bundle</name>
 
@@ -52,32 +51,32 @@ Tools available through parent class loaders.
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.public.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>fluid-tools-generic-application</artifactId>
             <version>${project.version}</version>
             <type>pom</type>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>osgi-bundle-bootstrap-local</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>osgi-bundle-bootstrap-shared</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>composition-bootstrap-support</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>osgi-composition-api</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -24,7 +24,6 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>archetypes</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Archetype: Maven Archetype Modules</name>
 

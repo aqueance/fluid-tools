@@ -36,7 +36,7 @@ limitations under the License.
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.public.groupId}</groupId>
+            <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
             <artifactId>fluid-tools-web-application</artifactId>
             <version>${symbol_dollar}{fluid.tools.version}</version>
             <type>pom</type>
@@ -48,13 +48,13 @@ limitations under the License.
         <plugins>
 
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
+                <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
             </plugin>
 
 
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
+                <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
                 <artifactId>standalone-war-maven-plugin</artifactId>
                 <version>${symbol_dollar}{fluid.tools.version}</version>
 
@@ -73,7 +73,7 @@ limitations under the License.
                 <dependencies>
 
                     <dependency>
-                        <groupId>${fluidity.deployment.groupId}</groupId>
+                        <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
                         <artifactId>war-bootstrap-jetty-impl</artifactId>
                         <version>${symbol_dollar}{fluid.tools.version}</version>
 
@@ -89,7 +89,7 @@ limitations under the License.
 
 <!-- Uncomment and modify to make available to the application a suitable logging framework.
                     <dependency>
-                        <groupId>${fluidity.features.groupId}</groupId>
+                        <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
                         <artifactId>logging-commons-impl</artifactId>
                         <version>${symbol_dollar}{fluid.tools.version}</version>
                     </dependency>

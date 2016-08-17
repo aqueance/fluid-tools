@@ -29,7 +29,7 @@ limitations under the License.
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.plugin.groupId}</groupId>
+            <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
             <artifactId>fluid-tools-component-api</artifactId>
             <version>${symbol_dollar}{fluid.tools.version}</version>
             <type>pom</type>

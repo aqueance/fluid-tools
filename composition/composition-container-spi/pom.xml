@@ -24,7 +24,6 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>composition-container-spi</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Composition: Container SPI</name>
 
@@ -39,13 +38,13 @@
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>composition-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>foundation-api</artifactId>
             <version>${project.version}</version>
         </dependency>

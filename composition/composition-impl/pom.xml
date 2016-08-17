@@ -24,7 +24,6 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>composition-impl</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Composition: Composition Implementation</name>
 
@@ -39,32 +38,32 @@
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>composition-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>foundation-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>foundation-utils</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>composition-command-line-impl</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.public.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>fluid-tools-boundary-api</artifactId>
             <version>${project.version}</version>
             <type>pom</type>
@@ -72,35 +71,35 @@
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>foundation-impl</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>composition-container-support-impl</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>composition-container-simple-impl</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.public.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>logging-sink-impl</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>foundation-easymock</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
@@ -111,7 +110,7 @@
         <plugins>
 
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
+                <groupId>${fluidity.groupId}</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
 
                 <executions>

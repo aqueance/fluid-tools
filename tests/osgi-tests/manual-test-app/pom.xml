@@ -25,7 +25,6 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.platform.tests.osgi</groupId>
     <artifactId>manual-test-app</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>OSGi Tests: Manual Test Application</name>
 
@@ -112,7 +111,7 @@
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.public.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>fluid-tools-osgi-application</artifactId>
             <version>${project.version}</version>
             <type>pom</type>
@@ -146,7 +145,7 @@
 
             <dependencies>
                 <dependency>
-                    <groupId>${fluidity.features.groupId}</groupId>
+                    <groupId>${fluidity.groupId}</groupId>
                     <artifactId>logging-sink-impl</artifactId>
                     <version>${project.version}</version>
                 </dependency>
@@ -218,12 +217,12 @@
         <plugins>
 
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
+                <groupId>${fluidity.groupId}</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
             </plugin>
 
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
+                <groupId>${fluidity.groupId}</groupId>
                 <artifactId>standalone-jar-maven-plugin</artifactId>
 
                 <configuration>
@@ -236,7 +235,7 @@
 
                 <dependencies>
                     <dependency>
-                        <groupId>${fluidity.features.groupId}</groupId>
+                        <groupId>${fluidity.groupId}</groupId>
                         <artifactId>jar-manifest-command-launcher-impl</artifactId>
                         <version>${project.version}</version>
                     </dependency>

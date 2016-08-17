@@ -29,7 +29,7 @@ limitations under the License.
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.public.groupId}</groupId>
+            <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
             <artifactId>fluid-tools-cli-application</artifactId>
             <version>${symbol_dollar}{fluid.tools.version}</version>
             <type>pom</type>
@@ -37,7 +37,7 @@ limitations under the License.
 
 <!-- Uncomment and modify to make available to the application a suitable logging framework.
         <dependency>
-            <groupId>${fluidity.features.groupId}</groupId>
+            <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
             <artifactId>logging-commons-impl</artifactId>
             <version>${symbol_dollar}{fluid.tools.version}</version>
         </dependency>
@@ -55,12 +55,12 @@ limitations under the License.
         <plugins>
 
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
+                <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
             </plugin>
 
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
+                <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
                 <artifactId>standalone-jar-maven-plugin</artifactId>
 
 <!-- Uncomment this to produce a new artifact with the given classifier instead of overwriting the project artifact.
@@ -71,7 +71,7 @@ limitations under the License.
 
                 <dependencies>
                     <dependency>
-                        <groupId>${fluidity.features.groupId}</groupId>
+                        <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
                         <artifactId>jar-manifest-command-launcher-impl</artifactId>
                         <version>${symbol_dollar}{fluid.tools.version}</version>
                     </dependency>

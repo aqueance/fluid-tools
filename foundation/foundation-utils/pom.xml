@@ -24,7 +24,6 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>foundation-utils</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Foundation: Core Utilities</name>
 
@@ -43,7 +42,7 @@ Lowest level utility classes.
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>foundation-security</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -63,7 +63,7 @@ limitations under the License.
 -->
 
                 <dependency>
-                    <groupId>${fluidity.public.groupId}</groupId>
+                    <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
                     <artifactId>fluid-tools-osgi-bundle</artifactId>
                     <version>${symbol_dollar}{fluid.tools.version}</version>
                     <type>pom</type>
@@ -71,7 +71,7 @@ limitations under the License.
 
 <!-- Uncomment and modify to make available to the bundle a suitable logging framework.
                 <dependency>
-                    <groupId>${fluidity.features.groupId}</groupId>
+                    <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
                     <artifactId>logging-commons-impl</artifactId>
                     <version>${symbol_dollar}{fluid.tools.version}</version>
                 </dependency>
@@ -99,7 +99,7 @@ limitations under the License.
 
                     <exclusions>
                         <exclusion>
-                            <groupId>${fluidity.public.groupId}</groupId>
+                            <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
                             <artifactId>fluid-tools-component-api</artifactId>
                         </exclusion>
                     </exclusions>
@@ -107,7 +107,7 @@ limitations under the License.
 -->
 
                 <dependency>
-                    <groupId>${fluidity.public.groupId}</groupId>
+                    <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
                     <artifactId>fluid-tools-osgi-bundle</artifactId>
                     <version>${symbol_dollar}{fluid.tools.version}</version>
                     <type>pom</type>
@@ -115,7 +115,7 @@ limitations under the License.
                 </dependency>
 
                 <dependency>
-                    <groupId>${fluidity.deployment.groupId}</groupId>
+                    <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
                     <artifactId>osgi-bundle-bootstrap-local</artifactId>
                     <version>${symbol_dollar}{fluid.tools.version}</version>
                 </dependency>
@@ -127,7 +127,7 @@ limitations under the License.
         <plugins>
 
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
+                <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
             </plugin>
 
@@ -148,7 +148,7 @@ limitations under the License.
             </plugin>
 
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
+                <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
                 <artifactId>standalone-jar-maven-plugin</artifactId>
 
 <!-- Comment out to overwrite the original artifact rather than creating a new one with the given classifier. -->
@@ -158,7 +158,7 @@ limitations under the License.
 
                 <dependencies>
                     <dependency>
-                        <groupId>${fluidity.features.groupId}</groupId>
+                        <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
                         <artifactId>jar-manifest-osgi-bundle-impl</artifactId>
                         <version>${symbol_dollar}{fluid.tools.version}</version>
                     </dependency>

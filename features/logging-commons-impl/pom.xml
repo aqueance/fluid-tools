@@ -24,7 +24,6 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>logging-commons-impl</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Fluid Tools: Commons Logging Implementation</name>
 
@@ -44,19 +43,19 @@ containing top level application wrappers that wish to use Apache Commons Loggin
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>foundation-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>composition-api</artifactId>
             <version>${project.version}</version>
 
             <exclusions>
                 <exclusion>
-                    <groupId>${fluidity.foundation.groupId}</groupId>
+                    <groupId>${fluidity.groupId}</groupId>
                     <artifactId>foundation-utils</artifactId>
                 </exclusion>
             </exclusions>
@@ -75,7 +74,7 @@ containing top level application wrappers that wish to use Apache Commons Loggin
         <plugins>
 
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
+                <groupId>${fluidity.groupId}</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
             </plugin>
 

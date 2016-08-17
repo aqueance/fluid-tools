@@ -24,7 +24,6 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>fluid-tools-generic-application</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Fluid Tools: Generic Deployment</name>
 
@@ -44,7 +43,7 @@ containing application wrappers other than command line, web or enterprise appli
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.public.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>fluid-tools-bootstrap</artifactId>
             <version>${project.version}</version>
             <type>pom</type>

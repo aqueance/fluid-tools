@@ -24,7 +24,6 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>logging-jmx</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Fluid Tools: Logging Management with JMX</name>
 
@@ -44,19 +43,19 @@ that use JMX to dynamically change log levels at run time.
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>foundation-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>composition-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>foundation-easymock</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
@@ -68,7 +67,7 @@ that use JMX to dynamically change log levels at run time.
         <plugins>
 
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
+                <groupId>${fluidity.groupId}</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
             </plugin>
 

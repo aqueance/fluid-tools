@@ -25,7 +25,6 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.platform.tests.osgi</groupId>
     <artifactId>bundle-2</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>OSGi Tests: Bundle 2</name>
 
@@ -46,7 +45,7 @@
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.public.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>fluid-tools-tests</artifactId>
             <version>${project.version}</version>
             <type>pom</type>
@@ -68,7 +67,7 @@
 
             <dependencies>
                 <dependency>
-                    <groupId>${fluidity.public.groupId}</groupId>
+                    <groupId>${fluidity.groupId}</groupId>
                     <artifactId>fluid-tools-osgi-bundle</artifactId>
                     <version>${project.version}</version>
                     <type>pom</type>
@@ -82,7 +81,7 @@
 
             <dependencies>
                 <dependency>
-                    <groupId>${fluidity.public.groupId}</groupId>
+                    <groupId>${fluidity.groupId}</groupId>
                     <artifactId>fluid-tools-osgi-bundle</artifactId>
                     <version>${project.version}</version>
                     <type>pom</type>
@@ -90,7 +89,7 @@
                 </dependency>
 
                 <dependency>
-                    <groupId>${fluidity.deployment.groupId}</groupId>
+                    <groupId>${fluidity.groupId}</groupId>
                     <artifactId>osgi-bundle-bootstrap-local</artifactId>
                     <version>${project.version}</version>
                 </dependency>
@@ -134,7 +133,7 @@
         <plugins>
 
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
+                <groupId>${fluidity.groupId}</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
                 <executions>
                     <execution>
@@ -180,7 +179,7 @@
             </plugin>
 
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
+                <groupId>${fluidity.groupId}</groupId>
                 <artifactId>standalone-jar-maven-plugin</artifactId>
                 <version>${project.version}</version>
 
@@ -194,7 +193,7 @@
 
                 <dependencies>
                     <dependency>
-                        <groupId>${fluidity.features.groupId}</groupId>
+                        <groupId>${fluidity.groupId}</groupId>
                         <artifactId>jar-manifest-osgi-bundle-impl</artifactId>
                         <version>${project.version}</version>
                     </dependency>

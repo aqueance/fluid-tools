@@ -24,7 +24,6 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>standalone-war-maven-plugin</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>Build Plugins: Standalone WAR</name>
 
@@ -49,7 +48,7 @@ Jetty server bootstrap, add the following dependency to the plugin in your
 project:
 
 &lt;dependency>
-    &lt;groupId>org.fluidity.deployment&lt;/groupId>
+    &lt;groupId>org.fluidity.platform&lt;/groupId>
     &lt;artifactId>war-bootstrap-jetty-impl&lt;/artifactId>
     &lt;version>${fluid.tools.version}&lt;/version>
 &lt;/dependency>
@@ -101,13 +100,13 @@ above.
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>maven-plugin-support</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>war-bootstrap</artifactId>
             <version>${project.version}</version>
         </dependency>

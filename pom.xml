@@ -52,12 +52,6 @@
         <javadoc.version>${java.specification.version}</javadoc.version>
 
         <fluidity.groupId>org.fluidity.platform</fluidity.groupId>
-        <fluidity.foundation.groupId>${fluidity.groupId}</fluidity.foundation.groupId>
-        <fluidity.composition.groupId>${fluidity.groupId}</fluidity.composition.groupId>
-        <fluidity.deployment.groupId>${fluidity.groupId}</fluidity.deployment.groupId>
-        <fluidity.plugin.groupId>${fluidity.groupId}</fluidity.plugin.groupId>
-        <fluidity.features.groupId>${fluidity.groupId}</fluidity.features.groupId>
-        <fluidity.public.groupId>${fluidity.groupId}</fluidity.public.groupId>
     </properties>
 
     <licenses>
@@ -408,7 +402,7 @@
                 </plugin>
 
                 <plugin>
-                    <groupId>${fluidity.plugin.groupId}</groupId>
+                    <groupId>${fluidity.groupId}</groupId>
                     <artifactId>composition-maven-plugin</artifactId>
                     <version>${project.version}</version>
                     <executions>
@@ -419,7 +413,7 @@
                 </plugin>
 
                 <plugin>
-                    <groupId>${fluidity.plugin.groupId}</groupId>
+                    <groupId>${fluidity.groupId}</groupId>
                     <artifactId>standalone-jar-maven-plugin</artifactId>
                     <version>${project.version}</version>
                     <executions>

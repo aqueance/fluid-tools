@@ -24,9 +24,8 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>osgi-application-bootstrap-spi</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Deployment: ISGi Bootstrap SPI</name>
+    <name>Deployment: OSGi Bootstrap SPI</name>
 
     <licenses>
         <license>
@@ -39,7 +38,7 @@
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>composition-api</artifactId>
             <version>${project.version}</version>
         </dependency>

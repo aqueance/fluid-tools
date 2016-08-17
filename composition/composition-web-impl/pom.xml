@@ -24,7 +24,6 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>composition-web-impl</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Composition: Web Components</name>
 
@@ -51,13 +50,13 @@ WebApplicationLifecycleListener to be registered as a listener in the host appli
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>foundation-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>composition-bootstrap-support</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -73,7 +72,7 @@ WebApplicationLifecycleListener to be registered as a listener in the host appli
         <plugins>
 
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
+                <groupId>${fluidity.groupId}</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
             </plugin>
 

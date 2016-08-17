@@ -24,7 +24,6 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>logging-sink-impl</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Fluid Tools: Log Sink Implementation</name>
 
@@ -44,19 +43,19 @@ to eliminate log messages from tested classes.
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>foundation-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>composition-api</artifactId>
             <version>${project.version}</version>
 
             <exclusions>
                 <exclusion>
-                    <groupId>${fluidity.foundation.groupId}</groupId>
+                    <groupId>${fluidity.groupId}</groupId>
                     <artifactId>foundation-utils</artifactId>
                 </exclusion>
             </exclusions>
@@ -68,7 +67,7 @@ to eliminate log messages from tested classes.
         <plugins>
 
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
+                <groupId>${fluidity.groupId}</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
             </plugin>
 

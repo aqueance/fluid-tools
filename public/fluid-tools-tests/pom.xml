@@ -24,7 +24,6 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>fluid-tools-tests</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Fluid Tools: Testing Support</name>
 
@@ -44,19 +43,19 @@ that make use of Fluid Tools testing support classes.
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>foundation-easymock</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>foundation-test-support</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.features.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>logging-sink-impl</artifactId>
             <version>${project.version}</version>
         </dependency>

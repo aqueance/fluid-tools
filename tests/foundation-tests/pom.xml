@@ -24,7 +24,6 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>foundation-tests</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <name>Internal Tests: Foundation</name>
 
     <!-- we configure the build cycle ourselves: see the build/plugins section -->
@@ -41,35 +40,35 @@
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>foundation-utils</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>foundation-easymock</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.features.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>foundation-scheduling-impl</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.features.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>logging-sink-impl</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.public.groupId}</groupId>
+            <groupId>${fluidity.groupId}</groupId>
             <artifactId>fluid-tools-cli-application</artifactId>
             <version>${project.version}</version>
             <type>pom</type>
@@ -82,7 +81,7 @@
         <plugins>
 
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
+                <groupId>${fluidity.groupId}</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
                 <executions>
                     <execution>

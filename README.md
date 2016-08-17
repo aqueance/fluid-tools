@@ -48,7 +48,7 @@ Dependency injection as conceived and implemented in Fluid Tools is *not compati
   1. **Statelessness**: CDI assumes that the creation of transient and stateful components is the rule, and stability and statelessness are the exception. We, on the other hand, promote a design where the application is held together by a relatively static graph of stateless components, and application logic is expressed in terms of data flowing through that component graph. Thus in Fluid Tools, the instantiation of stateless, stable components is the rule, and transient or stateful components are the exception.
   1. **Terminology**: Beans are roasted, ground, and then soaked in hot water to extract caffeine from. Components are… not?
 
-### Getting the Code
+### Getting the Source Code
 
 The sources for these libraries can be downloaded using [Git](https://git-scm.com/downloads) like so:
 
@@ -56,7 +56,7 @@ The sources for these libraries can be downloaded using [Git](https://git-scm.co
 $ git clone https://github.cob/aqueance/fluid-tools.git fluid-tools
 ```
 
-**NOTE**: This is work in progress hence no release versions or downloads are available yet and some APIs may still change.
+**NOTE**: This is work in progress, expect the API to change without notice.
 
 ### Building Fluid Tools
 
@@ -81,8 +81,12 @@ Once that command completes, the documentation starting page will be `target/sit
 
 ### Documentation
 
-A short [Getting Started guide](https://github.com/aqueance/fluid-tools/wiki/Getting-Started) is provided to get you started with Fluid Tools, while the [User Guide](https://github.com/aqueance/fluid-tools/wiki/User-Guide---Introduction) covers the full spectrum of what you can do with Fluid Tools.
+A short [Getting Started] guide is provided to get you started with Fluid Tools, while the [User Guide] covers the full spectrum of what you can do with Fluid Tools.
 
 ### History
 
-The brief history and context for this project are described on our wiki [home page](https://github.com/aqueance/fluid-tools/wiki/Home).
+The brief history and context for this project are described on our wiki [Home] page.
+
+  [Getting Started]: https://github.com/aqueance/fluid-tools/wiki/Getting-Started
+  [User Guide]: https://github.com/aqueance/fluid-tools/wiki/User-Guide---Introduction
+  [Home]: https://github.com/aqueance/fluid-tools/wiki/Home

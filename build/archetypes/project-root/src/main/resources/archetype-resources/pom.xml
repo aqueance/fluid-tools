@@ -31,6 +31,7 @@ limitations under the License.
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <fluid.tools.groupId>${fluidity.groupId}</fluid.tools.groupId>
         <fluid.tools.version>${project.version}</fluid.tools.version>
         <osgi.specification.version>${osgi.specification.version}</osgi.specification.version>
         <osgi.import.core>org.osgi.framework;version=1.4</osgi.import.core>
@@ -46,7 +47,7 @@ limitations under the License.
     </distributionManagement>
 -->
 
-    #set( $symbol_dollar = '$' )
+#set( $symbol_dollar = '$' )
     <build>
         <defaultGoal>package</defaultGoal>
 
@@ -92,7 +93,7 @@ limitations under the License.
                 </plugin>
 
                 <plugin>
-                    <groupId>${fluidity.plugin.groupId}</groupId>
+                    <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
                     <artifactId>composition-maven-plugin</artifactId>
                     <version>${symbol_dollar}{fluid.tools.version}</version>
 
@@ -104,7 +105,7 @@ limitations under the License.
                 </plugin>
 
                 <plugin>
-                    <groupId>${fluidity.plugin.groupId}</groupId>
+                    <groupId>${symbol_dollar}{fluid.tools.groupId}</groupId>
                     <artifactId>standalone-jar-maven-plugin</artifactId>
                     <version>${symbol_dollar}{fluid.tools.version}</version>
 
