@@ -36,6 +36,8 @@
         </license>
     </licenses>
 
+    <description>Fluid Tools archetype for an API module.</description>
+
     <build>
         <plugins>
 

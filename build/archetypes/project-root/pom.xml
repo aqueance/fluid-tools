@@ -36,6 +36,8 @@
         </license>
     </licenses>
 
+    <description>Fluid Tools archetype for the root module of a multi-module (sub)project.</description>
+
     <build>
 
         <resources>

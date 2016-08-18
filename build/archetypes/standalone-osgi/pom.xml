@@ -36,6 +36,8 @@
         </license>
     </licenses>
 
+    <description>Fluid Tools archetype for a Java OSGi archive that contains its bundles and embeds an OSGi framework.</description>
+
     <distributionManagement>
         <repository>
             <id>dummy</id>

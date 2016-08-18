@@ -36,6 +36,8 @@
         </license>
     </licenses>
 
+    <description>Fluid Tools archetype for an executable Java web archive that contains its dependencies.</description>
+
     <distributionManagement>
         <repository>
             <id>dummy</id>
