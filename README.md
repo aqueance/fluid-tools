@@ -50,7 +50,7 @@ Dependency injection as conceived and implemented in Fluid Tools is *not compati
 
 ### Using the Libraries
 
-Fluid Tools is available through its [GitHub Maven repository](https://aqueance.github.io/maven/). Please refer to the [Archetype Catalog](https://github.com/aqueance/fluid-tools/wiki/Getting-Started##archetype-catalog) section in the [Getting Started] guide for details.
+Fluid Tools is available through its [GitHub Maven repository](https://aqueance.github.io/maven/). Please refer to the [Archetype Catalog](https://github.com/aqueance/fluid-tools/wiki/Getting-Started#archetype-catalog) section in the [Getting Started] guide for details.
 
 ### Getting the Source Code
 
@@ -86,6 +86,8 @@ Once that command completes, the documentation starting page will be `target/sit
 ### Documentation
 
 A short [Getting Started] guide is provided to get you started with Fluid Tools, while the [User Guide] covers the full spectrum of what you can do with Fluid Tools.
+
+The most recent API documentation is also available [online](https://aqueance.github.io/maven/apidocs/org.fluidity.platform-1.0.0-SNAPSHOT/).
 
 ### History
 
