@@ -48,6 +48,10 @@ Dependency injection as conceived and implemented in Fluid Tools is *not compati
   1. **Statelessness**: CDI assumes that the creation of transient and stateful components is the rule, and stability and statelessness are the exception. We, on the other hand, promote a design where the application is held together by a relatively static graph of stateless components, and application logic is expressed in terms of data flowing through that component graph. Thus in Fluid Tools, the instantiation of stateless, stable components is the rule, and transient or stateful components are the exception.
   1. **Terminology**: Beans are roasted, ground, and then soaked in hot water to extract caffeine from. Components are… not?
 
+### Using the Libraries
+
+Fluid Tools is available through its [GitHub Maven repository](https://aqueance.github.io/maven/). Please refer to the [Archetype Catalog](https://github.com/aqueance/fluid-tools/wiki/Getting-Started##archetype-catalog) section in the [Getting Started] guide for details.
+
 ### Getting the Source Code
 
 The sources for these libraries can be downloaded using [Git](https://git-scm.com/downloads) like so:
