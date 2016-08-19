@@ -145,6 +145,8 @@ public final class IOStreams extends Utility {
          * @param bytes the byte array.
          * @param from  the starting index of the consumable content.
          * @param count the length of the consumable content.
+         *
+         * @throws IOException thrown when writing fails.
          */
         void write(byte[] bytes, int from, int count) throws IOException;
     }
