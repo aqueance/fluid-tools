@@ -224,6 +224,14 @@
         </profile>
 
         <profile>
+            <id>verbose</id>
+            <activation><property><name>distribution</name></property></activation>
+            <properties>
+                <fluidity.maven.verbose>true</fluidity.maven.verbose>
+            </properties>
+        </profile>
+
+        <profile>
             <id>quick</id>
             <activation><property><name>quick</name></property></activation>
 
