@@ -35,14 +35,9 @@ public final class Methods extends Utility {
      * Finds method objects in a refactoring friendly way.
      * <p>
      * <b>Note</b>: only works on interface methods.
-     * <h3>Usage</h3> Let's say you need to find the {@link java.io.Closeable#close()} method at run time:
+     * <h3>Usage</h3> Let's say you need to find the {@link java.io.Closeable#close() Closeable.close()} method at run time:
      * <pre>
-     * final {@linkplain Method} closeMethod = <span class="hl1">Methods.get</span>(<span class="hl2">Closeable</span>.class, new <span
-     * class="hl1">Methods.Invoker</span>&lt;<span class="hl2">Closeable</span>&gt;() {
-     *   public void <span class="hl1">invoke</span>(final <span class="hl2">Closeable</span> capture) {
-     *     capture.<span class="hl2">close</span>();
-     *   }
-     * })[0];
+     * final {@linkplain Method} closeMethod = <span class="hl1">Methods.get</span>(<span class="hl2">Closeable</span>.class, <span class="hl2">Closeable</span>::<span class="hl2">close</span>)[0];
      * </pre>
      *
      * @param type     the interface that directly or indirectly defines the method you seek.
@@ -89,9 +84,10 @@ public final class Methods extends Utility {
      * Invokes the given <code>method</code> on the given <code>target</code> with the given <code>arguments</code>. All checked exceptions thrown from the
      * method will be wrapped in {@link Exceptions.Wrapper}.
      *
-     * @param method     the method to invoke; may not be <code>null</code>.
-     * @param target     the object to invoke the method on; may be <code>null</code> if the method is {@linkplain java.lang.reflect.Modifier#isStatic(int) static}.
-     * @param arguments  the arguments to pass to the method.
+     * @param method    the method to invoke; may not be <code>null</code>.
+     * @param target    the object to invoke the method on; may be <code>null</code> if the method is {@linkplain java.lang.reflect.Modifier#isStatic(int)
+     *                  static}.
+     * @param arguments the arguments to pass to the method.
      *
      * @return whatever the method returns.
      *
@@ -119,8 +115,9 @@ public final class Methods extends Utility {
         /**
          * Invokes the method that the caller of {@link Methods#get(Class, Selector) Methods.get()} intends to find.
          *
-         * @param capture a dummy implementation of the interface owning the method being sought. The implementation must call, on the supplied
-         *                object, the method it is looking for.
+         * @param capture a dummy implementation of the interface owning the method being sought. The implementation must call, on the supplied object, the
+         *                method it is looking for.
+         *
          * @throws Exception listed for semantic purposes; should never actually be thrown.
          */
         void invoke(T capture) throws Exception;
