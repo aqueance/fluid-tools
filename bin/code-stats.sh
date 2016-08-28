@@ -11,11 +11,11 @@ function jars {
     echo Total $SIZE KB, $CLASSES classes, $LINES lines, $[$LINES/$CLASSES] lines/class
 }
 
-jars "Command Line Applications" . "build|test|mock|web|war|osgi|feature|tutorials" -v
-jars "Web Applications" . "build|test|mock|cli|command|osgi|war-bootstrap|feature|tutorials" -v
-jars "OSGi Applications" . "build|test|mock|cli|command|web|war|local|feature|tutorials" -v
+jars "Command Line Applications" . "staging|build|test|mock|web|war|osgi|feature|tutorials" -v
+jars "Web Applications" . "staging|build|test|mock|cli|command|osgi|war-bootstrap|feature|tutorials" -v
+jars "OSGi Applications" . "staging|build|test|mock|cli|command|web|war|local|feature|tutorials" -v
 jars "OSGi Embedded Bundles"  deployment "osgi-bundle-bootstrap-local"
-jars "OSGi Standalone Bundles" . "build|test|mock|cli|command|web|war|application|feature|tutorials" -v
-jars "Features" features "manifest|sink|commons|slf4j|java|remote|tutorials" -v
-jars "Everything" . "test|mock|build|tutorials" -v
+jars "OSGi Standalone Bundles" . "staging|build|test|mock|cli|command|web|war|application|feature|tutorials" -v
+jars "Features" features "staging|manifest|sink|commons|slf4j|java|remote|tutorials" -v
+jars "Everything" . "staging|test|mock|build|tutorials" -v
 
