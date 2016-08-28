@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,28 +62,6 @@ public class ListsTest {
     public void testArrayConversion() throws Exception {
         final Item[] array = { new Item(), new Item(), new Item(), new Item(), new Item() };
         assert Arrays.equals(array, Lists.asArray(Item.class, Arrays.asList(array)));
-    }
-
-    @Test
-    public void testListSurrounding() throws Exception {
-        final Lists.Delimited listing = Lists.delimited();
-
-        listing.add("item");
-        listing.surround("|");
-        assert "|item|".equals(listing.toString()) : listing;
-
-        listing.surround("[]");
-        assert "[|item|]".equals(listing.toString()) : listing;
-
-        listing.surround("({})");
-        assert "({[|item|]})".equals(listing.toString()) : listing;
-
-        listing.surround("<|>");
-        assert "<|({[|item|]})|>".equals(listing.toString()) : listing;
-
-        listing.set("item");
-        listing.prepend("[").append("]");
-        assert "[item]".equals(listing.toString()) : listing;
     }
 
     private static class Item implements Serializable { }

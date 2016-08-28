@@ -17,7 +17,6 @@
 package org.fluidity.foundation;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 
 import org.fluidity.testing.Simulator;
 

@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,7 +31,6 @@ import org.fluidity.deployment.maven.Logger;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.IOStreams;
-import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.jarjar.Handler;
 
@@ -135,13 +135,13 @@ final class JavaSecurityPolicy implements SecurityPolicy {
     }
 
     public void save(final Output output) throws IOException {
-        final Lists.Delimited content = Lists.delimited(String.format("%n"));
+        final StringJoiner content = new StringJoiner("\n");
 
         for (final List<String> list : files) {
-            content.list(list);
+            list.forEach(content::add);
         }
 
-        if (!content.isEmpty()) {
+        if (content.length() != 0) {
             output.save(name, content.toString());
         }
     }

@@ -24,7 +24,12 @@ import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.StringJoiner;
+import java.util.function.Supplier;
 
 import org.fluidity.foundation.security.Security;
 
@@ -71,13 +76,13 @@ public final class Strings extends Utility {
             final Class<?> type = object.getClass();
 
             if (type.isArray()) {
-                final Lists.Delimited text = Lists.delimited();
+                final StringJoiner text = new StringJoiner(", ", "[", "]");
 
                 for (int i = 0, limit = Array.getLength(object); i < limit; ++i) {
                     text.add(Strings.formatObject(identify, qualified, Array.get(object, i)));
                 }
 
-                final String array = text.surround("[]").toString();
+                final String array = text.toString();
                 return identify ? String.format("%x@%s", System.identityHashCode(object), array) : array;
             } else if (Annotation.class.isAssignableFrom(type)) {
                 return Strings.formatObject(identify, qualified, ((Annotation) object).annotationType());
@@ -154,13 +159,13 @@ public final class Strings extends Utility {
             final Class<?> type = object.getClass();
 
             if (type.isArray()) {
-                final Lists.Delimited text = Lists.delimited();
+                final StringJoiner text = new StringJoiner(", ", "[", "]");
 
                 for (int i = 0, limit = Array.getLength(object); i < limit; ++i) {
                     text.add(Strings.formatId(Array.get(object, i)));
                 }
 
-                return text.surround("[]").toString();
+                return text.toString();
             } else {
                 return Proxy.isProxyClass(type)
                        ? String.format("proxy@%x%s", System.identityHashCode(object), interfaces(type))
@@ -188,16 +193,16 @@ public final class Strings extends Utility {
     public static String describeAnnotation(final boolean identity, final Annotation annotation) {
         final Class<? extends Annotation> type = annotation.annotationType();
 
-        final Lists.Delimited list = Lists.delimited(", ");
-
         final boolean custom = !identity && !Proxy.isProxyClass(annotation.getClass());
         final Method[] methods = Security.invoke(type::getDeclaredMethods);
 
+        final StringJoiner list = custom ? new StringJoiner(", ") : new StringJoiner(", ", "(", ")");
+
         try {
             if (custom) {
-                list.append(annotation);
+                list.add(annotation.toString());
             } else if (methods.length == 1 && methods[0].getName().equals("value")) {
-                appendValue(identity, list.text, Security.access(methods[0]).invoke(annotation));
+                list.add(appendValue(identity, Security.access(methods[0]).invoke(annotation)));
             } else {
                 Arrays.sort(methods, (method1, method2) -> method1.getName().compareTo(method2.getName()));
 
@@ -211,10 +216,7 @@ public final class Strings extends Utility {
                         final Object value = Security.access(method).invoke(annotation);
 
                         if (fallback == null || !(parameterType.isArray() ? Arrays.equals((Object[]) fallback, (Object[]) value) : fallback.equals(value))) {
-                            final StringBuilder parameter = new StringBuilder();
-                            parameter.append(method.getName()).append('=');
-                            appendValue(identity, parameter, value);
-                            list.add(parameter);
+                            list.add(method.getName() + '=' + appendValue(identity, value));
                         }
                     }
                 }
@@ -227,10 +229,7 @@ public final class Strings extends Utility {
 
         if (!custom) {
             output.append('@').append(Strings.className(type, false, false));
-
-            if (!list.isEmpty()) {
-                list.surround("()");
-            }
+            list.setEmptyValue("");
         }
 
         return output.append(list).toString();
@@ -238,12 +237,11 @@ public final class Strings extends Utility {
 
     private static String className(final Class type, final boolean kind, final boolean qualified) {
         assert type != null;
-        final Lists.Delimited name = Lists.delimited(".");
+        final List<CharSequence> names = new ArrayList<>();
 
         Class last = type;
         for (Class enclosing = type; enclosing != null; enclosing = enclosing.getEnclosingClass()) {
-            name.previous();
-            name.prepend(enclosing.getSimpleName());
+            names.add(enclosing.getSimpleName());
             last = enclosing;
         }
 
@@ -251,14 +249,26 @@ public final class Strings extends Utility {
             final String lastName = last.getName();
             final int dot = lastName.lastIndexOf('.');
 
-            name.previous();
-            name.prepend(dot > 0 ? lastName.substring(0, dot) : lastName);
+            names.add(dot > 0 ? lastName.substring(0, dot) : lastName);
         }
 
-        return kind ? String.format("%s %s", type.isInterface() ? Annotation.class.isAssignableFrom(type) ? "@interface" : "interface" : type.isPrimitive() ? "type": "class", name) : name.toString();
+        final Supplier<String> name = () -> {
+            Collections.reverse(names);
+            return String.join(".", names);
+        };
+
+        return kind
+               ? String.format("%s %s",
+                               type.isInterface()
+                                   ? Annotation.class.isAssignableFrom(type) ? "@interface" : "interface"
+                                   : type.isPrimitive() ? "type" : "class",
+                               name.get())
+               : name.get();
     }
 
-    private static void appendValue(final boolean identity, final StringBuilder output, final Object value) {
+    private static CharSequence appendValue(final boolean identity, final Object value) {
+        final StringBuilder output = new StringBuilder();
+
         if (value instanceof Class) {
             if (identity) {
                 output.append(Generics.identity((Class) value));
@@ -276,25 +286,27 @@ public final class Strings extends Utility {
         } else {
             output.append((Object) null);
         }
+
+        return output;
     }
 
     private static String appendArray(final boolean identity, final Object value) {
-        final Lists.Delimited output = Lists.delimited(",");
+        final StringJoiner output = new StringJoiner(",", "{", "}");
 
         for (int i = 0, length = Array.getLength(value); i < length; ++i) {
-            appendValue(identity, output.next(), Array.get(value, i));
+            output.add(appendValue(identity, Array.get(value, i)));
         }
 
-        return output.surround("{}").toString();
+        return output.toString();
     }
 
     private static String interfaces(final Class<?> type) {
-        final Lists.Delimited listing = Lists.delimited(",");
+        final StringJoiner listing = new StringJoiner(",", "[", "]");
 
         for (final Class<?> api : type.getInterfaces()) {
             listing.add(formatClass(false, true, api));
         }
 
-        return listing.surround("[]").toString();
+        return listing.toString();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.fluidity.composition;
 
-import java.lang.annotation.Annotation;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A dependency path used when {@linkplain ObservedContainer observing} dependency resolutions. Objects implementing this interface are created and

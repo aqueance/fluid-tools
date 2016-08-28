@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Generics;
@@ -481,17 +482,20 @@ public final class Components extends Utility {
 
         @Override
         public String toString() {
-            final Lists.Delimited text = Lists.delimited();
+            final StringJoiner text = new StringJoiner(", ", "[", "]");
 
             for (final Components.Specification specification : api) {
-                text.add(Strings.formatClass(true, true, specification.api));
+                final StringBuilder group = new StringBuilder(Strings.formatClass(true, true, specification.api));
 
                 if (specification.groups.length > 0) {
-                    text.append(" group ").append(Strings.formatObject(false, true, specification.groups));
+                    group.append(" group ").append(Strings.formatObject(false, true, specification.groups));
                 }
+
+                text.add(group);
             }
 
-            return (api.length > 1 ? text.surround("[]") : text).toString();
+            text.setEmptyValue("");
+            return text.toString();
         }
 
         @Override

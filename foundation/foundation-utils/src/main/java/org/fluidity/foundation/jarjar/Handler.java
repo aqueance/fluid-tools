@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.jar.JarEntry;
 import java.util.zip.ZipEntry;
@@ -46,7 +47,6 @@ import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.IOStreams;
-import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.security.Security;
 
 import static org.fluidity.foundation.Command.Process;
@@ -238,19 +238,19 @@ public final class Handler extends URLStreamHandler {
         }
 
         final String stem = root.toExternalForm();
-        final Lists.Delimited specification = Lists.delimited(DELIMITER);
+        final StringJoiner specification = new StringJoiner(DELIMITER);
 
         if (PROTOCOL.equals(root.getProtocol())) {
-            specification.set(stem);
+            specification.add(stem);
         } else {
             final URL url = Archives.containing(root);
 
-            if (url != null) {
-                if (PROTOCOL.equals(url.getProtocol())) {
-                    specification.set(url.toExternalForm());
-                } else {
-                    specification.set(PROTOCOL).append(':').append(url.toExternalForm());
-                }
+            if (url == null) {
+                specification.add(PROTOCOL + ':' + stem);
+            } else {
+                specification.add(PROTOCOL.equals(url.getProtocol())
+                                  ? url.toExternalForm()
+                                  : PROTOCOL + ':' + url.toExternalForm());
 
                 // find the JAR resource, if any
                 final String[] parts = Cache.path(root).split(Archives.DELIMITER);
@@ -258,8 +258,6 @@ public final class Handler extends URLStreamHandler {
                 if (parts.length > 1) {
                     specification.add(parts[1]);
                 }
-            } else {
-                specification.set(PROTOCOL).append(':').append(stem);
             }
         }
 
@@ -271,11 +269,8 @@ public final class Handler extends URLStreamHandler {
             specification.add(ClassLoaders.absoluteResourceName(part));
         }
 
-        if (!specification.toString().contains(DELIMITER)) {
-            specification.set(stem);
-        }
-
-        return parseURL(specification.toString());
+        final String formatted = specification.toString();
+        return parseURL(formatted.contains(DELIMITER) ? formatted : stem);
     }
 
     /**

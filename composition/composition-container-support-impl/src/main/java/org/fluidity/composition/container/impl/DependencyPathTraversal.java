@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -35,7 +36,6 @@ import org.fluidity.composition.DependencyPath;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.container.ResolvedNode;
 import org.fluidity.composition.container.spi.DependencyGraph;
-import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Strings;
 
 /**
@@ -224,7 +224,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
         @Override
         public String toString(final boolean api) {
-            final Lists.Delimited text = Lists.delimited(" > ");
+            final StringJoiner text = new StringJoiner(" > ");
 
             for (final ActualElement type : list) {
                 final Class<?> component = api ? type.api() : type.type();
@@ -236,14 +236,15 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
                     context.remove(Component.Reference.class);
                 }
 
-                @SuppressWarnings("MismatchedQueryAndUpdateOfStringBuilder")
-                final StringBuilder builder = text.next();
+                final StringBuilder builder = new StringBuilder();
 
                 if (!context.isEmpty()) {
                     builder.append('[').append(AnnotationMaps.descriptor(context)).append("] ");
                 }
 
                 builder.append(Strings.formatClass(true, true, component));
+
+                text.add(builder);
             }
 
             return text.toString();

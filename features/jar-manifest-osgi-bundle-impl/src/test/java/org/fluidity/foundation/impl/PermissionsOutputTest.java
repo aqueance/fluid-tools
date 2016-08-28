@@ -22,7 +22,6 @@ import java.net.URL;
 
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
-import org.fluidity.foundation.Lists;
 import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
@@ -34,7 +33,7 @@ import org.testng.annotations.Test;
  */
 public class PermissionsOutputTest extends Simulator {
 
-    private static final String NL = String.format("%n");
+    private static final String NL = "\n";
 
     private static final String TRIGGER = "trigger.jar";
     private static final String NO_TRIGGER = "no_trigger.jar";
@@ -181,9 +180,9 @@ public class PermissionsOutputTest extends Simulator {
         final String staticExport1 = "simple.static.export1";
         final String staticExport2 = "simple.static.export2";
 
-        final String dynamicImport = Lists.delimited(",", dynamicImport1 + version, dynamicImport2);
-        final String staticImport = Lists.delimited(",", staticImport1, staticImport2 + version, staticImport3);
-        final String staticExport = Lists.delimited(",", staticExport1 + version + something, staticExport2 + version);
+        final String dynamicImport = String.join(",", dynamicImport1 + version, dynamicImport2);
+        final String staticImport = String.join(",", staticImport1, staticImport2 + version, staticImport3);
+        final String staticExport = String.join(",", staticExport1 + version + something, staticExport2 + version);
 
         setup(TRIGGER, dynamicImport, staticImport, staticExport);
 

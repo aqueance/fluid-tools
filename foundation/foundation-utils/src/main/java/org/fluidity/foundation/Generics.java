@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.function.Function;
 
 import org.fluidity.foundation.security.Security;
@@ -277,37 +278,37 @@ public final class Generics extends Utility {
         if (type instanceof Class) {
             return String.format("%s@%d", Strings.formatClass(false, true, (Class) type), System.identityHashCode(type));
         } else if (type instanceof ParameterizedType) {
-            final Lists.Delimited output = Lists.delimited(",");
+            final StringJoiner output = new StringJoiner(",", "<", ">");
 
             for (final Type parameter : ((ParameterizedType) type).getActualTypeArguments()) {
-                output.append(identity(parameter));
+                output.add(identity(parameter));
             }
 
-            return String.format("%s<%s>", identity(((ParameterizedType) type).getRawType()), output);
+            return identity(((ParameterizedType) type).getRawType()) + output;
         } else if (type instanceof GenericArrayType) {
-            return String.format("%s[]", identity(((GenericArrayType) type).getGenericComponentType()));
+            return identity(((GenericArrayType) type).getGenericComponentType()) + "[]";
         } else if (type instanceof TypeVariable) {
-            final Lists.Delimited output = Lists.delimited(",");
+            final StringJoiner output = new StringJoiner(",");
 
             for (final Type bound : ((TypeVariable) type).getBounds()) {
-                output.append(identity(bound));
+                output.add(identity(bound));
             }
 
             return output.toString();
         } else if (type instanceof WildcardType) {
-            final Lists.Delimited lower = Lists.delimited(",");
+            final StringJoiner lower = new StringJoiner(",");
 
             for (final Type bound : ((WildcardType) type).getLowerBounds()) {
-                lower.append(identity(bound));
+                lower.add(identity(bound));
             }
 
-            final Lists.Delimited upper = Lists.delimited(",");
+            final StringJoiner upper = new StringJoiner(",");
 
             for (final Type bound : ((WildcardType) type).getUpperBounds()) {
-                upper.append(identity(bound));
+                upper.add(identity(bound));
             }
 
-            return String.format("%s:%s", lower, upper);
+            return lower + ":" + upper;
         }
 
         assert false : type;
@@ -358,7 +359,7 @@ public final class Generics extends Utility {
     }
 
     private static String toString(final String delimiter, final boolean qualified, final Type... argument) {
-        final Lists.Delimited delimited = Lists.delimited(delimiter);
+        final StringJoiner delimited = new StringJoiner(delimiter);
 
         for (final Type type : argument) {
             delimited.add(Generics.toString(qualified, type));
@@ -641,14 +642,14 @@ public final class Generics extends Utility {
 
         @Override
         public String toString() {
-            final Lists.Delimited parameters = Lists.delimited();
+            final StringJoiner parameters = new StringJoiner(", ", "<", ">");
 
             for (final Type argument : arguments) {
                 parameters.add(argument.toString());
             }
 
             final Type rawType = getRawType();
-            return String.format("%s<%s>", rawType instanceof Class ? ((Class) rawType).getName() : rawType.toString(), parameters);
+            return (rawType instanceof Class ? ((Class) rawType).getName() : rawType.toString()) + parameters;
         }
     }
 

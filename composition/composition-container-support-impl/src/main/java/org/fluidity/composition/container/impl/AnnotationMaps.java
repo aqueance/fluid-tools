@@ -21,9 +21,9 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.SortedMap;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 
-import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.Utility;
 
@@ -75,7 +75,7 @@ final class AnnotationMaps extends Utility {
     }
 
     private static String toString(final boolean identity, final Map<Class<? extends Annotation>, Annotation[]> map) {
-        final Lists.Delimited list = Lists.delimited(" ");
+        final StringJoiner list = new StringJoiner(" ");
 
         for (final Annotation[] annotations : (map instanceof SortedMap ? map : sorted(map)).values()) {
             for (final Annotation annotation : annotations) {

@@ -29,8 +29,8 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
 import org.fluidity.foundation.Archives;
-import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.IOStreams;
+import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.Strings;
 
 import org.codehaus.plexus.component.annotations.Component;

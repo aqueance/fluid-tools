@@ -27,8 +27,6 @@ import org.fluidity.foundation.Methods;
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;
 
-import static org.fluidity.foundation.Command.Process;
-
 /**
  * @author Tibor Varga
  */

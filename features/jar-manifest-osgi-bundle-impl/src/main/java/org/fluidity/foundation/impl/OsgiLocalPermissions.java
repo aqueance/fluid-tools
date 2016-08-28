@@ -35,6 +35,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -150,7 +151,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
      */
     static final class PermissionsOutput implements Output {
 
-        private static final String NL = String.format("%n");
+        private static final String NL = "\n";
 
         private final String serviceType;
 
@@ -215,7 +216,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
 
                 if (!permissions.isEmpty()) {
                     final Set<String> duplicates = new HashSet<>();
-                    final Lists.Delimited delimited = Lists.delimited(NL);
+                    final StringJoiner delimited = new StringJoiner(NL);
 
                     for (final Map.Entry<String, Collection<String>> entry : permissions.entrySet()) {
                         final Collection<String> list = entry.getValue();
@@ -223,7 +224,9 @@ final class OsgiLocalPermissions implements SecurityPolicy {
                         if (!list.isEmpty()) {
                             final String archive = entry.getKey();
 
-                            delimited.add("");
+                            if (delimited.length() != 0) {
+                                delimited.add("");
+                            }
 
                             if (!archive.isEmpty()) {
                                 delimited.add("# ".concat(archive));
@@ -393,7 +396,6 @@ final class OsgiLocalPermissions implements SecurityPolicy {
 
         private void policy(final Map<String, Collection<String>> permissions, final String original) throws IOException {
             final List<String> texts = new ArrayList<>();
-            final Lists.Delimited sequence = reduce(" ", original, texts);
 
             // pattern for a non-reserved word
             final String word = String.format("%d:\\d+", StreamTokenizer.TT_WORD);
@@ -408,7 +410,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
             final String principal = String.format(" %1$d %2$s %3$s %4$s|%2$s %3$s %4$s %1$d ", (int) ',', keyword(Keyword.PRINCIPAL), word, text);
 
             // removes signedBy clauses and principal lists
-            final String content = sequence.toString().replaceAll(String.format("(%s|%s)", signature, principal), "");
+            final String content = reduce(" ", original, texts).replaceAll(String.format("(%s|%s)", signature, principal), "");
 
             // matches a permission line within a grant entry
             final Pattern permission = Pattern.compile(String.format("%3$s (%1$s( %2$s( %4$d %2$s)? %5$d)?)",
@@ -431,19 +433,18 @@ final class OsgiLocalPermissions implements SecurityPolicy {
             final Matcher entry = grant.matcher(content);
 
             while (entry.find()) {
-                Lists.Delimited path = Lists.delimited(":");
+                final StringJoiner path = new StringJoiner(":");
 
                 final String[] parts = text(entry.group(1), texts).replaceAll(String.format("\\$\\{%s\\}", JAVA_CLASS_PATH), archive.getName()).split(Archives.Nested.DELIMITER);
                 for (int i = 1, limit = parts.length; i < limit; i++) {
                     path.add(parts[i]);
                 }
 
-                final Collection<String> list = permissions(path.isEmpty() ? "" : path.toString(), permissions);
+                final Collection<String> list = permissions(path.toString(), permissions);
                 final Matcher line = permission.matcher(entry.group(2));
 
                 while (line.find()) {
-                    final String value = permission(line.group(1), texts);
-                    list.add(String.format("(%s)", value));
+                    list.add('(' + permission(line.group(1), texts) + ')');
                 }
             }
         }
@@ -460,7 +461,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
             }
         }
 
-        private Lists.Delimited reduce(final String delimiter, final String original, final List<String> values) throws IOException {
+        private String reduce(final String delimiter, final String original, final List<String> values) throws IOException {
             final StreamTokenizer parser = new StreamTokenizer(new BufferedReader(new StringReader(original)));
 
             parser.resetSyntax();
@@ -480,7 +481,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
             parser.slashSlashComments(true);
             parser.slashStarComments(true);
 
-            final Lists.Delimited sequence = Lists.delimited(delimiter);
+            final StringJoiner sequence = new StringJoiner(delimiter);
             for (int type = parser.nextToken(); type != StreamTokenizer.TT_EOF; type = parser.nextToken()) {
                 final String value = parser.sval == null ? null : parser.sval.toLowerCase();
 
@@ -497,7 +498,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
                 }
             }
 
-            return sequence;
+            return sequence.toString();
         }
 
         private String keyword(final Keyword keyword) {
@@ -509,7 +510,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
         }
 
         private String permission(final String match, final List<String> texts) {
-            final Lists.Delimited lines = Lists.delimited(" ");
+            final StringJoiner lines = new StringJoiner(" ");
 
             for (final String token : match.split(" ")) {
                 if (!token.isEmpty()) {
@@ -519,10 +520,10 @@ final class OsgiLocalPermissions implements SecurityPolicy {
                     if (colon > 0) {
                         final String text = texts.get(Integer.parseInt(token.substring(colon + 1)));
 
-                        if (lines.isEmpty()) {
+                        if (lines.length() == 0) {
                             lines.add(text);
                         } else {
-                            lines.next().append('"').append(text).append('"');
+                            lines.add('"' + text + '"');
                         }
                     }
                 }
@@ -539,7 +540,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
             private final Type registration;
             private final List<String> types;
 
-            public RegistrationTypes(final Type registration, final List<String> types) {
+            RegistrationTypes(final Type registration, final List<String> types) {
                 super(Opcodes.ASM5);
                 this.registration = registration;
                 this.types = types;

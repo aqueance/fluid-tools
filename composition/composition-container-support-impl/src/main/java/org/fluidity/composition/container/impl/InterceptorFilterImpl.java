@@ -23,14 +23,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.TreeSet;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.Qualifier;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.spi.ComponentInterceptor;
-import org.fluidity.foundation.Lists;
-import org.fluidity.foundation.Methods;
 import org.fluidity.foundation.Strings;
 
 /**
@@ -118,16 +117,16 @@ final class InterceptorFilterImpl implements InterceptorFilter {
         }
 
         public String toString(final boolean full) {
-            final Lists.Delimited annotations = Lists.delimited();
+            final StringJoiner annotations = new StringJoiner(", ", "(", ")");
 
             if (full) {
                 for (final Class<? extends Annotation> type : context) {
-                    annotations.add("@").append(Strings.formatClass(false, false, type));
+                    annotations.add("@" + Strings.formatClass(false, false, type));
                 }
             }
 
             final String kind = Strings.formatClass(false, false, type);
-            return annotations.isEmpty() ? kind : String.format("%s (%s)", kind, annotations);
+            return annotations.length() != 0 ? kind + ' ' + annotations : kind;
         }
 
         @Override

@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContext;
@@ -773,13 +774,13 @@ public class ConfigurationTest extends Simulator {
     }
 
     private static String array(final Object actual) {
-        final Lists.Delimited text = Lists.delimited();
+        final StringJoiner text = new StringJoiner(", ", "[", "]");
 
         for (int i = 0, length = Array.getLength(actual); i < length; ++i) {
-            text.next().append(Array.get(actual, i));
+            text.add(Array.get(actual, i).toString());
         }
 
-        return text.surround("[]").toString();
+        return text.toString();
     }
 
     private static void collectionCheck(final Object expected, final Object actual) {

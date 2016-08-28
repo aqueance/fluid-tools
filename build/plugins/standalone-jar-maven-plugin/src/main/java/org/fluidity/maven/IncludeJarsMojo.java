@@ -40,7 +40,6 @@ import org.fluidity.deployment.maven.Logger;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.IOStreams;
-import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Strings;
 
 import org.apache.maven.artifact.Artifact;
@@ -207,13 +206,13 @@ public final class IncludeJarsMojo extends AbstractMojo {
                             }
                         }
 
-                        mainAttributes.putValue(attribute, Lists.delimited(" ", dependencyList));
+                        mainAttributes.putValue(attribute, String.join(" ", dependencyList));
                         dependencyMap.put(dependencyPath, dependencies);
                     }
                 }
 
                 if (!profiles.isEmpty()) {
-                    log.warn(String.format("No profile(s) found matching the execution IDs %s", Lists.delimited(profiles)));
+                    log.warn(String.format("No profile(s) found matching the execution IDs %s", String.join(", ", profiles)));
                 }
 
                 if (!dependencyMap.isEmpty()) {

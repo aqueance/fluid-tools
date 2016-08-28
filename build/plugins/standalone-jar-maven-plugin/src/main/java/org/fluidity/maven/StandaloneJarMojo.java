@@ -45,7 +45,6 @@ import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.IOStreams;
-import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.Strings;
 
@@ -363,7 +362,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
                         }
                     }
 
-                    mainAttributes.putValue(entry.getKey(), Lists.delimited(inclusion.delimiter, dependencyList));
+                    mainAttributes.putValue(entry.getKey(), String.join(inclusion.delimiter, dependencyList));
                 }
 
                 for (final Artifact artifact : unpackedDependencies) {
