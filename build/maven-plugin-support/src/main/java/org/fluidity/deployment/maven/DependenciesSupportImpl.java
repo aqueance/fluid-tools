@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -97,7 +98,7 @@ final class DependenciesSupportImpl implements DependenciesSupport {
         final String[] spec = projectId(type);
 
         for (final Dependency artifact : dependencies) {
-            if (spec[0].equals(artifact.getGroupId()) && spec[1].equals(artifact.getArtifactId())) {
+            if (Objects.equals(spec[0], artifact.getGroupId()) && Objects.equals(spec[1], artifact.getArtifactId())) {
                 return artifact;
             }
         }
@@ -110,7 +111,7 @@ final class DependenciesSupportImpl implements DependenciesSupport {
         final String[] spec = projectId(type);
 
         for (final Artifact artifact : dependencies) {
-            if (spec[0].equals(artifact.getGroupId()) && spec[1].equals(artifact.getArtifactId())) {
+            if (Objects.equals(spec[0], artifact.getGroupId()) && Objects.equals(spec[1], artifact.getArtifactId())) {
                 return artifact;
             }
         }
@@ -175,7 +176,7 @@ final class DependenciesSupportImpl implements DependenciesSupport {
             result.getRoot().accept(new UniqueArtifacts(dependency -> {
                 if (!dependency.isResolved()) {
                     throw new IllegalArgumentException(String.format("Could not resolve %s", dependency));
-                } else if (!(POM_TYPE.equals(dependency.getType()) || (runtime && JavaScopes.PROVIDED.equals(dependency.getScope())))) {
+                } else if (!(Objects.equals(dependency.getType(), POM_TYPE) || (runtime && Objects.equals(dependency.getScope(), JavaScopes.PROVIDED)))) {
                     dependencies.add(dependency);
                 }
             }));
@@ -252,7 +253,7 @@ final class DependenciesSupportImpl implements DependenciesSupport {
         final VersionRange versionRange = original.getVersionRange();
         final String version = explicitVersion == null && versionRange != null ? versionRange.toString() : explicitVersion;
 
-        final boolean isSystem = Artifact.SCOPE_SYSTEM.equals(original.getScope());
+        final boolean isSystem = Objects.equals(original.getScope(), Artifact.SCOPE_SYSTEM);
         final String path = (original.getFile() != null) ? original.getFile().getPath() : "";
         final Map<String, String> properties = isSystem ? Collections.singletonMap(ArtifactProperties.LOCAL_PATH, path) : null;
 
@@ -330,7 +331,7 @@ final class DependenciesSupportImpl implements DependenciesSupport {
 
         final File artifactFile = artifact.getFile();
 
-        if (artifactFile != null && artifactFile.getAbsolutePath().equals(outputPath)) {
+        if (artifactFile != null && Objects.equals(artifactFile.getAbsolutePath(), outputPath)) {
             log.info(String.format("Replacing %s: %s", packaging, artifactFile.getAbsolutePath()));
 
             if (!artifactFile.delete()) {
@@ -344,7 +345,7 @@ final class DependenciesSupportImpl implements DependenciesSupport {
             boolean replacing = false;
 
             for (final Artifact attached : project.getAttachedArtifacts()) {
-                if (attached.getFile().getAbsolutePath().equals(outputPath)) {
+                if (Objects.equals(attached.getFile().getAbsolutePath(), outputPath)) {
                     replacing = true;
                     break;
                 }
@@ -481,7 +482,7 @@ final class DependenciesSupportImpl implements DependenciesSupport {
         public DependencySelector deriveChildSelector(final DependencyCollectionContext context) {
             final org.eclipse.aether.graph.Dependency dependency = context.getDependency();
 
-            if (dependency == null || JavaScopes.PROVIDED.equals(dependency.getScope()) || (!compile && dependency.isOptional())) {
+            if (dependency == null || Objects.equals(dependency.getScope(), JavaScopes.PROVIDED) || (!compile && dependency.isOptional())) {
                 return NO_SELECTOR;
             } else {
                 final Collection<org.eclipse.aether.graph.Exclusion> exclusions = dependency.getExclusions();

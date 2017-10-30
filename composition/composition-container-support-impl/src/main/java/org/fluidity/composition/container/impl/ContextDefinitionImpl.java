@@ -25,11 +25,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.fluidity.composition.Component;
@@ -77,11 +77,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
         if (!refine) {
 
             // remove all non-inherited context
-            for (final Iterator<Class<? extends Annotation>> iterator = this.defined.keySet().iterator(); iterator.hasNext(); ) {
-                if (composition(iterator.next()) == Qualifier.Composition.IMMEDIATE) {
-                    iterator.remove();
-                }
-            }
+            this.defined.keySet().removeIf(annotation -> composition(annotation) == Qualifier.Composition.IMMEDIATE);
         }
 
         this.defined.put(Component.Reference.class, new Annotation[] { new ComponentReference(reference, inherited) });
@@ -143,11 +139,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
                 active.putAll(defined);
                 active.keySet().retainAll(context);
 
-                for (final Iterator<Annotation[]> iterator = active.values().iterator(); iterator.hasNext(); ) {
-                    if (iterator.next().length == 0) {
-                        iterator.remove();
-                    }
-                }
+                active.values().removeIf(array -> array.length == 0);
             }
         }
 
@@ -257,7 +249,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
         private final Type canonical;
 
         ComponentReference(final Type reference, final Component.Reference inbound) {
-            this.reference = inbound == null ? reference : Generics.propagate(inbound.type(), reference);
+            this.reference = inbound == null ? reference : Generics.propagate(inbound.type(), reference, true);
             this.canonical = Generics.canonicalType(this.reference);
         }
 
@@ -286,7 +278,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
         @Override
         public boolean equals(final Object obj) {
-            return obj instanceof Component.Reference && canonical.equals(((Component.Reference) obj).type());
+            return obj instanceof Component.Reference && Objects.equals(canonical, ((Component.Reference) obj).type());
         }
 
         @Override

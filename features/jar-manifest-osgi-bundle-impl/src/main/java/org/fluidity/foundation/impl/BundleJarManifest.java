@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.jar.Attributes;
@@ -94,7 +95,7 @@ final class BundleJarManifest implements JarManifest {
         addEntry(attributes, BUNDLE_VERSION, project::getVersion);
         addEntry(attributes, BUNDLE_DESCRIPTION, project::getDescription);
         addEntry(attributes, BUNDLE_DOCURL, project::getUrl);
-        addEntry(attributes, BUNDLE_VENDOR, () -> { return project.getOrganization().getName(); });
+        addEntry(attributes, BUNDLE_VENDOR, () -> project.getOrganization().getName());
         addEntry(attributes, BUNDLE_COPYRIGHT, () -> {
             final String year = project.getInceptionYear();
             return year == null ? null : String.format("Copyright %s (c) %s. All rights reserved.", project.getOrganization().getName(), year);
@@ -148,7 +149,7 @@ final class BundleJarManifest implements JarManifest {
                 for (final Artifact dependency : artifacts) {
 
                     // we don't need the project artifact and don't want to prevent the caller from overwriting it by locking the file...
-                    if (!skippedId.equals(dependency.getId())) {
+                    if (!Objects.equals(skippedId, dependency.getId())) {
                         urls.add(dependency.getFile().toURI().toURL());
                     }
                 }
@@ -167,7 +168,7 @@ final class BundleJarManifest implements JarManifest {
 
                 if (log.active()) {
                     final String value = attributes.getValue(BUNDLE_ACTIVATOR);
-                    log.detail("Bundle activator: %s", value == null ? "none" : value.equals(BundleBootstrap.class.getName()) ? "built in" : value);
+                    log.detail("Bundle activator: %s", value == null ? "none" : Objects.equals(value, BundleBootstrap.class.getName()) ? "built in" : value);
                 }
             } catch (final ClassNotFoundException e) {
                 // that's OK

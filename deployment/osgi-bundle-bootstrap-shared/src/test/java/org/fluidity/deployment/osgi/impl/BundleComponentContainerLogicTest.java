@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 
@@ -403,7 +404,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
             assertActive(StatusCheck.class, componentClass);
             assertInactive(Collections.emptyMap());
 
-            assert _spec.filter().equals(String.format("(%s=%s)", Constants.OBJECTCLASS, Consumer.class.getName()));
+            assert Objects.equals(_spec.filter(), String.format("(%s=%s)", Constants.OBJECTCLASS, Consumer.class.getName()));
 
             return _spec;
         });
@@ -499,7 +500,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
             assertActive(StatusCheck.class, componentClass);
             assertInactive(Collections.emptyMap());
 
-            assert _spec.filter().equals(String.format("(%s=%s)", Constants.OBJECTCLASS, Consumer.class.getName()));
+            assert Objects.equals(_spec.filter(), String.format("(%s=%s)", Constants.OBJECTCLASS, Consumer.class.getName()));
 
             return _spec;
         });
@@ -932,7 +933,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
     }
 
     private void noServices(final Class<?> api, final String selector) throws InvalidSyntaxException {
-        EasyMock.expect(context.getServiceReferences(api, selector)).andReturn(Collections.EMPTY_LIST);
+        EasyMock.expect(context.getServiceReferences(api, selector)).andReturn(Collections.emptyList());
     }
 
     private void resolveService(final ServiceReference reference, final Object service) {
@@ -966,14 +967,14 @@ public class BundleComponentContainerLogicTest extends Simulator {
         assert StatusCheck.component != null : BundleComponents.Status.class;
         final List<Class<?>> expected = Arrays.asList(components);
         final Collection<Class<?>> actual = StatusCheck.component.active();
-        assert new HashSet<>(actual).equals(new HashSet<>(expected)) : String.format("Expected %s, actual %s", expected, actual);
+        assert Objects.equals(new HashSet<>(actual), new HashSet<>(expected)) : String.format("Expected %s, actual %s", expected, actual);
     }
 
     private void assertFailed(final Class<?>... components) {
         assert StatusCheck.component != null : BundleComponents.Status.class;
         final List<Class<?>> expected = Arrays.asList(components);
         final Collection<Class<?>> actual = StatusCheck.component.failed();
-        assert new HashSet<>(actual).equals(new HashSet<>(expected)) : String.format("Expected %s, actual %s", expected, actual);
+        assert Objects.equals(new HashSet<>(actual), new HashSet<>(expected)) : String.format("Expected %s, actual %s", expected, actual);
     }
 
     private Map.Entry<Class<?>, Set<Service>> dependencies(final Class<?> component, final Service... services) {
@@ -1005,10 +1006,10 @@ public class BundleComponentContainerLogicTest extends Simulator {
         }
 
         final Map<Class<?>, Collection<Service>> actual = StatusCheck.component.inactive();
-        assert actual.keySet().equals(expected.keySet()) : String.format("Expected %s, actual %s", expected, actual);
+        assert Objects.equals(actual.keySet(), expected.keySet()) : String.format("Expected %s, actual %s", expected, actual);
         for (final Map.Entry<Class<?>, Collection<Service>> entry : actual.entrySet()) {
             final Class<?> type = entry.getKey();
-            assert new HashSet<>(entry.getValue()).equals(expected.get(type)) : String.format("Expected %s, actual %s", expected, actual);
+            assert Objects.equals(new HashSet<>(entry.getValue()), expected.get(type)) : String.format("Expected %s, actual %s", expected, actual);
         }
     }
 
@@ -1039,7 +1040,7 @@ public class BundleComponentContainerLogicTest extends Simulator {
                                  ? String.format("(%s=%s)", Constants.OBJECTCLASS, api.getName())
                                  : String.format("(&(%s=%s)%s)", Constants.OBJECTCLASS, api.getName(), filter);
 
-        assert expected.equals(actual) : String.format("Expected '%s', actual '%s'", expected, actual);
+        assert Objects.equals(expected, actual) : String.format("Expected '%s', actual '%s'", expected, actual);
     }
 
     private ListenerSpec expectListenerRegistration() throws Exception {

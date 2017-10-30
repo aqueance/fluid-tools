@@ -16,6 +16,7 @@
 
 package org.fluidity.composition.maven.annotation;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import org.objectweb.asm.AnnotationVisitor;
@@ -46,9 +47,9 @@ public final class ComponentProcessor extends AnnotationVisitor {
 
     @Override
     public void visit(final String name, final Object value) {
-        if (ATR_AUTOMATIC.equals(name) && !((Boolean) value)) {
+        if (Objects.equals(name, ATR_AUTOMATIC) && !((Boolean) value)) {
             automatic = false;
-        } else if (ATR_SCOPE.equals(name)) {
+        } else if (Objects.equals(name, ATR_SCOPE)) {
             scope = (Type) value;
         }
     }
@@ -58,7 +59,7 @@ public final class ComponentProcessor extends AnnotationVisitor {
     }
 
     public Type scope() {
-        return scope.equals(OBJECT_TYPE) ? null : scope;
+        return Objects.equals(scope, OBJECT_TYPE) ? null : scope;
     }
 
     @Override

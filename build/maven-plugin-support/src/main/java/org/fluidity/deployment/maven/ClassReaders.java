@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -78,7 +79,7 @@ public final class ClassReaders extends Utility implements Opcodes {
 
             @Override
             public MethodVisitor visitMethod(final int access, final String name, final String desc, final String signature, final String[] exceptions) {
-                final boolean defaultConstructor = name.equals(CONSTRUCTOR_METHOD_NAME) && Type.getArgumentTypes(desc).length == 0;
+                final boolean defaultConstructor = Objects.equals(name, CONSTRUCTOR_METHOD_NAME) && Type.getArgumentTypes(desc).length == 0;
 
                 if (defaultConstructor) {
                     constructorFound.set(true);
@@ -98,7 +99,7 @@ public final class ClassReaders extends Utility implements Opcodes {
     @SuppressWarnings("unchecked")
     public static Set<String> findDirectInterfaces(final ClassReader classData, final ClassRepository repository) throws IOException {
         if (classData == null) {
-            return Collections.EMPTY_SET;
+            return Collections.emptySet();
         }
 
         final String[] interfaces = classData.getInterfaces();

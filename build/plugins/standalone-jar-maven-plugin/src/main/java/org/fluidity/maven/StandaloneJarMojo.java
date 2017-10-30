@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.Attributes;
@@ -355,7 +356,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
                         } else {
                             final String entryName = inclusion.folder.concat(dependency.getName());
 
-                            if (artifact.getType().equals(DependenciesSupport.JAR_TYPE)) {
+                            if (Objects.equals(artifact.getType(), DependenciesSupport.JAR_TYPE)) {
                                 dependencyList.add(entryName);
                                 policy.add(artifact.getFile(), 1, inclusion.folder);
                             }
@@ -401,12 +402,12 @@ public final class StandaloneJarMojo extends AbstractMojo {
                         final String entryName = inclusion.folder.concat(dependency.getName());
                         output.putNextEntry(new JarEntry(entryName));
 
-                        if (artifact.getId().equals(projectId)) {
+                        if (Objects.equals(artifact.getId(), projectId)) {
                             final URL url = dependency.toURI().toURL();
 
                             // got to check if our project artifact is something we have created in a previous run
                             // i.e., if it contains the project artifact we're about to copy
-                            final int processed = Archives.read(url, false, (_url, _entry) -> !entryName.equals(_entry.getName()) ? null : (__url, __entry, input) -> {
+                            final int processed = Archives.read(url, false, (_url, _entry) -> !Objects.equals(entryName, _entry.getName()) ? null : (__url, __entry, input) -> {
                                 IOStreams.pipe(input, output, buffer);
                                 return false;
                             });

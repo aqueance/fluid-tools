@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.fluidity.composition.Component;
@@ -145,7 +146,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             }
 
             for (final Artifact artifact : (Set<Artifact>) project.getArtifacts()) {
-                if (DependenciesSupport.JAR_TYPE.equals(artifact.getType())) {
+                if (Objects.equals(artifact.getType(), DependenciesSupport.JAR_TYPE)) {
                     urls.add(artifact.getFile().toURI().toURL());
                 }
             }
@@ -342,7 +343,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             final String componentPackage = className.substring(0, className.lastIndexOf(".") + 1);
             final String bindingClassName = componentPackage + GENERATED_PACKAGE_BINDINGS + projectName;
 
-            if (className.equals(bindingClassName)) {
+            if (Objects.equals(className, bindingClassName)) {
                 new File(classesDirectory, fileName).delete();
             } else {
                 final ClassReader classData = repository.reader(className);
@@ -377,7 +378,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                                               final String signature,
                                               final String superName,
                                               final String[] interfaces) {
-                                original = this.name.equals(name);
+                                original = Objects.equals(name, this.name);
                                 super.visit(version, access, name, signature, superName, interfaces);
                             }
 
@@ -394,22 +395,18 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                             public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
                                 final Type type = Type.getType(desc);
 
-                                if (serviceProviderType.equals(type)) {
+                                if (Objects.equals(type, serviceProviderType)) {
                                     return new ServiceProviderProcessor(repository, reader, processor -> {
                                         final String _type = processor.type();
-
-                                        Set<String> list = serviceProviderApis.get(_type);
-                                        if (list == null) {
-                                            serviceProviderApis.put(_type, list = new HashSet<>());
-                                        }
+                                        final Set<String> list = serviceProviderApis.computeIfAbsent(_type, ignored -> new HashSet<>());
 
                                         list.addAll(processor.apiSet());
 
-                                        if (_type.equals(ServiceProviders.TYPE)) {
+                                        if (Objects.equals(_type, ServiceProviders.TYPE)) {
                                             publicApis.addAll(list);
                                         }
                                     });
-                                } else if (componentType.equals(type)) {
+                                } else if (Objects.equals(type, componentType)) {
                                     return new ComponentProcessor(processor -> {
                                         if (original) {
                                             flags.ignored = !processor.isAutomatic();
@@ -418,7 +415,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
                                         flags.component = !ClassReaders.isAbstract(classData) && !ClassReaders.isInterface(classData);
                                     });
-                                } else if (componentGroupType.equals(type)) {
+                                } else if (Objects.equals(type, componentGroupType)) {
                                     return new ComponentProcessor(processor -> flags.group = !flags.dependent);
                                 } else {
                                     return null;
@@ -494,13 +491,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     }
 
     private Map<String, Collection<String>> providerMap(final String type, final Map<String, Map<String, Collection<String>>> serviceProviderMap) {
-        Map<String, Collection<String>> providerMap = serviceProviderMap.get(type);
-
-        if (providerMap == null) {
-            serviceProviderMap.put(type, providerMap = new HashMap<>());
-        }
-
-        return providerMap;
+        return serviceProviderMap.computeIfAbsent(type, ignored -> new HashMap<>());
     }
 
     private void makePublic(final String className, final File classesDirectory, final ClassRepository repository) throws MojoExecutionException, IOException {
@@ -537,7 +528,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             throws IOException, MojoExecutionException {
         final String superName = descendant.getSuperName();
 
-        if (!superName.equals(OBJECT_CLASS_NAME)) {
+        if (!Objects.equals(superName, OBJECT_CLASS_NAME)) {
             final ClassReader superClass = repository.reader(superName);
 
             if (superClass != null) {
@@ -570,13 +561,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     }
 
     private void addServiceProvider(final Map<String, Collection<String>> map, final String api, final String className) {
-        Collection<String> providers = map.get(api);
-
-        if (providers == null) {
-            map.put(api, providers = new HashSet<>());
-        }
-
-        providers.add(className);
+        map.computeIfAbsent(api, ignored -> new HashSet<>()).add(className);
     }
 
     private void addServiceProviders(final String className, final Collection<String> providerNames, final Map<String, Collection<String>> serviceProviderMap)

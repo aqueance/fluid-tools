@@ -24,16 +24,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -78,10 +74,8 @@ import org.fluidity.foundation.Utility;
  * <li>If the class directly implements one or more interfaces then the algorithm returns <u>those interfaces</u>.</li>
  * </ol>
  * <p>
- * Once the above algorithm has completed, the list of group interfaces is calculated using the algorithm below for each class returned by the algorithm.
- * <p>
- * The rules for component group interface discovery are described by the following recursive algorithm. The algorithm is triggered individually for the
- * original class and each component interfaces identified by the recursive algorithm above, and the terms <em>original class</em> and <em>this class</em> will
+ * Once the above algorithm has completed, the list of group interfaces is calculated using the following recursive algorithm, triggered individually for the
+ * original class and each component interface identified by the recursive algorithm above, and the terms <em>original class</em> and <em>this class</em> will
  * be understood relative to each individual invocation of the algorithm.
  * <ol>
  * <li>If the class is annotated with {@link ComponentGroup @ComponentGroup} with a non-empty <code>@ComponentGroup(api = &hellip;)</code> parameter, the
@@ -208,10 +202,6 @@ public final class Components extends Utility {
                 throw new ComponentContainer.BindingException("Component interface for %s is the factory interface itself: %s", componentClass, type);
             }
 
-            if (isParameterized(componentClass)) {
-                checkTypeParameters(componentClass, type);
-            }
-
             interfaces.add(new Specification(api, entry.getValue()));
         }
 
@@ -237,41 +227,6 @@ public final class Components extends Utility {
         }
 
         return false;
-    }
-
-    private static void checkTypeParameters(final Class<?> type, final Type api) {
-        Generics.abstractions(type, check -> {
-            checkTypeParameters(type, api, check);
-            checkTypeParameters(Generics.rawType(check), api);
-            return null;
-        });
-    }
-
-    private static void checkTypeParameters(final Class<?> type, final Type api, final Type check) {
-        if (Generics.rawType(api).isAssignableFrom(Generics.rawType(check))) {
-            if (api instanceof Class) {
-                final TypeVariable[] parameters = ((Class) api).getTypeParameters();
-
-                if (parameters.length > 0) {
-                    throw new ComponentContainer.BindingException("Component type %s leaves parameter(s) %s of its parameterized component interface unspecified: %s",
-                                                                  type.getName(),
-                                                                  Arrays.toString(parameters),
-                                                                  api);
-                }
-            } else if (check instanceof ParameterizedType) {
-                final List<Type> specified = new ArrayList<>();
-                for (final Type argument : ((ParameterizedType) check).getActualTypeArguments()) {
-                    if (!(argument instanceof TypeVariable)) {
-                        specified.add(argument);
-                    }
-                }
-
-                if (!specified.isEmpty()) {
-                    throw new ComponentContainer.BindingException("Component type %s leaves parameter(s) %s of its parameterized component interface unspecified: %s",
-                                                                  type.getName(), specified, Arrays.toString(Generics.rawType(api).getTypeParameters()));
-                }
-            }
-        }
     }
 
     private static Type findDeclaredInterface(final Class<?> type, final Class<?> api) {
@@ -509,7 +464,7 @@ public final class Components extends Utility {
             }
 
             final Interfaces that = (Interfaces) o;
-            return implementation.equals(that.implementation) && Arrays.equals(api, that.api);
+            return Objects.equals(this.implementation, that.implementation) && Arrays.equals(this.api, that.api);
         }
 
         @Override
@@ -562,7 +517,7 @@ public final class Components extends Utility {
             }
 
             final Specification that = (Specification) o;
-            return api.equals(that.api) && Arrays.equals(groups, that.groups);
+            return Objects.equals(this.api, that.api) && Arrays.equals(this.groups, that.groups);
         }
 
         @Override

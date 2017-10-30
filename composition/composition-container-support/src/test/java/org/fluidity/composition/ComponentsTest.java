@@ -338,29 +338,49 @@ public class ComponentsTest {
         checkGroups(interfaces.api[0]);
     }
 
-    @Test(expectedExceptions = ComponentContainer.BindingException.class)
+    @Test
     public void testParameterization1() throws Exception {
-        Components.inspect(ParameterizedImpl1.class);
+        final Components.Interfaces interfaces = Components.inspect(ParameterizedImpl1.class);
+
+        checkImplementation(ParameterizedImpl1.class, interfaces);
+        checkInterfaces(ParameterizedImpl1.class, interfaces.api, ParameterizedApi1.class);
+        checkGroups(interfaces.api[0]);
     }
 
-    @Test(expectedExceptions = ComponentContainer.BindingException.class)
+    @Test
     public void testParameterization2() throws Exception {
-        Components.inspect(ParameterizedImpl2.class);
+        final Components.Interfaces interfaces = Components.inspect(ParameterizedImpl2.class);
+
+        checkImplementation(ParameterizedImpl2.class, interfaces);
+        checkInterfaces(ParameterizedImpl2.class, interfaces.api, ParameterizedApi1.class);
+        checkGroups(interfaces.api[0]);
     }
 
-    @Test(expectedExceptions = ComponentContainer.BindingException.class)
+    @Test
     public void testParameterizationSubclass1() throws Exception {
-        Components.inspect(ParameterizedSubclass1.class);
+        final Components.Interfaces interfaces = Components.inspect(ParameterizedSubclass1.class);
+
+        checkImplementation(ParameterizedSubclass1.class, interfaces);
+        checkInterfaces(ParameterizedSubclass1.class, interfaces.api, ParameterizedApi1.class);
+        checkGroups(interfaces.api[0]);
     }
 
-    @Test(expectedExceptions = ComponentContainer.BindingException.class)
+    @Test
     public void testParameterizationSubclass2() throws Exception {
-        Components.inspect(ParameterizedSubclass2.class);
+        final Components.Interfaces interfaces = Components.inspect(ParameterizedSubclass2.class);
+
+        checkImplementation(ParameterizedSubclass2.class, interfaces);
+        checkInterfaces(ParameterizedSubclass2.class, interfaces.api, ParameterizedApi1.class);
+        checkGroups(interfaces.api[0]);
     }
 
-    @Test(expectedExceptions = ComponentContainer.BindingException.class)
+    @Test
     public void testParameterizationSubclass3() throws Exception {
-        Components.inspect(ParameterizedSubclass3.class);
+        final Components.Interfaces interfaces = Components.inspect(ParameterizedSubclass3.class);
+
+        checkImplementation(ParameterizedSubclass3.class, interfaces);
+        checkInterfaces(ParameterizedSubclass3.class, interfaces.api, ParameterizedApi1.class);
+        checkGroups(interfaces.api[0]);
     }
 
     @Test

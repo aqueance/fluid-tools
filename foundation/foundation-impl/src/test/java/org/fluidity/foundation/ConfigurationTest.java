@@ -145,9 +145,9 @@ public class ConfigurationTest extends Simulator {
         EasyMock.expect(provider.property("undefined")).andReturn(null);
 
         verify((Task) () -> configuration.query(settings -> {
-            assert "property".equals(settings.property()) : settings.property();
-            assert "provided".equals(settings.provided()) : settings.provided();
-            assert "undefined".equals(settings.undefined()) : settings.undefined();
+            assert Objects.equals("property", settings.property()) : settings.property();
+            assert Objects.equals("provided", settings.provided()) : settings.provided();
+            assert Objects.equals("undefined", settings.undefined()) : settings.undefined();
 
             return null;
         }));
@@ -158,9 +158,9 @@ public class ConfigurationTest extends Simulator {
         final Configuration<ProvidedSettings> configuration = configure(ProvidedSettings.class, null, new ProvidedSettingsImpl());
 
         verify((Task) () -> configuration.query(settings -> {
-            assert "provided".equals(settings.property()) : settings.property();
-            assert "provided".equals(settings.provided()) : settings.provided();
-            assert "undefined".equals(settings.undefined()) : settings.undefined();
+            assert Objects.equals("provided", settings.property()) : settings.property();
+            assert Objects.equals("provided", settings.provided()) : settings.provided();
+            assert Objects.equals("undefined", settings.undefined()) : settings.undefined();
 
             return null;
         }));
@@ -237,7 +237,7 @@ public class ConfigurationTest extends Simulator {
             checkObjects(null, settings.no_flags());
 
             checkObjects(Arrays.asList("good", "bad"), settings.strings());
-            checkObjects(Collections.EMPTY_LIST, settings.empty_strings());
+            checkObjects(Collections.emptyList(), settings.empty_strings());
             checkObjects(null, settings.no_strings());
 
             final Map<String, Integer> map = new HashMap<>();
@@ -245,7 +245,7 @@ public class ConfigurationTest extends Simulator {
             map.put("key2", 34);
 
             checkObjects(map, settings.numbers());
-            checkObjects(Collections.EMPTY_MAP, settings.empty_numbers());
+            checkObjects(Collections.emptyMap(), settings.empty_numbers());
             checkObjects(null, settings.no_numbers());
 
             final Map<List<Integer>, Map<String, List<long[]>>> insane = new HashMap<>();
@@ -442,13 +442,13 @@ public class ConfigurationTest extends Simulator {
         EasyMock.expect(provider.property("property.a.b")).andReturn(null);
 
         verify((Task) () -> configuration.query(settings -> {
-            assert "value11".equals(settings.property1("abcd")) : settings.property1("abcd");
-            assert "value12".equals(settings.property1("efgh")) : settings.property1("efgh");
-            assert "value21".equals(settings.property2("abcd", "efgh")) : settings.property2("abcd", "efgh");
-            assert "value22".equals(settings.property2("efgh", "ijkl")) : settings.property2("efgh", "ijkl");
+            assert Objects.equals(settings.property1("abcd"), "value11") : settings.property1("abcd");
+            assert Objects.equals(settings.property1("efgh"), "value12") : settings.property1("efgh");
+            assert Objects.equals(settings.property2("abcd", "efgh"), "value21") : settings.property2("abcd", "efgh");
+            assert Objects.equals(settings.property2("efgh", "ijkl"), "value22") : settings.property2("efgh", "ijkl");
 
             final String missing = settings.property2("a", "b");
-            assert "value.a.b".equals(missing) : missing;
+            assert Objects.equals(missing, "value.a.b") : missing;
 
             return null;
         }));
@@ -593,17 +593,17 @@ public class ConfigurationTest extends Simulator {
             }
 
             @Override
-            public boolean equals(final Object o) {
-                if (this == o) {
+            public boolean equals(final Object other) {
+                if (this == other) {
                     return true;
                 }
 
-                if (o == null || getClass() != o.getClass()) {
+                if (other == null || getClass() != other.getClass()) {
                     return false;
                 }
 
-                final Item1 that = (Item1) o;
-                return number == that.number && text.equals(that.text);
+                final Item1 that = (Item1) other;
+                return this.number == that.number && Objects.equals(this.text, that.text);
             }
 
             @Override
@@ -757,7 +757,7 @@ public class ConfigurationTest extends Simulator {
             } else if (Collection.class.isAssignableFrom(type) || Map.class.isAssignableFrom(type)) {
                 collectionCheck(expected, actual);
             } else {
-                assert expected.equals(actual) : String.format("Expected %s, got %s", expected, actual);
+                assert Objects.equals(expected, actual) : String.format("Expected %s, got %s", expected, actual);
             }
         }
     }
@@ -809,7 +809,7 @@ public class ConfigurationTest extends Simulator {
                 collectionCheck(Array.get(expected, i), Array.get(actual, i));
             }
         } else {
-            assert expected.equals(actual) : String.format("%s: %s", expected, actual);
+            assert Objects.equals(expected, actual) : String.format("%s: %s", expected, actual);
         }
     }
 
@@ -836,11 +836,7 @@ public class ConfigurationTest extends Simulator {
     }
 
     private static void assertValue(final Object value, final Object expected) {
-        if (expected == null) {
-            assert value == null : String.format("Expected null, got >%s<", value);
-        } else {
-            assert expected.equals(value) : String.format("Expected %s, got >%s<", expected, value);
-        }
+        assert Objects.equals(expected, value) : String.format("Expected %s, got >%s<", expected, value);
     }
 
     private static void checkSettings(final Settings configuration,
@@ -893,17 +889,17 @@ public class ConfigurationTest extends Simulator {
         }
 
         @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
+        public boolean equals(final Object other) {
+            if (this == other) {
                 return true;
             }
 
-            if (!(o instanceof ListSettings.Item2)) {
+            if (!(other instanceof ListSettings.Item2)) {
                 return false;
             }
 
-            final ListSettings.Item2 that = (ListSettings.Item2) o;
-            return number == that.number() && text.equals(that.text());
+            final ListSettings.Item2 that = (ListSettings.Item2) other;
+            return this.number == that.number() && Objects.equals(this.text, that.text());
         }
 
         @Override

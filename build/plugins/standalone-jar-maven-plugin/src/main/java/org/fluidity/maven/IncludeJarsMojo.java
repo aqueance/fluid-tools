@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -192,13 +193,13 @@ public final class IncludeJarsMojo extends AbstractMojo {
                                 throw new MojoExecutionException(String.format("Dependency %s not found (tried: %s)", artifact, dependency));
                             }
 
-                            if (!artifact.getType().equals(DependenciesSupport.JAR_TYPE)) {
+                            if (!Objects.equals(artifact.getType(), DependenciesSupport.JAR_TYPE)) {
                                 log.warn(String.format("Ignoring non-JAR dependency %s", dependency));
                                 iterator.remove();
                             } else if (dependency.isDirectory()) {
                                 log.warn(String.format("Ignoring directory dependency %s", dependency));
                                 iterator.remove();
-                            } else if (artifact.getId().equals(projectId)) {
+                            } else if (Objects.equals(artifact.getId(), projectId)) {
                                 log.warn(String.format("Ignoring the project artifact %s", dependency));
                                 iterator.remove();
                             } else {
@@ -263,7 +264,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
                             }
                         }
 
-                        return name.equals(policyName) ? null : (_url, _entry, input) -> {
+                        return Objects.equals(name, policyName) ? null : (_url, _entry, input) -> {
                             output.putNextEntry(new JarEntry(_entry.getName()));
                             IOStreams.pipe(input, output, buffer);
                             return true;

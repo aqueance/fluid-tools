@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -55,7 +56,7 @@ final class ArchivesSupportImpl implements ArchivesSupport {
                     final String entryName = _entry.getName();
 
                     if (!attributes.containsKey(entryName)) {
-                        if (entryName.equals(Archives.INDEX_NAME)) {
+                        if (Objects.equals(entryName, Archives.INDEX_NAME)) {
                             log.warn(String.format("JAR index ignored in %s", _url));
                         } else if (entryName.startsWith(Archives.META_INF) && entryName.toUpperCase().endsWith(".SF")) {
                             throw new IOException(String.format("JAR signatures not supported in %s", _url));
@@ -110,7 +111,7 @@ final class ArchivesSupportImpl implements ArchivesSupport {
 
                 final boolean done = copied.contains(entryName);
                 final boolean manifest = entryName.equals(JarFile.MANIFEST_NAME) || entryName.equals(META_INF);
-                final boolean index = entryName.equals(Archives.INDEX_NAME);
+                final boolean index = Objects.equals(entryName, Archives.INDEX_NAME);
                 final boolean signature = entryName.startsWith(Archives.META_INF) && entryName.toUpperCase().endsWith(".SF");
 
                 return done || manifest || index || signature || !feed.include(entry) ? null : (_url, _entry, stream) -> {

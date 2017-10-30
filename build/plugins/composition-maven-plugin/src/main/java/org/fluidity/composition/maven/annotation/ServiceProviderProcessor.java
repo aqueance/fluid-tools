@@ -17,6 +17,7 @@
 package org.fluidity.composition.maven.annotation;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -58,16 +59,16 @@ public final class ServiceProviderProcessor extends AnnotationVisitor {
 
     @Override
     public void visit(final String name, final Object value) {
-        assert ATR_TYPE.equals(name) : name;
+        assert Objects.equals(name, ATR_TYPE) : name;
 
-        if (ATR_TYPE.equals(name)) {
+        if (Objects.equals(name, ATR_TYPE)) {
             type = (String) value;
         }
     }
 
     @Override
     public AnnotationVisitor visitArray(final String name) {
-        assert ATR_API.equals(name) : name;
+        assert Objects.equals(name, ATR_API) : name;
 
         return new AnnotationVisitor(api) {
             @Override

@@ -16,6 +16,8 @@
 
 package org.fluidity.composition.types;
 
+import java.io.Serializable;
+
 import org.fluidity.composition.Component;
 
 @Component

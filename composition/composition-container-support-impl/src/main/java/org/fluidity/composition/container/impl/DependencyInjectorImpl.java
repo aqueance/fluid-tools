@@ -451,7 +451,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                                final AccessGuard<ComponentContainer> containerGuard,
                                                final Dependency dependency) {
         final Component.Reference inbound = original.reference();
-        final Type reference = inbound == null || !parameterized ? dependency.reference() : Generics.propagate(inbound.type(), dependency.reference());
+        final Type reference = inbound == null || !parameterized ? dependency.reference() : Generics.propagate(inbound.type(), dependency.reference(), true);
 
         final ComponentGroup componentGroup = dependency.annotation(ComponentGroup.class);
         final Class<?> dependencyType = findDependencyType(dependency.annotation(Component.class), reference, declaringType);

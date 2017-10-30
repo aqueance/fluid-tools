@@ -39,28 +39,6 @@ public class TypeParameterTests extends AbstractContainerTests {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    public void testTypes() throws Exception {
-        registry.bindComponent(TypedComponent1a.class);
-        registry.bindComponent(TypedComponent1b.class);
-        registry.bindComponent(TypedComponent2.class);
-        registry.bindComponent(TypedComponent3.class);
-        registry.bindComponent(TypedComponent4.class);
-        registry.bindComponent(RootComponent.class);
-        registry.bindComponent(SerializableImpl.class);
-
-        final RootComponent rootComponent = container.getComponent(RootComponent.class);
-        assert rootComponent != null;
-
-        assert rootComponent.p3 != null;
-        assert rootComponent.p3.p2 != null;
-
-        rootComponent.p3.container.invoke(rootComponent.p3, TypedComponent3.class.getMethod("method", TypedComponent1a.class));
-        rootComponent.p4.container.invoke(rootComponent.p4, TypedComponent4.class.getMethod("method", TypedComponent1b.class));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
     public void testEmbeddedContainer() throws Exception {
         registry.bindComponent(TypedComponent1a.class);
         registry.bindComponent(TypedComponent1b.class);
@@ -81,7 +59,6 @@ public class TypeParameterTests extends AbstractContainerTests {
     }
 
     @Test(expectedExceptions = ComponentContainer.ResolutionException.class)
-    @SuppressWarnings("unchecked")
     public void testRootContainer1a() throws Exception {
         registry.bindComponent(TypedComponent1a.class);
         registry.bindComponent(TypedComponent1b.class);
@@ -101,7 +78,6 @@ public class TypeParameterTests extends AbstractContainerTests {
     }
 
     @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*[Uu]nresolved.*\\[[T\\]].*")
-    @SuppressWarnings("unchecked")
     public void testRootContainer1b() throws Exception {
         registry.bindComponent(TypedComponent1a.class);
         registry.bindComponent(TypedComponent1b.class);
@@ -121,7 +97,6 @@ public class TypeParameterTests extends AbstractContainerTests {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testTypedContextAware() throws Exception {
         registry.bindComponent(SerializableImpl.class);
         registry.bindComponent(TypedContextAware.class);
@@ -130,8 +105,7 @@ public class TypeParameterTests extends AbstractContainerTests {
         assert container.getComponent(TypedRootComponent.class) != null;
     }
 
-    @Test(expectedExceptions = ComponentContainer.ResolutionException.class)
-    @SuppressWarnings("unchecked")
+    @Test
     public void testTypedContextUnaware() throws Exception {
         registry.bindComponent(SerializableImpl.class);
         registry.bindComponent(TypedContextUnaware.class);
@@ -140,14 +114,14 @@ public class TypeParameterTests extends AbstractContainerTests {
         assert container.getComponent(TypedRootComponent.class) != null;
     }
 
-    @Test(expectedExceptions = ComponentContainer.BindingException.class)
-    @SuppressWarnings("unchecked")
+    @Test
     public void testTypeResolved1() throws Exception {
         registry.bindComponent(TypedResolved1.class);
+
+        assert container.getComponent(TypedComponent.class) != null;
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testTypeResolved2() throws Exception {
         registry.bindComponent(TypedResolved2.class);
 
@@ -257,16 +231,16 @@ public class TypeParameterTests extends AbstractContainerTests {
     }
 
     @Component
-    private static class TypedContextUnaware<T> implements TypedComponent<T> {
+    private static class TypedContextUnaware implements TypedComponent<Serializable> {
 
-        public TypedContextUnaware(final T dependency) {
+        public TypedContextUnaware(final Serializable dependency) {
             assert dependency != null;
         }
     }
 
     @Component
     @Component.Qualifiers(Component.Reference.class)
-    private static class TypedResolved1 implements TypedComponent<Serializable> { }
+    private static class TypedResolved1<T> implements TypedComponent<T> { }
 
     @Component
     private static class TypedResolved2 implements TypedComponent<Serializable> { }

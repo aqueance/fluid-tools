@@ -34,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -340,7 +341,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
         }
 
         private boolean isComposite(final Class<?> type) {
-            return !type.isArray() && !type.isPrimitive() && !Enum.class.isAssignableFrom(type) && !type.getName().startsWith("java.");
+            return !type.isArray() && !type.isPrimitive() && !type.isEnum() && !type.getName().startsWith("java.");
         }
 
         private Object composite(final Class<?> type, final String suffix) throws IllegalAccessException, InstantiationException {
@@ -639,7 +640,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
             try {
                 return numberToPrimitive(target, Double.valueOf(text));
             } catch (final NumberFormatException ignore) {
-                if (Enum.class.isAssignableFrom(target)) {
+                if (target.isEnum()) {
                     return Enum.valueOf((Class<Enum>) target, text);
                 } else if (target == Class.class) {
                     try {
@@ -650,9 +651,9 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                 } else {
                     final PrimitiveType type = PRIMITIVE_TYPES.get(target);
 
-                    if (TRUE.equals(text)) {
+                    if (Objects.equals(text, TRUE)) {
                         return booleanToPrimitive(type, target, true);
-                    } else if (FALSE.equals(text)) {
+                    } else if (Objects.equals(text, FALSE)) {
                         return booleanToPrimitive(type, target, false);
                     } else if (type != null) {
                         switch (type) {

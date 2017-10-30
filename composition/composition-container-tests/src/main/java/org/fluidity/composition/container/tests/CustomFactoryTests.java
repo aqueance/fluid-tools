@@ -23,6 +23,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.Objects;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
@@ -202,16 +203,16 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         final ContextProvider component = verify(() -> container.getComponent(ContextProvider.class));
 
         assert component != null;
-        assert "name-1".equals(component.name1()) : component.name1();
-        assert "name-2".equals(component.name2()) : component.name2();
-        assert "name-5".equals(component.name3()) : component.name3();
+        assert Objects.equals(component.name1(), "name-1") : component.name1();
+        assert Objects.equals(component.name2(), "name-2") : component.name2();
+        assert Objects.equals(component.name3(), "name-5") : component.name3();
 
         final NamedGroup[] group = component.group();
         assert group != null;
         assert group.length == 3 : group.length;
 
         for (final NamedGroup member : group) {
-            assert "name-3".equals(member.name()) : String.format("%s: %s", member.getClass(), member.name());
+            assert Objects.equals(member.name(), "name-3") : String.format("%s: %s", member.getClass(), member.name());
         }
 
         final NamedGroup[] field1 = component.field1();
@@ -219,7 +220,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         assert field1.length == 2 : field1.length;
 
         for (final NamedGroup member : field1) {
-            assert "name-4".equals(member.name()) : String.format("%s: %s", member.getClass(), member.name());
+            assert Objects.equals(member.name(), "name-4") : String.format("%s: %s", member.getClass(), member.name());
         }
 
         final NamedGroup[] field2 = component.field2();
@@ -227,12 +228,12 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         assert field2.length == 2 : field2.length;
 
         for (final NamedGroup member : field2) {
-            assert "name-6".equals(member.name()) : String.format("%s: %s", member.getClass(), member.name());
+            assert Objects.equals(member.name(), "name-6") : String.format("%s: %s", member.getClass(), member.name());
         }
     }
 
     @Test
-    public void testResolver(final int variant) throws Exception {
+    public void testResolver() throws Exception {
 
         @Component(automatic = false)
         class Main { }
@@ -261,7 +262,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         }
 
         registry.bindInstance(this, CustomFactoryTests.class);
-        registry.bindInstance(variant);
+        registry.bindInstance(1234);
         registry.bindComponent(Secondary.class);
         registry.bindComponent(Factory.class);
 

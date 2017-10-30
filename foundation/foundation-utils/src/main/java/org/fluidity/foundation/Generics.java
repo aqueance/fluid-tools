@@ -20,6 +20,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.GenericDeclaration;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -37,7 +38,6 @@ import org.fluidity.foundation.security.Security;
 /**
  * Utility methods to access parameterized type information.
  */
-@SuppressWarnings("WeakerAccess")
 public final class Generics extends Utility {
 
     private static final Annotation[] NO_ANNOTATION = new Annotation[0];
@@ -89,19 +89,30 @@ public final class Generics extends Utility {
      * @return the type parameter at the given index or <code>null</code> if the type is not a class or parameterized type, or the index is out of range.
      */
     public static Type typeParameter(final Type type, final int index) {
+        return typeParameter(type, index, true);
+    }
+
+    private static Type typeParameter(final Type type, final int index, final boolean resolve) {
         if (type instanceof ParameterizedType) {
-            final Type[] arguments = ((ParameterizedType) type).getActualTypeArguments();
+            final ParameterizedType parameterizedType = (ParameterizedType) type;
+            final Type[] arguments = parameterizedType.getActualTypeArguments();
 
             if (arguments != null && arguments.length > index) {
                 final Type argument = arguments[index];
-                return argument instanceof WildcardType ? rawType(rawType(((ParameterizedType) type).getRawType()).getTypeParameters()[index]) : argument;
+                return resolve && argument instanceof WildcardType ? rawType(rawType(parameterizedType.getRawType()).getTypeParameters()[index]) : argument;
             }
         } else if (type instanceof Class) {
             final TypeVariable[] parameters = ((Class) type).getTypeParameters();
 
             if (parameters != null && parameters.length > index) {
-                final Type[] bounds = parameters[index].getBounds();
-                return bounds.length == 1 ? bounds[0] : Object.class;
+                final TypeVariable parameter = parameters[index];
+
+                if (resolve) {
+                    final Type[] bounds = parameter.getBounds();
+                    return bounds.length == 1 ? bounds[0] : Object.class;
+                } else {
+                    return parameter;
+                }
             }
         }
 
@@ -130,36 +141,75 @@ public final class Generics extends Utility {
      *
      * @param reference the base type to resolve the type variable against.
      * @param variable  the type variable to resolve.
+     * @param force     if <code>true</code> wild cards and unresolved type variables are resolved to their bound, else they remain unresolved.
      *
      * @return the resolved type variable if resolution was possible, <code>null</code> otherwise.
      */
-    static Type resolve(final Type reference, final TypeVariable variable) {
+    static Type resolve(final Type reference, final TypeVariable variable, final boolean force) {
         if (reference instanceof ParameterizedType) {
-            final String name = variable.getName();
+            final TypeVariable[] parameters = rawType(reference).getTypeParameters();
 
-            final TypeVariable[] parameters = rawType((reference)).getTypeParameters();
             for (int i = 0, limit = parameters.length; i < limit; i++) {
-                if (name.equals(parameters[i].getName())) {
-                    return typeParameter(reference, i);
+                if (Objects.equals(variable, parameters[i])) {
+                    return typeParameter(reference, i, force);
                 }
             }
-
-            return abstractions(reference, type -> resolve(propagate(reference, type), variable));
         } else if (reference instanceof Class) {
-            final String name = variable.getName();
-
             for (final TypeVariable parameter : ((Class) reference).getTypeParameters()) {
-                if (name.equals(parameter.getName())) {
-                    return rawType(parameter);
+                if (Objects.equals(variable, parameter)) {
+                    return force ? rawType(parameter) : parameter;
                 }
             }
-
-            return abstractions(reference, type -> resolve(propagate(reference, type), variable));
         } else if (reference instanceof GenericArrayType) {
-            return resolve(((GenericArrayType) reference).getGenericComponentType(), variable);
+            return resolve(((GenericArrayType) reference).getGenericComponentType(), variable, force);
+        } else {
+            return null;
+        }
+
+        final Class<?> _type = rawType(reference);
+        final GenericDeclaration declaration = variable.getGenericDeclaration();
+
+        if (declaration instanceof Class) {
+            final Class<?> _class = (Class<?>) declaration;
+
+            if (_class.isAssignableFrom(_type)) {
+                return abstractions(reference, type -> _class.isAssignableFrom(rawType(type))
+                                                       ? resolve(propagate(reference, type, force), variable, force)
+                                                       : null);
+            } else if (reference instanceof ParameterizedType) {
+                return infer((ParameterizedType) reference, variable);
+            }
         }
 
         return null;
+    }
+
+    private static Type infer(final ParameterizedType reference, final TypeVariable variable) {
+        final GenericDeclaration declaration = variable.getGenericDeclaration();
+
+        if (!(declaration instanceof Class)) {
+            return null;
+        }
+
+        final Class<?> root = rawType(reference);
+
+        return abstractions((Class) declaration, type -> {
+            final Class<?> _class = rawType(type);
+
+            if (root.isAssignableFrom(_class) && type instanceof ParameterizedType) {
+                final Type[] arguments = ((ParameterizedType) type).getActualTypeArguments();
+
+                for (int i = 0, limit = arguments.length; i < limit; i++) {
+                    if (arguments[i] == variable) {
+                        return _class == root
+                               ? reference.getActualTypeArguments()[i]
+                               : infer(reference, _class.getTypeParameters()[i]);
+                    }
+                }
+            }
+
+            return null;
+        });
     }
 
     private static Collection<Type> unresolved(final Type reference, final Collection<Type> list) {
@@ -227,40 +277,38 @@ public final class Generics extends Utility {
     }
 
     /**
-     * Resolves all type variables of the <code>outbound</code> parameter using the <code>inbound</code> type as base type. The <code>inbound</code>
-     * type must have all its parameters resolved.
+     * Resolves all type variables of the <code>outbound</code> parameter using the <code>inbound</code> type as base type.
      *
      * @param inbound  the base type to resolve type variables against.
      * @param outbound the outbound type whose type variables are to be resolved.
+     * @param resolve  if <code>true</code> wild cards and unresolved type variables are resolved to their bound, else they remain unresolved.
      *
      * @return a type with all type variables resolved or <code>null</code> if no resolution was possible.
      */
-    public static Type propagate(final Type inbound, final Type outbound) {
+    public static Type propagate(final Type inbound, final Type outbound, final boolean resolve) {
         if (outbound instanceof Class) {
             return outbound;
         } else if (outbound instanceof ParameterizedType) {
             final ParameterizedType original = (ParameterizedType) outbound;
 
+            boolean modified = false;
+
             final Type[] arguments = original.getActualTypeArguments();
             for (int i = 0, limit = arguments.length; i < limit; i++) {
                 final Type argument = arguments[i];
+                final Type resolved = propagate(inbound, argument, resolve);
 
-                Type resolved = propagate(inbound, argument);
-
-                if (resolved == null) {
-                    resolved = abstractions(inbound, type -> propagate(propagate(inbound, type), argument));
-                }
-
-                if (resolved != null) {
+                if (resolved != null && resolved != argument) {
                     arguments[i] = resolved;
+                    modified = true;
                 }
             }
 
-            return new ParameterizedTypeImpl(original, arguments);
+            return modified ? new ParameterizedTypeImpl(original, arguments) : outbound;
         } else if (outbound instanceof GenericArrayType) {
-            return new GenericArrayTypeImpl(propagate(inbound, arrayComponentType(outbound)));
+            return new GenericArrayTypeImpl(propagate(inbound, arrayComponentType(outbound), resolve));
         } else if (outbound instanceof TypeVariable) {
-            return resolve(inbound, (TypeVariable) outbound);
+            return resolve(inbound, (TypeVariable) outbound, resolve);
         } else if (outbound instanceof WildcardType) {
             final WildcardType original = (WildcardType) outbound;
 
@@ -369,9 +417,9 @@ public final class Generics extends Utility {
     }
 
     /**
-     * Returns the type that the given <code>specific</code> class represents as the specialization of the <code>generic</code> type. If <code>generic</code>
-     * is a parameterized type, the returned type will have the corresponding type parameters present. The {@linkplain #rawType(Type) class} of the returned
-     * type will be <code>generic</code>.
+     * Returns the generic type the given <code>specific</code> class represents as the specialization of the <code>generic</code> type. If <code>generic</code>
+     * is a parameterized type, the returned type will have the corresponding type <em>arguments</em> present. The {@linkplain #rawType(Type) class} of the
+     * returned type will be <code>generic</code>.
      *
      * @param specific the class that is assumed to specialize the given <code>generic</code> type.
      * @param generic  the generic type that is expected to be specialized by the given <code>specific</code>.
@@ -405,11 +453,12 @@ public final class Generics extends Utility {
 
                 for (int i = 0, limit = types.length; i < limit; i++) {
                     final Class<?> api = interfaces[i];
+                    final Type type = types[i];
 
                     if (rawGeneric == api) {
-                        return types[i];
+                        return type;
                     } else if (rawGeneric.isAssignableFrom(api)) {
-                        return specializedType(types[i], generic, rawType(types[i]), rawGeneric);
+                        return specializedType(type, generic, rawType(type), rawGeneric);
                     }
                 }
             }
@@ -464,7 +513,7 @@ public final class Generics extends Utility {
                 return true;
             } else if (type instanceof ParameterizedType) {
                 for (final TypeVariable variable : rawReference.getTypeParameters()) {
-                    final Type resolved = resolve(type, variable);
+                    final Type resolved = resolve(type, variable, true);
                     final Class<?> rawResolved = rawType(resolved);
 
                     for (final Type bound : variable.getBounds()) {
@@ -569,21 +618,22 @@ public final class Generics extends Utility {
             this.componentType = componentType;
         }
 
+        @Override
         public Type getGenericComponentType() {
             return componentType;
         }
 
         @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
+        public boolean equals(final Object other) {
+            if (this == other) {
                 return true;
             }
-            if (o == null || !(o instanceof GenericArrayType)) {
+            if (other == null || !(other instanceof GenericArrayType)) {
                 return false;
             }
 
-            final GenericArrayType that = (GenericArrayType) o;
-            return componentType.equals(that.getGenericComponentType());
+            final GenericArrayType that = (GenericArrayType) other;
+            return Objects.equals(componentType, that.getGenericComponentType());
         }
 
         @Override
@@ -607,37 +657,40 @@ public final class Generics extends Utility {
             this.original = original;
         }
 
+        @Override
         public Type[] getActualTypeArguments() {
             return arguments;
         }
 
+        @Override
         public Type getRawType() {
             return original.getRawType();
         }
 
+        @Override
         public Type getOwnerType() {
             return original.getOwnerType();
         }
 
         @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
+        public boolean equals(final Object other) {
+            if (this == other) {
                 return true;
             }
 
-            if (o == null || !(o instanceof ParameterizedType)) {
+            if (other == null || !(other instanceof ParameterizedType)) {
                 return false;
             }
 
-            final ParameterizedType that = (ParameterizedType) o;
-            return Arrays.equals(arguments, that.getActualTypeArguments()) && original.getRawType().equals(that.getRawType()) && original.getOwnerType() == null
-                   ? that.getOwnerType() == null
-                   : original.getOwnerType().equals(that.getOwnerType());
+            final ParameterizedType that = (ParameterizedType) other;
+            return Objects.equals(this.getRawType(), that.getRawType()) &&
+                   Objects.equals(this.getOwnerType(), that.getOwnerType()) &&
+                   Arrays.equals(arguments, that.getActualTypeArguments());
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(original.getRawType(), original.getOwnerType(), Arrays.hashCode(arguments));
+            return Objects.hash(getRawType(), getOwnerType(), Arrays.hashCode(arguments));
         }
 
         @Override

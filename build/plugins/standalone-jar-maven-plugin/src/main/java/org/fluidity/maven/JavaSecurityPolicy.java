@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -77,7 +78,7 @@ final class JavaSecurityPolicy implements SecurityPolicy {
     }
 
     public String name(final File file) throws IOException {
-        return file.equals(archive) ? name : entry(file);
+        return Objects.equals(file, archive) ? name : entry(file);
     }
 
     private String entry(final File file) throws IOException {

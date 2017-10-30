@@ -21,6 +21,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -125,7 +126,7 @@ public final class WebApplicationBootstrap {
 
                 Archives.read(war, true, (url, entry) -> {
                     final String entryName = entry.getName();
-                    final boolean matches = entryName.startsWith(bootEntry) && !entryName.equals(bootEntry);
+                    final boolean matches = entryName.startsWith(bootEntry) && !Objects.equals(entryName, bootEntry);
 
                     if (matches) {
                         classpath.add(Archives.Nested.formatURL(url, entryName));
