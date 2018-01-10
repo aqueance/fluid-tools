@@ -114,14 +114,13 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
         final Type[] types = method.getGenericParameterTypes();
         final Object[] parameters = arguments == null ? new Object[types.length] : Arrays.copyOf(arguments, types.length);
-        final boolean parameterized = Components.isParameterized(componentClass);
 
         final AccessGuard<ComponentContainer> guard = containerGuard();
 
         for (int i = 0, length = types.length; i < length; ++i) {
             final int index = i;
             if (parameters[index] == null && (explicit || contains(parameterAnnotations[index], Inject.class))) {
-                injectDependency(false, traversal, container, contexts, context, componentClass, parameterized, guard, new Dependency() {
+                injectDependency(false, traversal, container, contexts, context, componentClass, guard, new Dependency() {
 
                     private final Annotation[] annotations = Lists.concatenate(Annotation.class, methodAnnotations, parameterAnnotations[index]);
 
@@ -280,13 +279,12 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final Annotation[] constructorAnnotations = Lists.notNull(Annotation.class, constructor.getAnnotations());
 
         final DependencyGraph.Node[] parameters = new DependencyGraph.Node[params.length];
-        final boolean parameterized = Components.isParameterized(componentClass);
 
         final AccessGuard<ComponentContainer> guard = containerGuard();
 
         for (int i = 0, length = params.length; i < length; ++i) {
             final int index = i;
-            consumed.add(injectDependency(true, traversal, container, contexts, context, componentClass, parameterized, guard, new Dependency() {
+            consumed.add(injectDependency(true, traversal, container, contexts, context, componentClass, guard, new Dependency() {
 
                 private final Annotation[] annotations = Lists.concatenate(Annotation.class, constructorAnnotations, descriptor.annotations(index));
 
@@ -418,9 +416,8 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                                   final Map<Field, DependencyGraph.Node> nodes,
                                                   final AccessGuard<ComponentContainer> guard) {
         final List<ContextDefinition> consumed = new ArrayList<>();
-        final boolean parameterized = Components.isParameterized(declaringType);
 
-        processFields(declaringType, field -> consumed.add(injectDependency(false, traversal, container, contexts, context, declaringType, parameterized, guard, new Dependency() {
+        processFields(declaringType, field -> consumed.add(injectDependency(false, traversal, container, contexts, context, declaringType, guard, new Dependency() {
             public Type reference() {
                 return field.getGenericType();
             }
@@ -447,11 +444,10 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                                final ContextNode contexts,
                                                final ContextDefinition original,
                                                final Class<?> declaringType,
-                                               final boolean parameterized,
                                                final AccessGuard<ComponentContainer> containerGuard,
                                                final Dependency dependency) {
         final Component.Reference inbound = original.reference();
-        final Type reference = inbound == null || !parameterized ? dependency.reference() : Generics.propagate(inbound.type(), dependency.reference(), true);
+        final Type reference = inbound == null ? dependency.reference() : Generics.propagate(inbound.type(), dependency.reference(), true);
 
         final ComponentGroup componentGroup = dependency.annotation(ComponentGroup.class);
         final Class<?> dependencyType = findDependencyType(dependency.annotation(Component.class), reference, declaringType);

@@ -40,7 +40,7 @@ import org.fluidity.composition.Qualifier;
  * stateless (i.e., cacheable) components regardless of whether they themselves are context dependent or not.
  * <p>
  * The above is implemented by<ol>
- * <li>{@linkplain ContainerServices#emptyContext() creating an empty context} definition object at the tail of some dependency path</li>
+ * <li>{@linkplain ContainerServices#emptyContext() creating an empty context} definition object at the head of some dependency path</li>
  * <li>{@linkplain #advance(Type, boolean) advancing} to the next node along that path as we move downstream to each dependency of the current component and
  * {@linkplain #expand(Annotation[]) expanding} the context with the qualifier annotations present at the new node</li>
  * <li>{@linkplain #accept(Class) narrowing} a <em>copy</em> of the definition down to the contexts accepted by the current context that can then be used

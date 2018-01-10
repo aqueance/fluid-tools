@@ -208,27 +208,6 @@ public final class Components extends Utility {
         return new Interfaces(componentClass, Lists.asArray(Specification.class, interfaces));
     }
 
-    /**
-     * Tells if the given class accepts the {@link Component.Reference} annotation as context.
-     *
-     * @param type the class to check for parameterization.
-     *
-     * @return <code>true</code> if the given class accepts the {@link Component.Reference} annotation as context; <code>false</code> otherwise.
-     */
-    public static boolean isParameterized(final Class<?> type) {
-        final Component.Qualifiers context = type.getAnnotation(Component.Qualifiers.class);
-
-        if (context != null) {
-            for (final Class<? extends Annotation> accepted : context.value()) {
-                if (Component.Reference.class.isAssignableFrom(accepted)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
     private static Type findDeclaredInterface(final Class<?> type, final Class<?> api) {
         if (api != type) {
             final Type found = Generics.abstractions(type, checked -> api == Generics.rawType(checked) ? checked : null);

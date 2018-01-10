@@ -16,6 +16,10 @@
 
 package org.fluidity.composition.container.tests;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -99,19 +103,39 @@ public class TypeParameterTests extends AbstractContainerTests {
     @Test
     public void testTypedContextAware() throws Exception {
         registry.bindComponent(SerializableImpl.class);
+        registry.bindComponent(ExternalizableImpl.class);
         registry.bindComponent(TypedContextAware.class);
-        registry.bindComponent(TypedRootComponent.class);
+        registry.bindComponent(TypedRootComponent1.class);
+        registry.bindComponent(TypedRootComponent2.class);
 
-        assert container.getComponent(TypedRootComponent.class) != null;
+        final TypedRootComponent1 root1 = container.getComponent(TypedRootComponent1.class);
+        final TypedRootComponent2 root2 = container.getComponent(TypedRootComponent2.class);
+
+        assert root1 != null;
+        assert root2 != null;
+
+        final TypedComponent dependency1 = root1.dependency;
+        final TypedComponent dependency2 = root2.dependency;
+        assert dependency1 != dependency2;
     }
 
     @Test
     public void testTypedContextUnaware() throws Exception {
         registry.bindComponent(SerializableImpl.class);
+        registry.bindComponent(ExternalizableImpl.class);
         registry.bindComponent(TypedContextUnaware.class);
-        registry.bindComponent(TypedRootComponent.class);
+        registry.bindComponent(TypedRootComponent1.class);
+        registry.bindComponent(TypedRootComponent2.class);
 
-        assert container.getComponent(TypedRootComponent.class) != null;
+        final TypedRootComponent1 root1 = container.getComponent(TypedRootComponent1.class);
+        final TypedRootComponent2 root2 = container.getComponent(TypedRootComponent2.class);
+
+        assert root1 != null;
+        assert root2 != null;
+
+        final TypedComponent dependency1 = root1.dependency;
+        final TypedComponent dependency2 = root2.dependency;
+        assert dependency1 == dependency2;      // counter-intuitive, but this is the expected behavior
     }
 
     @Test
@@ -218,6 +242,16 @@ public class TypeParameterTests extends AbstractContainerTests {
     @Component
     private static class SerializableImpl implements Serializable { }
 
+    @Component
+    private static class ExternalizableImpl implements Externalizable {
+
+        @Override
+        public void writeExternal(final ObjectOutput out) throws IOException { }
+
+        @Override
+        public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException { }
+    }
+
     @SuppressWarnings("UnusedDeclaration")
     interface TypedComponent<T> { }
 
@@ -231,26 +265,44 @@ public class TypeParameterTests extends AbstractContainerTests {
     }
 
     @Component
-    private static class TypedContextUnaware implements TypedComponent<Serializable> {
+    private static class TypedContextUnaware<T> implements TypedComponent<T> {
 
-        public TypedContextUnaware(final Serializable dependency) {
+        final T dependency;
+
+        public TypedContextUnaware(final T dependency) {
             assert dependency != null;
+            this.dependency = dependency;
         }
     }
 
     @Component
     @Component.Qualifiers(Component.Reference.class)
-    private static class TypedResolved1<T> implements TypedComponent<T> { }
+    private static class TypedResolved1 implements TypedComponent<Serializable> { }
 
     @Component
     private static class TypedResolved2 implements TypedComponent<Serializable> { }
 
     @Component
-    private static class TypedRootComponent {
+    private static class TypedRootComponent1 {
+
+        final TypedComponent<Serializable> dependency;
 
         @SuppressWarnings("UnusedDeclaration")
-        private TypedRootComponent(final TypedComponent<Serializable> dependency) {
+        private TypedRootComponent1(final TypedComponent<Serializable> dependency) {
             assert dependency != null;
+            this.dependency = dependency;
+        }
+    }
+
+    @Component
+    private static class TypedRootComponent2 {
+
+        final TypedComponent<Externalizable> dependency;
+
+        @SuppressWarnings("UnusedDeclaration")
+        private TypedRootComponent2(final TypedComponent<Externalizable> dependency) {
+            assert dependency != null;
+            this.dependency = dependency;
         }
     }
 }

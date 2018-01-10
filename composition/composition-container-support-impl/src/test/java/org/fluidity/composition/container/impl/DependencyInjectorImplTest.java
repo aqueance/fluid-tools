@@ -139,6 +139,7 @@ public class DependencyInjectorImplTest extends Simulator {
         System.arraycopy(dependencyContext, 0, definitions, componentContext.length, dependencyContext.length);
 
         EasyMock.expect(context.reference()).andReturn(reference);
+        EasyMock.expect(reference.type()).andReturn(componentType);
 
         EasyMock.expect(context.advance(dependencyType, false)).andReturn(copy);
         EasyMock.expect(copy.expand(EasyMock.aryEq(definitions))).andReturn(copy);
