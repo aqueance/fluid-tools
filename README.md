@@ -129,6 +129,67 @@ $ mvn javadoc:aggregate
 
 Once that command completes, the documentation starting page will be `target/site/apidocs/index.html`.
 
+#### Tutorials
+
+Use the following commands to compile the tutorials:
+
+```console
+$ mvn clean test -Ptutorials
+```
+
+#### OSGi Tests
+
+There is a manual integration test for OSGi related functionality based on Equinox. To install Equinox, download the latest release from http://download.eclipse.org/equinox/ and install it like so:
+
+```console
+$ mvn install:install-file -Dfile=$HOME/Downloads/org.eclipse.osgi_3.13.0.v20180409-1500.jar -DgroupId=org.eclipse -DartifactId=equinox -Dversion=3.13.0.v20180409 -Dpackaging=jar
+```
+
+Equinox versions earlier than 3.7 and version 3.10 cannot be embedded.
+ 
+The integration tests are built by the following command:
+
+```console
+$ mvn clean package -Pequinox -pl :osgi-tests -am -amd
+```
+
+To run the tests, you need to two terminal windows. In the first, run the following command:
+
+```console
+$ java -jar tests/osgi-tests/manual-test-app/target/manual-test-app-*.jar
+```
+
+Then run the following steps in the second terminal window. You should see the output given here, and there should be no errors in the first window.
+
+```console
+$ telnet localhost 2401
+osgi> ss | grep bundle
+1	RESOLVED    bundle-1_[…]
+2	RESOLVED    bundle-2_[…]
+true
+osgi> setfwsl 2
+Framework Active Start Level = 2
+osgi> ss | grep bundle
+1	ACTIVE      bundle-1_[…]
+2	RESOLVED    bundle-2_[…]
+true
+osgi> setfwsl 3
+Framework Active Start Level = 3
+osgi> ss | grep bundle
+1	ACTIVE      bundle-1_[…]
+2	ACTIVE      bundle-2_[…]
+true
+osgi> setfwsl 1
+Framework Active Start Level = 1
+osgi> ss | grep bundle
+1	RESOLVED    bundle-1_[…]
+2	RESOLVED    bundle-2_[…]
+true
+osgi> exit
+Really want to stop Equinox? (y/n; default=y)  
+Connection closed by foreign host.
+```
+
 ### Documentation
 
 A short [Getting Started] guide is provided to get you started with Fluid Tools, while the [User Guide] covers the full
