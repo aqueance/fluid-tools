@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.fluidity.foundation;
 
 import java.lang.reflect.InvocationHandler;
+import java.util.Objects;
 
 import org.fluidity.testing.Simulator;
 
@@ -55,10 +56,10 @@ public class ProxiesTest extends Simulator {
         final TestObject instance2 = Proxies.create(TestObject.class, invocations);
 
         verify(() -> {
-            assert instance1.equals(instance1);
-            assert instance2.equals(instance2);
-            assert !instance1.equals(instance2);
-            assert !instance2.equals(instance1);
+            assert Objects.equals(instance1, instance1);
+            assert Objects.equals(instance2, instance2);
+            assert !Objects.equals(instance1, instance2);
+            assert !Objects.equals(instance2, instance1);
         });
     }
 
@@ -92,10 +93,10 @@ public class ProxiesTest extends Simulator {
         verify(() -> {
             assert instance1.id() == 1234;
             assert instance2.id() == 1234;
-            assert instance1.equals(instance1);
-            assert instance2.equals(instance2);
-            assert instance1.equals(instance2);
-            assert instance2.equals(instance1);
+            assert Objects.equals(instance1, instance1);
+            assert Objects.equals(instance2, instance2);
+            assert Objects.equals(instance1, instance2);
+            assert Objects.equals(instance2, instance1);
         });
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.fluidity.foundation;
+
+import java.util.Objects;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
@@ -64,7 +66,7 @@ public class ConfigurationTest {
             final Settings2 settings = configuration.settings();
 
             assert settings != null;
-            assert DefaultSettings.SPECIFIED.equals(settings.specified()) : settings.specified();
+            assert Objects.equals(DefaultSettings.SPECIFIED, settings.specified()) : settings.specified();
             assert Settings.DEFAULT_VALUE.equals(settings.unspecified()) : settings.unspecified();
         }
     }
@@ -86,17 +88,17 @@ public class ConfigurationTest {
             final Settings settings2 = configuration2.settings();
 
             assert settings1 != null;
-            assert String.format("%s.%s.%s", ROOT, PREFIX1, Settings.SOME_PROPERTY).equals(settings1.property()) : settings1.property();
+            assert Objects.equals(String.format("%s.%s.%s", ROOT, PREFIX1, Settings.SOME_PROPERTY), settings1.property()) : settings1.property();
 
             assert settings2 != null;
-            assert String.format("%s.%s.%s", ROOT, PREFIX2, Settings.SOME_PROPERTY).equals(settings2.property()) : settings2.property();
+            assert Objects.equals(String.format("%s.%s.%s", ROOT, PREFIX2, Settings.SOME_PROPERTY), settings2.property()) : settings2.property();
 
             assert configuration1 == configuration3;
 
             final Settings settings3 = configuration3.settings();
 
             assert settings3 != null;
-            assert String.format("%s.%s.%s", ROOT, PREFIX1, Settings.SOME_PROPERTY).equals(settings3.property()) : settings3.property();
+            assert Objects.equals(String.format("%s.%s.%s", ROOT, PREFIX1, Settings.SOME_PROPERTY), settings3.property()) : settings3.property();
         }
     }
 

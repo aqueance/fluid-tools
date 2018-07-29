@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -159,50 +160,47 @@ public class HandlerTest {
         Handler.Cache.unload(url1);
         Handler.Cache.unload(url2);
 
-        final Thread thread = new Thread() {
-            @Override
-            public void run() {
-                running.set(true);
+        final Thread thread = new Thread(() -> {
+            running.set(true);
 
-                try {
-                    Archives.Cache.access(() -> {
-                        barrier.await(100, TimeUnit.MILLISECONDS);
-
-                        assert !Handler.Cache.loaded(url1, true);
-                        Handler.Cache.contents(url1);
-                        assert Handler.Cache.loaded(url1, true);
-
-                        Handler.Cache.contents(url2);
-                        assert Handler.Cache.loaded(url2, true);
-
-                        Handler.Cache.unload(url1);
-                        assert !Handler.Cache.loaded(url1, true);
-
-                        assert Handler.Cache.loaded(url2, true);
-                        Handler.Cache.unload(url2);
-                        assert !Handler.Cache.loaded(url2, true);
-
-                        return null;
-                    });
-
+            try {
+                Archives.Cache.access(() -> {
                     barrier.await(100, TimeUnit.MILLISECONDS);
 
-                    Archives.Cache.access(() -> {
-                        assert !Handler.Cache.loaded(url1, true);
+                    assert !Handler.Cache.loaded(url1, true);
+                    Handler.Cache.contents(url1);
+                    assert Handler.Cache.loaded(url1, true);
 
-                        Handler.Cache.contents(url2);
-                        assert Handler.Cache.loaded(url2, true);
+                    Handler.Cache.contents(url2);
+                    assert Handler.Cache.loaded(url2, true);
 
-                        Handler.Cache.unload(url2);
-                        assert !Handler.Cache.loaded(url2, true);
+                    Handler.Cache.unload(url1);
+                    assert !Handler.Cache.loaded(url1, true);
 
-                        return null;
-                    });
-                } catch (final Exception e) {
-                    error.set(e);
-                }
+                    assert Handler.Cache.loaded(url2, true);
+                    Handler.Cache.unload(url2);
+                    assert !Handler.Cache.loaded(url2, true);
+
+                    return null;
+                });
+
+                barrier.await(100, TimeUnit.MILLISECONDS);
+
+                Archives.Cache.access(() -> {
+                    assert !Handler.Cache.loaded(url1, true);
+
+                    Handler.Cache.contents(url2);
+                    assert Handler.Cache.loaded(url2, true);
+
+                    Handler.Cache.unload(url2);
+                    assert !Handler.Cache.loaded(url2, true);
+
+                    return null;
+                });
+            } catch (final Exception e) {
+                error.set(e);
             }
-        };
+        });
 
         try {
             Archives.Cache.access(() -> {
@@ -280,7 +278,7 @@ public class HandlerTest {
             final URLConnection connection = Archives.connect(url, cached);
 
             assert connection.getContentLength() != 0 : String.format("Content length of %s", url);
-            assert connection.getContentType().equals("text/plain") : String.format("Content type of %s", url);
+            assert Objects.equals(connection.getContentType(), "text/plain") : String.format("Content type of %s", url);
             assert connection.getLastModified() > 0 : String.format("Last modification date of %s", url);
         }
 
@@ -289,7 +287,7 @@ public class HandlerTest {
             final URLConnection connection = Archives.connect(url, cached);
 
             assert connection.getContentLength() != 0 : String.format("Content length of %s", url);
-            assert connection.getContentType().equals("text/plain") : String.format("Content type of %s", url);
+            assert Objects.equals(connection.getContentType(), "text/plain") : String.format("Content type of %s", url);
             assert connection.getLastModified() > 0 : String.format("Last modification date of %s", url);
         }
     }
@@ -300,16 +298,16 @@ public class HandlerTest {
         final URLConnection connection = Archives.connect(url, cached);
 
         {
-            assert connection.getHeaderField(0).equals("text/plain") : String.format("Content type of %s", url);
+            assert Objects.equals(connection.getHeaderField(0), "text/plain") : String.format("Content type of %s", url);
             assert Integer.valueOf(connection.getHeaderField(1)) != 0 : String.format("Content length of %s", url);
             assert Long.valueOf(connection.getHeaderField(2)) > 0 : String.format("Last modification date of %s", url);
             assert connection.getHeaderField(3) == null;
         }
 
         {
-            assert connection.getHeaderFieldKey(0).equals("content-type") : connection.getHeaderFieldKey(0);
-            assert connection.getHeaderFieldKey(1).equals("content-length") : connection.getHeaderFieldKey(1);
-            assert connection.getHeaderFieldKey(2).equals("last-modified") : connection.getHeaderFieldKey(2);
+            assert Objects.equals(connection.getHeaderFieldKey(0), "content-type") : connection.getHeaderFieldKey(0);
+            assert Objects.equals(connection.getHeaderFieldKey(1), "content-length") : connection.getHeaderFieldKey(1);
+            assert Objects.equals(connection.getHeaderFieldKey(2), "last-modified") : connection.getHeaderFieldKey(2);
             assert connection.getHeaderFieldKey(3) == null;
         }
 
@@ -317,7 +315,7 @@ public class HandlerTest {
             final Map<String, List<String>> fields = connection.getHeaderFields();
 
             assert fields.size() == 3 : fields.size();
-            assert fields.get("content-type").get(0).equals("text/plain") : String.format("Content type of %s", url);
+            assert Objects.equals(fields.get("content-type").get(0), "text/plain") : String.format("Content type of %s", url);
             assert Integer.valueOf(fields.get("content-length").get(0)) != 0 : String.format("Content length of %s", url);
             assert Long.valueOf(fields.get("last-modified").get(0)) > 0 : String.format("Last modification date of %s", url);
         }
@@ -336,7 +334,7 @@ public class HandlerTest {
         try (final InputStream input = (InputStream) content) {
             final String value = IOStreams.load(input, Strings.UTF_8, new byte[128]).replaceAll("\n", "");
 
-            assert value.equals("level 3") : value;
+            assert Objects.equals(value, "level 3") : value;
         }
     }
 
@@ -349,13 +347,13 @@ public class HandlerTest {
     }
 
     private void verify(final Object expected, final Object actual) {
-        assert expected.equals(actual) : String.format("%nExpected %s,%n     got %s", expected, actual);
+        assert Objects.equals(expected, actual) : String.format("%nExpected %s,%n     got %s", expected, actual);
     }
 
     @Test
     public void testParsing() throws Exception {
         final URL archive = Handler.formatURL(new URL(Archives.FILE.concat(":/root.jar")), "level1.jar", "level2.jar", "some/path");
-        assert Archives.Nested.PROTOCOL.equals(archive.getProtocol()) : archive;
+        assert Objects.equals(Archives.Nested.PROTOCOL, archive.getProtocol()) : archive;
     }
 
     private void assertContent(final boolean cached, final String content, final String... path) throws IOException {

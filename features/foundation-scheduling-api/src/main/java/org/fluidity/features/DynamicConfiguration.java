@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import java.util.function.Supplier;
  * Configuration that is periodically updated. This is a wrapper around {@link org.fluidity.foundation.Configuration} that periodically refreshes the snapshot
  * of the settings object. The methods of the settings interface, if used with this variant of the configuration mechanism, may not have any parameters.
  * <p>
- * The granularity of the updates can be configured by implementing a {@link org.fluidity.foundation.spi.PropertyProvider} component that returns a valid
- * number for the {@link #CONFIGURATION_REFRESH_PERIOD} key. The default period granularity is 30 seconds.
+ * The period of the updates can be configured by implementing a {@link org.fluidity.foundation.spi.PropertyProvider} component that returns a valid
+ * number for the {@link #CONFIGURATION_REFRESH_PERIOD} key. The default period is 30 seconds.
  * <p>
  * See {@link org.fluidity.foundation.Configuration} for details on configuration.
  * <h3>Usage</h3>

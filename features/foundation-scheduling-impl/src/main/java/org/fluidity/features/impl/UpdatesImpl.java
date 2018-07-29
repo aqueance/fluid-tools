@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,7 +97,7 @@ final class UpdatesImpl implements Updates {
          *
          * @return a number greater than 0.
          */
-        @Configuration.Property(key = Updates.UPDATE_GRANULARITY, undefined = "1000")
+        @Configuration.Property(key = Updates.UPDATE_PERIOD, undefined = "1000")
         long period();
     }
 }

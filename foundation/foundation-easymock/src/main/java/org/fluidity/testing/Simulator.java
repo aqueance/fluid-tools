@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ import org.testng.annotations.AfterMethod;
  * </ul>
  * Mock objects can be used in two distinct contexts:<ul>
  * <li>as dependencies of the object under test, created by the {@link MockObjects} factory returned by {@link #dependencies()}, or</li>
- * <li>as temporary method local objects as, e.g., method arguments of the object under test, created by the {@link MockObjects} factory returned by
+ * <li>as method local temporary objects as, e.g., method arguments of the object under test, created by the {@link MockObjects} factory returned by
  * {@link #arguments()}.</li>
  * </ul>
  * <p>

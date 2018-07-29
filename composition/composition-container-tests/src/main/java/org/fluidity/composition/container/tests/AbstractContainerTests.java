@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.fluidity.composition.container.tests;
+
+import java.util.Objects;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
@@ -63,7 +65,7 @@ public abstract class AbstractContainerTests extends Simulator {
         assert component instanceof Value : String.format("Test component is not of correct type: %s", component);
 
         // ask for the component again and compare with the last result
-        assert container.getComponent(Key.class).key().equals(component.key()) : "Multiple component queries created multiple instances";
+        assert Objects.equals(container.getComponent(Key.class).key(), component.key()) : "Multiple component queries created multiple instances";
 
         // this tells us how many times the class was instantiated in this method
         assert Value.instanceCount == originalCount + 1 : String.format("Expected only 1 Key object, got %d", Value.instanceCount - originalCount);

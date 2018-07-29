@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import java.util.function.Supplier;
  * <b>NOTE</b>: This component is designed not to keep a hard reference to any object that registers for updates and thus is a preferred way to the
  * {@link Scheduler} component of implementing periodic updates.
  * <p>
- * The granularity of the updates can be configured by implementing a {@link org.fluidity.foundation.spi.PropertyProvider} component that returns a valid
- * number for the {@link #UPDATE_GRANULARITY} key. The default period granularity is 1 second.
+ * The update period can be configured by implementing a {@link org.fluidity.foundation.spi.PropertyProvider} component that returns a valid
+ * number for the {@link #UPDATE_PERIOD} key. The default period is 1 second.
  * <p>
  * See {@link org.fluidity.foundation.Configuration} for details on configuration.
  * <h3>Usage</h3>
@@ -34,7 +34,7 @@ import java.util.function.Supplier;
  * {@linkplain org.fluidity.composition.Component @Component}
  * public final class <span class="hl2">MyComponent</span> {
  *
- *   private static final long period = {@linkplain java.util.concurrent.TimeUnit#MILLISECONDS}.{@linkplain java.util.concurrent.TimeUnit#convert(long, java.util.concurrent.TimeUnit) convert}(1, {@linkplain java.util.concurrent.TimeUnit#SECONDS});
+ *   private static final long period = {@linkplain java.util.concurrent.TimeUnit#MILLISECONDS MILLISECONDS}.{@linkplain java.util.concurrent.TimeUnit#convert(long, java.util.concurrent.TimeUnit) convert}(1, {@linkplain java.util.concurrent.TimeUnit#SECONDS SECONDS});
  *
  *   private final <span class="hl1">Updates.Snapshot</span>&lt;<span class="hl3">Data</span>&gt; data;
  *
@@ -65,9 +65,9 @@ import java.util.function.Supplier;
 public interface Updates {
 
     /**
-     * The configuration property that specifies the update granularity in milliseconds.
+     * The configuration property that specifies the update period in milliseconds.
      */
-    String UPDATE_GRANULARITY = "org.fluidity.features.update-granularity-ms";
+    String UPDATE_PERIOD = "org.fluidity.features.update-period-ms";
 
     /**
      * Creates a periodically updated on-demand snapshot for some data. The the data is loaded by the given <code>loader</code>, which will be invoked <i>no
@@ -77,7 +77,7 @@ public interface Updates {
      * The data will be loaded once before this method returns and after that <i>only</i> when the {@link Supplier#get()} method is invoked on the returned
      * value.
      * <p>
-     * The {@linkplain Updates#UPDATE_GRANULARITY update granularity} configured for this component will pose as the lower bound to any <i>positive</i>
+     * The {@linkplain Updates#UPDATE_PERIOD update period} configured for this component will pose as the lower bound to any <i>positive</i>
      * <code>period</code> specified to this method.If the <code>period</code> specified is <code>0</code>, the snapshot will be taken once and then cached
      * forever. If the <code>period</code> is negative, no snapshot will be cached and the loader will be invoked at every invocation of {@link Supplier#get()}.
      *

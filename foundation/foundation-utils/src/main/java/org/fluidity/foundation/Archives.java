@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import java.security.AccessControlException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -60,7 +61,7 @@ import static org.fluidity.foundation.Command.Process;
  *
  * @author Tibor Varga
  */
-@SuppressWarnings({ "WeakerAccess", "ThrowFromFinallyBlock" })
+@SuppressWarnings({ "WeakerAccess", "ThrowFromFinallyBlock", "EqualsReplaceableByObjectsCall" })
 public final class Archives extends Utility {
 
     /**
@@ -115,9 +116,9 @@ public final class Archives extends Utility {
      * Reads entries from a JAR file. If the archive manifest is the first entry in the archive, its {@linkplain JarEntry entry details} will be restricted to
      * those available in a {@link ZipEntry}.
      *
-     * @param url     the URL of the Java archive; this will be passed to the {@link Entry} methods.
+     * @param url     the URL of the Java archive; this will be passed to the {@link Entry} methods; never <code>null</code>.
      * @param cached  tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
-     * @param matcher the processor to send the entries to.
+     * @param matcher the processor to send the entries to; never <code>null</code>.
      *
      * @return the number of entries read.
      *
@@ -135,9 +136,9 @@ public final class Archives extends Utility {
      * Reads entries from a JAR file contained in the given stream. If the archive manifest is the first entry in the archive, its {@linkplain JarEntry entry
      * details} will be restricted to those available in a {@link ZipEntry}.
      *
-     * @param input   the archive's content; the stream will <b>not</b> be automatically {@linkplain InputStream#close() closed}.
-     * @param url     the URL archive is coming from; this will be passed to the {@link Entry} methods.
-     * @param matcher the processor to send the entries to.
+     * @param input   the archive's content; the stream will <b>not</b> be automatically {@linkplain InputStream#close() closed}; never <code>null</code>.
+     * @param url     the URL archive is coming from; this will be passed to the {@link Entry} methods; never <code>null</code>.
+     * @param matcher the processor to send the entries to; never <code>null</code>.
      *
      * @return the number of entries read.
      *
@@ -151,9 +152,9 @@ public final class Archives extends Utility {
      * Reads entries from a JAR file contained in the given byte array. If the archive manifest is the first entry in the archive, its {@linkplain JarEntry
      * entry details} will be restricted to those available in a {@link ZipEntry}.
      *
-     * @param data    the archive's content.
-     * @param url     the URL archive is coming from; this will be passed to the {@link Entry#matches(URL, JarEntry)} method.
-     * @param matcher the processor to send the entries to.
+     * @param data    the archive's content; never <code>null</code>.
+     * @param url     the URL archive is coming from; this will be passed to the {@link Entry#matches(URL, JarEntry)} method; never <code>null</code>.
+     * @param matcher the processor to send the entries to; never <code>null</code>.
      *
      * @return the number of entries read.
      *
@@ -224,7 +225,7 @@ public final class Archives extends Utility {
     /**
      * Opens an {@link InputStream} for the contents of the given URL.
      *
-     * @param url    the URL to open.
+     * @param url    the URL to open; never <code>null</code>.
      * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      *
      * @return an {@link InputStream}; never <code>null</code>.
@@ -239,7 +240,7 @@ public final class Archives extends Utility {
     /**
      * Creates a connection to the given URL.
      *
-     * @param url    the URL to connect to.
+     * @param url    the URL to connect to; never <code>null</code>.
      * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      *
      * @return an {@link URLConnection}; never <code>null</code>.
@@ -255,9 +256,9 @@ public final class Archives extends Utility {
     /**
      * Returns the main attributes with the given names from manifest of the JAR file identified by the given URL.
      *
-     * @param url    the URL, pointing either to a JAR resource or an archive itself.
+     * @param url    the URL, pointing either to a JAR resource or an archive itself; never <code>null</code>.
      * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
-     * @param names  the list of attribute names to load.
+     * @param names  the list of attribute names to load; never <code>null</code>.
      *
      * @return an array of strings, each being the value of the attribute name at the same index in the <code>names</code> parameter or <code>null</code>; never
      * <code>null</code>.
@@ -265,27 +266,15 @@ public final class Archives extends Utility {
      * @throws IOException when an I/O error occurs when accessing its manifest
      */
     public static String[] attributes(final URL url, final boolean cached, final String... names) throws IOException {
-        final String[] list = new String[names.length];
-
-        if (url != null) {
-            final Attributes attributes = Archives.manifest(url, cached).getMainAttributes();
-
-            if (attributes != null) {
-                for (int i = 0, limit = names.length; i < limit; i++) {
-                    list[i] = attributes.getValue(names[i]);
-                }
-            }
-        }
-
-        return list;
+        return attributes(url, cached, Attributes::getValue, names);
     }
 
     /**
      * Returns the main attributes with the given names from manifest of the JAR file identified by the given URL.
      *
-     * @param url    the URL, pointing either to a JAR resource or an archive itself.
+     * @param url    the URL, pointing either to a JAR resource or an archive itself; never <code>null</code>.
      * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
-     * @param names  the list of attribute names to load.
+     * @param names  the list of attribute names to load; never <code>null</code>.
      *
      * @return an array of strings, each being the value of the attribute name at the same index in the <code>names</code> parameter or <code>null</code>; never
      * <code>null</code>.
@@ -293,6 +282,23 @@ public final class Archives extends Utility {
      * @throws IOException when an I/O error occurs when accessing its manifest
      */
     public static String[] attributes(final URL url, final boolean cached, final Attributes.Name... names) throws IOException {
+        return attributes(url, cached, Attributes::getValue, names);
+    }
+
+    /**
+     * Returns the main attributes with the given names from manifest of the JAR file identified by the given URL.
+     *
+     * @param url     the URL, pointing either to a JAR resource or an archive itself; never <code>null</code>.
+     * @param cached  tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
+     * @param extract extracts the named attribute; never <code>null</code>.
+     * @param names   the list of attribute names to load; never <code>null</code>.
+     *
+     * @return an array of strings, each being the value of the attribute name at the same index in the <code>names</code> parameter or <code>null</code>; never
+     * <code>null</code>.
+     *
+     * @throws IOException when an I/O error occurs when accessing its manifest
+     */
+    private static <T> String[] attributes(final URL url, final boolean cached, final BiFunction<Attributes, T, String> extract, final T... names) throws IOException {
         final String[] list = new String[names.length];
 
         if (url != null) {
@@ -300,7 +306,7 @@ public final class Archives extends Utility {
 
             if (attributes != null) {
                 for (int i = 0, limit = names.length; i < limit; i++) {
-                    list[i] = attributes.getValue(names[i]);
+                    list[i] = extract.apply(attributes, names[i]);
                 }
             }
         }
@@ -672,7 +678,7 @@ public final class Archives extends Utility {
         public static URL nestedURL(final URL archive) throws IOException {
             final String protocol = archive == null ? null : archive.getProtocol();
 
-            if (protocol == null || !Archives.PROTOCOL.equals(protocol)) {
+            if (!Archives.PROTOCOL.equals(protocol)) {
                 return archive;
             }
 

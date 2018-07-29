@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ public class DependencyInjectorImplTest extends Simulator {
                                                    final ComponentContext createdContext) throws Exception {
         assert fieldName != null;
         final Field field = componentType.getDeclaredField(fieldName);
-        assert field != null : String.format("%s.%s", componentType.getClass(), fieldName);
+        assert field != null : String.format("%s.%s", componentType, fieldName);
 
         return setupDependencyResolution(componentType, field.getType(), field.getAnnotations(), createdContext, component);
     }
@@ -80,40 +80,28 @@ public class DependencyInjectorImplTest extends Simulator {
     private ContextDefinition[] setupConstructorResolution(final Class<?> componentType,
                                                            final Constructor<?> constructor,
                                                            final ComponentContext createdContext,
-                                                           final Object... components) throws Exception {
-        assert constructor != null : String.format("%s(?)", componentType.getClass());
-
-        final List<ContextDefinition> copies = new ArrayList<>();
-
-        final Class<?>[] parameterTypes = constructor.getParameterTypes();
-        final Annotation[][] annotations = constructor.getParameterAnnotations();
-        for (int i = 0, limit = parameterTypes.length; i < limit; i++) {
-            final Class<?> dependencyType = parameterTypes[i];
-            copies.add(setupDependencyResolution(componentType,
-                                                 dependencyType,
-                                                 annotations[i],
-                                                 createdContext, components[i]));
-        }
-
-        return Lists.asArray(ContextDefinition.class, copies);
+                                                           final Object... parameters) throws Exception {
+        assert constructor != null : String.format("%s(?)", componentType);
+        return setupCallResolution(componentType, createdContext, constructor.getParameterTypes(), constructor.getParameterAnnotations(), parameters);
     }
 
     private ContextDefinition[] setupMethodResolution(final Class<?> componentType,
                                                       final Method method,
                                                       final ComponentContext createdContext,
-                                                      final Object... components) throws Exception {
-        assert method != null : String.format("%s(?)", componentType.getClass());
+                                                      final Object... parameters) throws Exception {
+        assert method != null : String.format("%s(?)", componentType);
+        return setupCallResolution(componentType, createdContext, method.getParameterTypes(), method.getParameterAnnotations(), parameters);
+    }
 
+    private ContextDefinition[] setupCallResolution(final Class<?> componentType,
+                                                    final ComponentContext createdContext,
+                                                    final Class<?>[] parameterTypes,
+                                                    final Annotation[][] parameterAnnotations,
+                                                    final Object... parameters) {
         final List<ContextDefinition> copies = new ArrayList<>();
 
-        final Class<?>[] parameterTypes = method.getParameterTypes();
-        final Annotation[][] annotations = method.getParameterAnnotations();
         for (int i = 0, limit = parameterTypes.length; i < limit; i++) {
-            final Class<?> dependencyType = parameterTypes[i];
-            copies.add(setupDependencyResolution(componentType,
-                                                 dependencyType,
-                                                 annotations[i],
-                                                 createdContext, components[i]));
+            copies.add(setupDependencyResolution(componentType, parameterTypes[i], parameterAnnotations[i], createdContext, parameters[i]));
         }
 
         return Lists.asArray(ContextDefinition.class, copies);

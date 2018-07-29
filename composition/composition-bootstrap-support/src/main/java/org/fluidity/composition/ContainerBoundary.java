@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,19 +134,13 @@ public final class ContainerBoundary implements ComponentContainer {
      * @param key   the property key.
      * @param value the property value.
      */
-    @SuppressWarnings("unchecked")
     public void setBindingProperty(final Object key, final Object value) {
 
         // never intended to be modified concurrently as this method is by nature should be used by one single object in one single thread
         // but you never know and it's better to ensure data consistency than to blame the user for the corrupt results stemming from poor design
         synchronized (stateLock) {
-            Map map = propertiesMap.get(classLoader);
-
-            if (map == null) {
-                propertiesMap.put(classLoader, map = new HashMap());
-            }
-
-            map.put(key, value);
+            propertiesMap.computeIfAbsent(classLoader, _key -> new HashMap<>())
+                         .put(key, value);
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.security.PrivilegedActionException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 
 import org.fluidity.foundation.security.Security;
 
@@ -225,10 +226,10 @@ public final class Exceptions extends Utility {
         public <R, E extends Exception> R wrap(final Process<R, E> command) {
             try {
                 return wrap(null, null, command);
-            } catch (final RuntimeException e) {
-                throw e;
-            } catch (final Exception e) {
-                throw new AssertionError(e);
+            } catch (final RuntimeException error) {
+                throw error;
+            } catch (final Exception error) {
+                throw new AssertionError(error);
             }
         }
 
@@ -246,10 +247,10 @@ public final class Exceptions extends Utility {
         public <R, E extends Exception> R wrap(final Object label, final Process<R, E> command) {
             try {
                 return wrap(label, null, command);
-            } catch (final RuntimeException e) {
-                throw e;
-            } catch (final Exception e) {
-                throw new AssertionError(e);
+            } catch (final RuntimeException error) {
+                throw error;
+            } catch (final Exception error) {
+                throw new AssertionError(error);
             }
         }
 
@@ -274,23 +275,23 @@ public final class Exceptions extends Utility {
             try {
                 try {
                     return command.run();
-                } catch (final Exception e) {
-                    throw unwrap(e);
+                } catch (final Exception error) {
+                    throw unwrap(error);
                 }
-            } catch (final Error e) {
-                throw e;
-            } catch (final RuntimeException e) {
+            } catch (final Error error) {
+                throw error;
+            } catch (final RuntimeException error) {
                 if (wrapper == null || RuntimeException.class.isAssignableFrom(wrapper)) {
-                    throw e;
+                    throw error;
                 } else {
-                    throw wrapped(label, wrapper, e);
+                    throw wrapped(label, wrapper, error);
                 }
-            } catch (final Throwable e) {
-                final T wrapped = wrapped(label, wrapper, e);
+            } catch (final Throwable error) {
+                final T wrapped = wrapped(label, wrapper, error);
 
-                if (wrapper == e.getClass()) {
-                    final String message = e.getMessage();
-                    throw message == null || !message.equals(wrapped.getMessage()) ? wrapped : (T) e;
+                if (wrapper == error.getClass()) {
+                    final String message = error.getMessage();
+                    throw !Objects.equals(message, wrapped.getMessage()) ? wrapped : (T) error;
                 } else {
                     throw wrapped;
                 }
@@ -298,18 +299,18 @@ public final class Exceptions extends Utility {
         }
 
         @SuppressWarnings({ "ThrowableResultOfMethodCallIgnored", "unchecked" })
-        private <T extends Exception> T wrapped(final Object label, final Class<T> wrapper, final Throwable e) {
+        private <T extends Exception> T wrapped(final Object label, final Class<T> wrapper, final Throwable error) {
             if (wrapper == null) {
-                throw label == null ? new Wrapper(e) : new Wrapper(label.toString(), e);
-            } else if (label == null && wrapper.isAssignableFrom(e.getClass())) {
-                return (T) e;
+                throw label == null ? new Wrapper(error) : new Wrapper(label.toString(), error);
+            } else if (label == null && wrapper.isAssignableFrom(error.getClass())) {
+                return (T) error;
             } else {
                 try {
                     return label == null
-                           ? constructor(wrapper, Throwable.class).newInstance(e)
-                           : constructor(wrapper, String.class, Throwable.class).newInstance(label.toString(), e);
-                } catch (final Exception error) {
-                    throw new AssertionError(error);
+                           ? constructor(wrapper, Throwable.class).newInstance(error)
+                           : constructor(wrapper, String.class, Throwable.class).newInstance(label.toString(), error);
+                } catch (final Exception _error) {
+                    throw new AssertionError(_error);
                 }
             }
         }

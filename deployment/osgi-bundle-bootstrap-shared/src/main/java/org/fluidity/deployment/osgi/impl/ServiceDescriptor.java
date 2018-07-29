@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ final class ServiceDescriptor extends Descriptor {
         }
 
         final ServiceDescriptor that = (ServiceDescriptor) o;
-        return !(filter != null ? !filter.equals(that.filter) : that.filter != null);
+        return Objects.equals(filter, that.filter);
     }
 
     @Override

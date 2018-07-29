@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -378,12 +378,10 @@ final class DependenciesSupportImpl implements DependenciesSupport {
 
     @Override
     public Artifact resolve(final RepositorySystemSession session, final List<RemoteRepository> repositories, final Dependency dependency) throws MojoExecutionException {
-        final List<Artifact> artifacts = new ArrayList<>();
-
-        artifacts.addAll(closure(session, repositories, NO_SELECTOR, false, dependencyArtifact(dependency), dependency.getExclusions()));
+        final Collection<Artifact> artifacts = closure(session, repositories, NO_SELECTOR, false, dependencyArtifact(dependency), dependency.getExclusions());
 
         assert artifacts.size() == 1 : artifacts;
-        return artifacts.get(0);
+        return artifacts.iterator().next();
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,31 +92,6 @@ public class ComponentRegistrationTest {
         final OuterClass.InnerClass inner = container.initialize(new Reference()).component;
         assert inner != null : String.format("Inner class %s not instantiated", OuterClass.InnerClass.class);
         assert inner.getLocal() != null : "Local class not instantiated";
-    }
-
-    @Test
-    public void testComponentHierarchy() throws Exception {
-
-        @SuppressWarnings("WeakerAccess")
-        class References {
-            @Inject public @Optional SimpleComponent simpleComponent;
-            @Inject public @Optional SuperComponent superComponent;
-            @Inject public @Optional ComponentInterface1 componentInterface1;
-            @Inject public @Optional ComponentInterface2 componentInterface2;
-            @Inject public @Optional DefaultComponent defaultComponent;
-            @Inject public @Optional FallbackComponent fallbackComponent;
-            @Inject public @Optional ManualComponent manualComponent;
-        }
-
-        final References references = container.initialize(new References());
-
-        component(references.simpleComponent, SimpleComponent.class, SimpleComponentImpl.class);
-        component(references.superComponent, SuperComponent.class, InheritedComponentImpl.class);
-        component(references.componentInterface1, ComponentInterface1.class, MultipleInterfacesComponent.class);
-        component(references.componentInterface2, ComponentInterface2.class, SingleInterfaceComponent.class);
-        component(references.defaultComponent, DefaultComponent.class, PrimaryComponentImpl.class);
-        component(references.fallbackComponent, FallbackComponent.class, FallbackComponentImpl.class);
-        component(references.manualComponent, ManualComponent.class, null);
     }
 
     private void jdkProvider(final Class<?> providerInterface, final int count) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,12 +42,7 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
     static final ComponentInterceptor[] NO_INTERCEPTORS = new ComponentInterceptor[0];
 
     // recursion guard: no interception of dependencies of interceptors
-    private final ThreadLocal<Boolean> intercepting = new ThreadLocal<Boolean>() {
-        @Override
-        protected Boolean initialValue() {
-            return false;
-        }
-    };
+    private final ThreadLocal<Boolean> intercepting = ThreadLocal.withInitial(() -> false);
 
     private final InterceptorFilter annotations;
     private final Log log;

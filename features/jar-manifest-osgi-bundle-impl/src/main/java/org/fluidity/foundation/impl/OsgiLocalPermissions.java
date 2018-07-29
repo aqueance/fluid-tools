@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.regex.Matcher;
@@ -372,7 +373,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
             interfaces.removeAll(IGNORED_TYPES_INTERNAL);
 
             if (interfaces.isEmpty()) {
-                if (!Type.getInternalName(Object.class).equals(reader.getSuperName())) {
+                if (!Objects.equals(Type.getInternalName(Object.class), reader.getSuperName())) {
                     services(repository.reader(reader.getSuperName()), types, repository);
                 } else {
                     types.add(ClassReaders.externalName(reader.getClassName()));
@@ -547,6 +548,7 @@ final class OsgiLocalPermissions implements SecurityPolicy {
             }
 
             @Override
+            @SuppressWarnings("EqualsReplaceableByObjectsCall")
             public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
                 final Type type = Type.getType(desc);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.Component;
@@ -169,7 +170,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         assert childSuffix.startsWith(childPrefix) : String.format("Wrong container ID: %s", childString);
 
         final String childId = childSuffix.substring(childSuffix.length() - childPrefix.length());
-        assert !topId.equals(childId) : "Child container has the same ID as its parent";
+        assert !Objects.equals(topId, childId) : "Child container has the same ID as its parent";
     }
 
     @Test

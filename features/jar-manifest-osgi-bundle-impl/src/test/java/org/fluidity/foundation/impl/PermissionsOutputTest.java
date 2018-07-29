@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.fluidity.foundation.impl;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Objects;
 
 import org.fluidity.deployment.plugin.spi.SecurityPolicy;
 import org.fluidity.foundation.Archives;
@@ -84,9 +85,9 @@ public class PermissionsOutputTest extends Simulator {
         delegate.save(EasyMock.eq(OsgiLocalPermissions.SECURITY_POLICY_FILE), EasyMock.notNull());
         EasyMock.expectLastCall().andAnswer(() -> {
             final String actual = (String) EasyMock.getCurrentArguments()[1];
-            assert expected.equals(actual) : String.format("%nExpected: %s%nActual  : %s\n",
-                                                           expected.replaceAll("[\\r]", "r").replaceAll("[\\n]", "n").replaceAll("[\\s]", "_"),
-                                                           actual.replaceAll("[\\r]", "r").replaceAll("[\\n]", "n").replaceAll("[\\s]", "_"));
+            assert Objects.equals(expected, actual) : String.format("%nExpected: %s%nActual  : %s\n",
+                                                                    expected.replaceAll("[\\r]", "r").replaceAll("[\\n]", "n").replaceAll("[\\s]", "_"),
+                                                                    actual.replaceAll("[\\r]", "r").replaceAll("[\\n]", "n").replaceAll("[\\s]", "_"));
             return null;
         });
     }

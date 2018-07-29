@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,8 @@ import java.util.StringJoiner;
 import java.util.function.Supplier;
 
 import org.fluidity.foundation.security.Security;
+
+import static java.util.Comparator.comparing;
 
 /**
  * Common string related utilities.
@@ -190,6 +192,7 @@ public final class Strings extends Utility {
      *
      * @return the Java-like notation or an identifier for the given annotation.
      */
+    @SuppressWarnings("EqualsReplaceableByObjectsCall")
     public static String describeAnnotation(final boolean identity, final Annotation annotation) {
         final Class<? extends Annotation> type = annotation.annotationType();
 
@@ -204,7 +207,7 @@ public final class Strings extends Utility {
             } else if (methods.length == 1 && methods[0].getName().equals("value")) {
                 list.add(appendValue(identity, Security.access(methods[0]).invoke(annotation)));
             } else {
-                Arrays.sort(methods, (method1, method2) -> method1.getName().compareTo(method2.getName()));
+                Arrays.sort(methods, comparing(Method::getName));
 
                 for (final Method method : methods) {
 

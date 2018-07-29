@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.fluidity.features.impl;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
+import java.util.Objects;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -406,7 +407,7 @@ public class SchedulerTest extends Simulator {
         assert name != null;
 
         for (final ThreadInfo info : threads.getThreadInfo(threads.getAllThreadIds())) {
-            if (name.equals(info.getThreadName())) {
+            if (Objects.equals(name, info.getThreadName())) {
                 return info;
             }
         }

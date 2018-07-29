@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ import java.util.TreeMap;
 import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.Utility;
 
+import static java.util.Comparator.comparing;
+
 /**
  * Convenience methods on maps of arrays of annotations.
  */
@@ -35,6 +37,7 @@ final class AnnotationMaps extends Utility {
 
     private AnnotationMaps() { }
 
+    @SuppressWarnings("EqualsReplaceableByObjectsCall")
     public static boolean equal(Map<Class<? extends Annotation>, Annotation[]> map1, Map<Class<? extends Annotation>, Annotation[]> map2) {
         if (map1 == map2) {
             return true;
@@ -87,7 +90,7 @@ final class AnnotationMaps extends Utility {
     }
 
     private static Map<Class<? extends Annotation>, Annotation[]> sorted(final Map<Class<? extends Annotation>, Annotation[]> map) {
-        final Map<Class<? extends Annotation>, Annotation[]> sorted = new TreeMap<>((o1, o2) -> o1.getName().compareTo(o2.getName()));
+        final Map<Class<? extends Annotation>, Annotation[]> sorted = new TreeMap<>(comparing(Class::getName));
         sorted.putAll(map);
         return sorted;
     }

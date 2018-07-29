@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.fluidity.foundation;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import org.fluidity.composition.Component;
@@ -74,10 +75,10 @@ public class DynamicConfigurationFactoryTest {
             final Settings settings2 = configuration2.snapshot().get();
 
             assert settings1 != null;
-            assert String.format("%s.%s.%s", ROOT, PREFIX1, Settings.SOME_PROPERTY).equals(settings1.property()) : settings1.property();
+            assert Objects.equals(String.format("%s.%s.%s", ROOT, PREFIX1, Settings.SOME_PROPERTY), settings1.property()) : settings1.property();
 
             assert settings2 != null;
-            assert String.format("%s.%s.%s", ROOT, PREFIX2, Settings.SOME_PROPERTY).equals(settings2.property()) : settings2.property();
+            assert Objects.equals(String.format("%s.%s.%s", ROOT, PREFIX2, Settings.SOME_PROPERTY), settings2.property()) : settings2.property();
 
             assert configuration1 == configuration3;
         }

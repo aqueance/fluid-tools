@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
@@ -119,9 +120,9 @@ public final class ComponentContextTests extends AbstractContainerTests {
         assert variant1 != variant2 : "Instances for two valid contexts are the same";
         assert variant0 == variant3 : "Default instance and instance for invalid context are not the same";
 
-        assert variant0.setting().equals("missing-value") : "Context not properly set";
-        assert variant1.setting().equals("value1") : "Context not properly set";
-        assert variant2.setting().equals("value2") : "Context not properly set";
+        assert Objects.equals(variant0.setting(), "missing-value") : "Context not properly set";
+        assert Objects.equals(variant1.setting(), "value1") : "Context not properly set";
+        assert Objects.equals(variant2.setting(), "value2") : "Context not properly set";
     }
 
     @Test
@@ -137,9 +138,9 @@ public final class ComponentContextTests extends AbstractContainerTests {
         final OrdinaryComponent2 context21 = root.getOrdinary1();
         final OrdinaryComponent2 context22 = root.getOrdinary2();
 
-        assert context1.setting().equals("value1");
-        assert context21.setting().equals("value2-default") : "Component annotation was not picked up";
-        assert context22.setting().equals("value2-overridden") : "Explicit context did not override component annotation";
+        assert Objects.equals(context1.setting(), "value1");
+        assert Objects.equals(context21.setting(), "value2-default") : "Component annotation was not picked up";
+        assert Objects.equals(context22.setting(), "value2-overridden") : "Explicit context did not override component annotation";
     }
 
     @Test
@@ -166,16 +167,16 @@ public final class ComponentContextTests extends AbstractContainerTests {
         assert container.getComponent(InnocentBystanderComponent.class) != context2.getInnocent() : "Context unaware intermediate component still a singleton";
         assert contextFree.getInnocent() != context2.getInnocent() : "Context unaware intermediate component still a singleton";
 
-        assert context1dependency1.setting().equals("value1") : context1dependency1.setting();
-        assert context1dependency2.setting().equals("value1") : context1dependency2.setting();
-        assert context2dependency1.setting().equals("value2-context") : context2dependency1.setting();
-        assert context2dependency2.setting().equals("value2-ordinary") : context2dependency2.setting();
+        assert Objects.equals(context1dependency1.setting(), "value1") : context1dependency1.setting();
+        assert Objects.equals(context1dependency2.setting(), "value1") : context1dependency2.setting();
+        assert Objects.equals(context2dependency1.setting(), "value2-context") : context2dependency1.setting();
+        assert Objects.equals(context2dependency2.setting(), "value2-ordinary") : context2dependency2.setting();
 
-        assert context2.getInnocent().getContextAware().setting().equals("value1") : "Context not passed through context unaware component";
-        assert context2.getInnocent().getOrdinary().setting().equals("missing-value") : "Invalid context passed through context unaware component";
+        assert Objects.equals(context2.getInnocent().getContextAware().setting(), "value1") : "Context not passed through context unaware component";
+        assert Objects.equals(context2.getInnocent().getOrdinary().setting(), "missing-value") : "Invalid context passed through context unaware component";
 
-        assert contextFree.getInnocent().getContextAware().setting().equals("missing-value") : "Invalid context passed through context unaware component";
-        assert contextFree.getInnocent().getOrdinary().setting().equals("missing-value") : "Invalid context passed through context unaware component";
+        assert Objects.equals(contextFree.getInnocent().getContextAware().setting(), "missing-value") : "Invalid context passed through context unaware component";
+        assert Objects.equals(contextFree.getInnocent().getOrdinary().setting(), "missing-value") : "Invalid context passed through context unaware component";
     }
 
     @Test
@@ -248,8 +249,8 @@ public final class ComponentContextTests extends AbstractContainerTests {
             group1.add(member.getClass());
 
             if (member instanceof GroupMember2) {
-                assert GroupDependent1.class.getAnnotation(Setting1.class).value()
-                        .equals(((GroupMember2) member).setting) : ((GroupMember2) member).setting;
+                assert Objects.equals(GroupDependent1.class.getAnnotation(Setting1.class).value(), ((GroupMember2) member).setting)
+                        : ((GroupMember2) member).setting;
             }
         }
 
@@ -257,13 +258,13 @@ public final class ComponentContextTests extends AbstractContainerTests {
             group2.add(member.getClass());
 
             if (member instanceof GroupMember2) {
-                assert ((Setting1) GroupDependent2.class.getConstructor(GroupApi[].class).getParameterAnnotations()[0][0]).value()
-                        .equals(((GroupMember2) member).setting) : ((GroupMember2) member).setting;
+                assert Objects.equals(((Setting1) GroupDependent2.class.getConstructor(GroupApi[].class).getParameterAnnotations()[0][0]).value(), ((GroupMember2) member).setting)
+                        : ((GroupMember2) member).setting;
             }
         }
 
-        assert expected.equals(group1) : group1;
-        assert expected.equals(group2) : group2;
+        assert Objects.equals(expected, group1) : group1;
+        assert Objects.equals(expected, group2) : group2;
     }
 
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -628,7 +628,7 @@ public final class Generics extends Utility {
             if (this == other) {
                 return true;
             }
-            if (other == null || !(other instanceof GenericArrayType)) {
+            if (!(other instanceof GenericArrayType)) {
                 return false;
             }
 
@@ -678,7 +678,7 @@ public final class Generics extends Utility {
                 return true;
             }
 
-            if (other == null || !(other instanceof ParameterizedType)) {
+            if (!(other instanceof ParameterizedType)) {
                 return false;
             }
 

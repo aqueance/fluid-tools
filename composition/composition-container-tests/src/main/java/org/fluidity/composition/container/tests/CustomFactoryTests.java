@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -490,6 +490,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     @Component(automatic = false)
     private static class FactoryDelegatingFactory1 implements ComponentFactory {
 
+        @SuppressWarnings("JavaReflectionInvocation")
         public Instance resolve(final ComponentContext context, final Container dependencies) throws Exception {
             final Resolver container = dependencies.resolver(null, registry -> {
                 registry.bindComponent(NamedGroupMember3.class);

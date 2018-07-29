@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
@@ -76,13 +77,13 @@ public class NestedArchivesTest {
         final URL url1 = loader.getResource("resource-1.txt");
 
         assert url1 != null;
-        assert url1.getProtocol().equals(standard ? Archives.PROTOCOL : Archives.Nested.PROTOCOL) : url1;
-        assert new URL(url1.getFile()).getProtocol().equals(Archives.FILE) : url1;
+        assert Objects.equals(url1.getProtocol(), standard ? Archives.PROTOCOL : Archives.Nested.PROTOCOL) : url1;
+        assert Objects.equals(new URL(url1.getFile()).getProtocol(), Archives.FILE) : url1;
 
         final URL url2 = loader.getResource("resource-2.txt");
         assert url2 != null;
-        assert url2.getProtocol().equals(standard ? Archives.PROTOCOL : Archives.Nested.PROTOCOL) : url2;
-        assert new URL(url2.getFile()).getProtocol().equals(standard ? Archives.Nested.PROTOCOL : Archives.FILE) : url2;
+        assert Objects.equals(url2.getProtocol(), standard ? Archives.PROTOCOL : Archives.Nested.PROTOCOL) : url2;
+        assert Objects.equals(new URL(url2.getFile()).getProtocol(), standard ? Archives.Nested.PROTOCOL : Archives.FILE) : url2;
     }
 
     @Test

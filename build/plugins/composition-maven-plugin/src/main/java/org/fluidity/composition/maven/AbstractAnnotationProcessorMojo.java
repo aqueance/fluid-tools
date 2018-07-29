@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -309,7 +309,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         } catch (final IllegalStateException e) {
             final Throwable cause = e.getCause();
 
-            if (cause != null && cause instanceof MojoExecutionException) {
+            if (cause instanceof MojoExecutionException) {
                 throw ((MojoExecutionException) cause);
             } else {
                 throw e;

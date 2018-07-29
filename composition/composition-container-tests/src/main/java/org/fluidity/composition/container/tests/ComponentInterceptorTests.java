@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-@SuppressWarnings({ "unchecked", "WeakerAccess" })
+@SuppressWarnings({ "unchecked", "WeakerAccess", "Duplicates" })
 public final class ComponentInterceptorTests extends AbstractContainerTests {
 
     @BeforeMethod
@@ -286,14 +286,8 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
         public static Map<Class<?>, Collection<Class<?>>> list = new HashMap<>();
 
         public Dependency intercept(final Type reference, final ComponentContext context, final Dependency dependency) {
-            final Class<?> type = Generics.rawType(reference);
-
-            Collection<Class<?>> list = Interceptor.list.get(type);
-            if (list == null) {
-                Interceptor.list.put(type, list = new ArrayList<>());
-            }
-
-            list.add(getClass());
+            Interceptor.list.computeIfAbsent(Generics.rawType(reference), _key -> new ArrayList<>())
+                            .add(getClass());
 
             return dependency;
         }

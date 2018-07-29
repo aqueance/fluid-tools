@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Arrays;
+import java.util.Objects;
 
 import org.fluidity.foundation.jarjar.Handler;
 
@@ -46,9 +47,9 @@ public class ArchivesTest {
         final URL level2 = Handler.formatURL(container, "level1-2.jar", "level2.jar");
         final URL level3 = Handler.formatURL(container, "level1-2.jar", "level2.jar", "level3.jar");
 
-        assert level2.equals(Archives.containing(level3)) : Archives.containing(level3);
-        assert level1.equals(Archives.containing(level2)) : Archives.containing(level2);
-        assert container.equals(Archives.containing(level1)) : Archives.containing(level1);
+        assert Objects.equals(level2, Archives.containing(level3)) : Archives.containing(level3);
+        assert Objects.equals(level1, Archives.containing(level2)) : Archives.containing(level2);
+        assert Objects.equals(container, Archives.containing(level1)) : Archives.containing(level1);
 
         verify(Archives.resourcePath(level2, level1), "level2.jar");
         verify(Archives.resourcePath(level3, level1), "level2.jar", "level3.jar");
@@ -63,7 +64,7 @@ public class ArchivesTest {
         final URL url = new URL(String.format("%s:%s%s%s", Archives.PROTOCOL, file, Archives.DELIMITER, resource));
 
         final URL base = Archives.containing(url);
-        assert file.equals(base.toExternalForm()) : base;
+        assert Objects.equals(file, base.toExternalForm()) : base;
 
         final String name = Archives.resourcePath(url, base)[0];
         assert resource.equals(name) : name;
@@ -94,7 +95,7 @@ public class ArchivesTest {
             final String expected = resources[i];
             final String actual = path[i];
 
-            assert expected.equals(actual) : String.format("Expected '%s', got '%s'", expected, actual);
+            assert Objects.equals(expected, actual) : String.format("Expected '%s', got '%s'", expected, actual);
         }
     }
 
@@ -128,7 +129,7 @@ public class ArchivesTest {
             assert Archives.localFile(url(file.getAbsolutePath())).exists() : file;
 
             final String path = file.getParent();
-            if (URLDecoder.decode(path, Strings.UTF_8.name()).equals(path)) {
+            if (Objects.equals(URLDecoder.decode(path, Strings.UTF_8.name()), path)) {
                 assert Archives.localFile(url(String.format("%s%s%s", path, File.separator, encode(file.getName())))).exists() : file;
                 assert Archives.localFile(url(encode(file.getPath()))).exists() : file;
             }

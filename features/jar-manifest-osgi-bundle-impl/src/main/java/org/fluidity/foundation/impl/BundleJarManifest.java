@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -209,7 +209,7 @@ final class BundleJarManifest implements JarManifest {
         final StringBuilder bundleVersion = new StringBuilder();
 
         int partCount = 0;
-        for (final String part : version.split("[\\.-]")) {
+        for (final String part : version.split("[.-]")) {
             if (partCount < 3) {
                 try {
                     Integer.parseInt(part);   // just checking if part is numeric

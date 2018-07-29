@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,8 @@ import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 import org.osgi.framework.startlevel.BundleStartLevel;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
+
+import static java.util.Comparator.comparing;
 
 /**
  * A command line main class that populates the application's dependency injection container, bootstraps an OSGi framework, installs all OSGi bundle JAR files
@@ -178,7 +180,7 @@ final class OsgiApplication implements Application {
         final Framework framework = factory.newFramework(config);
 
         final List<Bundle> bundles = new ArrayList<>();
-        final Set<URL> jars = new TreeSet<>((url1, url2) -> url1.getPath().compareTo(url2.getPath()));
+        final Set<URL> jars = new TreeSet<>(comparing(URL::getPath));
 
         final URL archive = Archives.containing(Archives.containing(getClass()));
 

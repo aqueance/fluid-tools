@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,19 +39,15 @@ public class LogAdapterTest extends Simulator {
             EasyMock.expect(levels.info()).andReturn(false);
             EasyMock.expect(levels.warning()).andReturn(true);
 
-            verify(() -> {
+            final Task assertions = () -> {
                 assert !log.isTraceEnabled();
                 assert log.isDebugEnabled();
                 assert !log.isInfoEnabled();
                 assert log.isWarningEnabled();
-            });
+            };
 
-            verify(() -> {
-                assert !log.isTraceEnabled();
-                assert log.isDebugEnabled();
-                assert !log.isInfoEnabled();
-                assert log.isWarningEnabled();
-            });
+            verify(assertions);
+            verify(assertions);
         });
 
         LogLevels.updated();

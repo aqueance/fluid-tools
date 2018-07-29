@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,6 +83,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
         this.defined.put(Component.Reference.class, new Annotation[] { new ComponentReference(reference, inherited) });
     }
 
+    @Override
     public ContextDefinition expand(final Annotation[] definition) {
         if (definition != null && definition.length > 0) {
 
@@ -119,14 +120,17 @@ final class ContextDefinitionImpl implements ContextDefinition {
         return this;
     }
 
+    @Override
     public ContextDefinition copy() {
         return new ContextDefinitionImpl(defined, active);
     }
 
+    @Override
     public ContextDefinition advance(final Type reference, final boolean refine) {
         return new ContextDefinitionImpl(reference, defined, active, refine);
     }
 
+    @Override
     public ContextDefinition accept(final Class<?> type) {
         active.clear();
 
@@ -146,6 +150,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
         return this;
     }
 
+    @Override
     public ContextDefinition collect(final Collection<ContextDefinition> contexts) {
         contexts.forEach(this::collectOne);
         return this;
@@ -187,27 +192,33 @@ final class ContextDefinitionImpl implements ContextDefinition {
         return annotation == null ? DEFAULT_COMPOSITION : annotation.value();
     }
 
+    @Override
     public Map<Class<? extends Annotation>, Annotation[]> defined() {
         return Collections.unmodifiableMap(defined);
     }
 
+    @Override
     public Map<Class<? extends Annotation>, Annotation[]> active() {
         return Collections.unmodifiableMap(active);
     }
 
+    @Override
     public Component.Reference reference() {
         final Annotation[] annotations = defined.get(Component.Reference.class);
         return annotations == null ? null : (Component.Reference) annotations[0];
     }
 
+    @Override
     public boolean isEmpty() {
         return defined.isEmpty();
     }
 
+    @Override
     public ComponentContext create() {
         return create(active);
     }
 
+    @Override
     public ComponentContext create(final Map<Class<? extends Annotation>, Annotation[]> map) {
         return new ComponentContextImpl(map);
     }

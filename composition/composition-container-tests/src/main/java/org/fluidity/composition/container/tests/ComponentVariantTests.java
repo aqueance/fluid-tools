@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.fluidity.composition.Component;
@@ -387,7 +388,8 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             group1.add(member.getClass());
 
             if (member instanceof GroupMember2) {
-                assert GroupDependent1.class.getAnnotation(Setting1.class).value().equals(((GroupMember2) member).setting) : ((GroupMember2) member).setting;
+                assert Objects.equals(GroupDependent1.class.getAnnotation(Setting1.class).value(), ((GroupMember2) member).setting)
+                        : ((GroupMember2) member).setting;
             }
         }
 
@@ -395,12 +397,13 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             group2.add(member.getClass());
 
             if (member instanceof GroupMember2) {
-                assert ((Setting1) GroupDependent2.class.getConstructor(GroupApi[].class).getParameterAnnotations()[0][0]).value().equals(((GroupMember2) member).setting) : ((GroupMember2) member).setting;
+                assert Objects.equals(((Setting1) GroupDependent2.class.getConstructor(GroupApi[].class).getParameterAnnotations()[0][0]).value(), ((GroupMember2) member).setting)
+                        : ((GroupMember2) member).setting;
             }
         }
 
-        assert expected.equals(group1) : group1;
-        assert expected.equals(group2) : group2;
+        assert Objects.equals(expected, group1) : group1;
+        assert Objects.equals(expected, group2) : group2;
     }
 
     @ComponentGroup

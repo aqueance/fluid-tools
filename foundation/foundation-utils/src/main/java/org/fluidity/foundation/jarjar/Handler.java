@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.UUID;
@@ -67,6 +68,7 @@ import static org.fluidity.foundation.Command.Process;
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("EqualsReplaceableByObjectsCall")
 public final class Handler extends URLStreamHandler {
 
     /**
@@ -416,6 +418,7 @@ public final class Handler extends URLStreamHandler {
                 final URL enclosing = Archives.containing(entry);
 
                 final String resource = Archives.resourcePath(entry, enclosing)[0];
+                assert resource != null : entry;
 
                 try (final InputStream input = Archives.open(enclosing, true)) {
                     Archives.read(input, entry, (_url, _entry) -> !resource.equals(_entry.getName()) ? null : (__url, __entry, stream) -> {
@@ -472,12 +475,13 @@ public final class Handler extends URLStreamHandler {
 
                             public Reader matches(final URL url, final JarEntry entry) throws IOException {
                                 final String name = entry.getName();
+                                assert name != null;
 
                                 if (entry.isDirectory() && name.equals(directory)) {
                                     throw new IOException(String.format("Nested entry '%s' is a directory, URL is invalid: %s", name, url.toExternalForm()));
                                 }
 
-                                return !file.equals(name) ? null : (_url, _entry, stream) -> {
+                                return !name.equals(file) ? null : (_url, _entry, stream) -> {
                                     if (++index == paths.length) {
                                         found[0] = new ByteArrayInputStream(IOStreams.pipe(stream, new ByteArrayOutputStream(), buffer).toByteArray());
                                     } else {
@@ -911,7 +915,9 @@ public final class Handler extends URLStreamHandler {
                 }
 
                 final Metadata that = (Metadata) o;
-                return size == that.size && crc == that.crc && name.equals(that.name);
+                return this.size == that.size
+                       && this.crc == that.crc
+                       && Objects.equals(this.name, that.name);
             }
 
             @Override

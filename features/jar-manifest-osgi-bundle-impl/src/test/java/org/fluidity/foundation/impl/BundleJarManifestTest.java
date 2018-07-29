@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.fluidity.foundation.impl;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.jar.Attributes;
 
@@ -86,7 +87,7 @@ public class BundleJarManifestTest extends Simulator {
         assert attributes.getValue(BUNDLE_CLASSPATH) == null;
 
         final String version = attributes.getValue(BUNDLE_VERSION);
-        assert BundleJarManifest.DEFAULT_BUNDLE_VERSION.equals(version) : version;
+        assert Objects.equals(BundleJarManifest.DEFAULT_BUNDLE_VERSION, version) : version;
     }
 
     private Logger logger() {
@@ -188,11 +189,11 @@ public class BundleJarManifestTest extends Simulator {
 
     private void verify(final String expected, final Attributes attributes, final String header) {
         final String version = attributes.getValue(header);
-        assert expected.equals(version) : String.format("Expected %s, got %s", expected, version);
+        assert Objects.equals(expected, version) : String.format("Expected %s, got %s", expected, version);
     }
 
     private void expect(final Attributes attributes, final String key, final String expected) {
         final Object value = attributes.getValue(key);
-        assert expected.equals(value) : value;
+        assert Objects.equals(expected, value) : value;
     }
 }

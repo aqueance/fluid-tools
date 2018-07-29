@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,12 +58,13 @@ public final class ServiceImpl implements Service {
             return true;
         }
 
-        if (o == null || !(o instanceof Service)) {
+        if (!(o instanceof Service)) {
             return false;
         }
 
         final Service that = (Service) o;
-        return !(filter() != null ? !filter().equals(that.filter()) : that.filter() != null) && api().equals(that.api());
+        return Objects.equals(filter(), that.filter())
+               && Objects.equals(api(), that.api());
 
     }
 

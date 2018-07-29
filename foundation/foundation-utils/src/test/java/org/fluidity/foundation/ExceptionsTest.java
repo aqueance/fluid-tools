@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.fluidity.foundation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.security.PrivilegedActionException;
+import java.util.Objects;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -204,7 +205,7 @@ public class ExceptionsTest {
             });
         } catch (final CustomWrapper e) {
             assert e.getCause() == original : e.getCause();
-            assert message.toString().equals(e.getMessage()) : e.getMessage();
+            assert Objects.equals(message.toString(), e.getMessage()) : e.getMessage();
         } catch (final RuntimeException e) {
             assert e == original : e;
         }
@@ -215,7 +216,7 @@ public class ExceptionsTest {
             });
         } catch (final Exceptions.Wrapper e) {
             assert e.getCause() == original : e.getCause();
-            assert message.toString().equals(e.getMessage()) : e.getMessage();
+            assert Objects.equals(message.toString(), e.getMessage()) : e.getMessage();
         } catch (final RuntimeException e) {
             assert e == original : e;
         }

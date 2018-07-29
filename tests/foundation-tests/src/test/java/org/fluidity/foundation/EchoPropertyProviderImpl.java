@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ public class EchoPropertyProviderImpl implements PropertyProvider {
     static final String UNKNOWN = "unknown-";
 
     private static final String[] known = new String[] {
-            Updates.UPDATE_GRANULARITY,
+            Updates.UPDATE_PERIOD,
             DynamicConfiguration.CONFIGURATION_REFRESH_PERIOD
     };
 

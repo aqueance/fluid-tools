@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,6 +108,7 @@ public class Lists extends Utility {
      */
     @SuppressWarnings("unchecked")
     public static <T> T[] asArray(final Class<? super T> type, final boolean array, final Collection<T> list) {
-        return list == null || list.isEmpty() ? array ? (T[]) Array.newInstance(type, 0) : null : list.toArray((T[]) Array.newInstance(type, list.size()));
+        final T[] empty = (T[]) Array.newInstance(type, 0);
+        return list == null || list.isEmpty() ? array ? empty : null : list.toArray(empty);
     }
 }

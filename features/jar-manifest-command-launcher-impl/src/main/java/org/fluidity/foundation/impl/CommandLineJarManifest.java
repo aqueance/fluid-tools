@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ final class CommandLineJarManifest implements JarManifest {
 
     private static final String LAUNCHER = ShellApplicationBootstrap.class.getName();
 
+    @SuppressWarnings("EqualsReplaceableByObjectsCall")
     public SecurityPolicy processManifest(final MavenProject project,
                                           final Attributes attributes,
                                           final SecurityPolicy policy,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,7 @@ abstract class Descriptor {
     }
 
     @Override
+    @SuppressWarnings("EqualsReplaceableByObjectsCall")
     public boolean equals(final Object o) {
         return this == o || !(o == null || getClass() != o.getClass()) && type.equals(((Descriptor) o).type);
     }

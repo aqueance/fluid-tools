@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.fluidity.foundation;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.fluidity.testing.Simulator;
@@ -54,7 +55,6 @@ public class IOStreamsTest extends Simulator {
                 .toByteArray();
 
         final String copy = new String(bytes);
-
-        assert String.join("", (CharSequence[]) content).equals(copy) : copy;
+        assert Objects.equals(String.join("", (CharSequence[]) content), copy) : copy;
     }
 }

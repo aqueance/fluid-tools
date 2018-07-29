@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ import org.fluidity.foundation.security.Security;
  */
 public final class WebApplicationBootstrap {
 
-    private final Pattern warFilePattern = Pattern.compile("^(jar:)?file:(.+?.war)(\\!/.*)?");
+    private final Pattern warFilePattern = Pattern.compile("^(jar:)?file:(.+?.war)(!/.*)?");
 
     private WebApplicationBootstrap() { }
 

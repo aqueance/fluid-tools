@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.fluidity.foundation.jarjar;
 
 import java.net.URL;
 import java.security.Permission;
+import java.util.Objects;
 
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Exceptions;
@@ -67,7 +68,7 @@ public final class AccessPermission extends Permission {
         }
 
         final AccessPermission that = (AccessPermission) o;
-        return getName().equals(that.getName());
+        return Objects.equals(getName(), that.getName());
     }
 
     @Override

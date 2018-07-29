@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.Qualifier;
@@ -114,7 +115,7 @@ public class ContextDefinitionImplTest {
         assert values.length > 0 ? list.length == values.length : list == null;
 
         for (int i = 0, length = values.length; i < length; i++) {
-            assert values[i].equals(type.getMethod("value").invoke(list[i]));
+            assert Objects.equals(values[i], type.getMethod("value").invoke(list[i]));
         }
     }
 

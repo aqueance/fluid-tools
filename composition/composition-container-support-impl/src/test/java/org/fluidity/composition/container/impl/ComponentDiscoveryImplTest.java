@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2018 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
@@ -36,6 +36,9 @@ import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.ServiceProviders;
 
 import org.testng.annotations.Test;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 /**
  * @author Tibor Varga
@@ -73,7 +76,7 @@ public class ComponentDiscoveryImplTest {
             final ClassLoader loader = ClassLoaders.create(Collections.singleton(classDir.toURI().toURL()), getClass().getClassLoader(), null);
             final Class[] classes = new ComponentDiscoveryImpl(log).findComponentClasses(Interface.class, loader, false);
 
-            assert new ArrayList<Class>(Arrays.asList(Impl1.class, Impl2.class, Impl3.class)).equals(new ArrayList<>(Arrays.asList(classes)));
+            assert new ArrayList<Class>(asList(Impl1.class, Impl2.class, Impl3.class)).equals(new ArrayList<>(asList(classes)));
         } finally {
             deleteDirectory(classDir, fileList);
         }
@@ -116,7 +119,7 @@ public class ComponentDiscoveryImplTest {
 
             final Class[] classes = new ComponentDiscoveryImpl(log).findComponentClasses(loader1.loadClass(Interface.class.getName()), loader2, true);
 
-            assert Collections.singletonList(loader2.loadClass(Impl1.class.getName())).equals(Arrays.asList(classes));
+            assert Objects.equals(singletonList(loader2.loadClass(Impl1.class.getName())), asList(classes));
         } finally {
             deleteDirectory(classDir1, fileList);
             deleteDirectory(classDir2, fileList);
@@ -140,6 +143,7 @@ public class ComponentDiscoveryImplTest {
         }
     }
 
+    @SuppressWarnings("EqualsReplaceableByObjectsCall")
     private void deleteDirectory(final File rootDir, final List<File> fileList) {
         for (final File file : fileList) {
             file.delete();
