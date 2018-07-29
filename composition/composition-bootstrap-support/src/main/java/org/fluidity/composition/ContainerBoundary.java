@@ -134,6 +134,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * @param key   the property key.
      * @param value the property value.
      */
+    @SuppressWarnings("unchecked")
     public void setBindingProperty(final Object key, final Object value) {
 
         // never intended to be modified concurrently as this method is by nature should be used by one single object in one single thread

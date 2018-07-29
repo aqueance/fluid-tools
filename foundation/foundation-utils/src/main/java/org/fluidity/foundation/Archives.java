@@ -298,6 +298,7 @@ public final class Archives extends Utility {
      *
      * @throws IOException when an I/O error occurs when accessing its manifest
      */
+    @SafeVarargs
     private static <T> String[] attributes(final URL url, final boolean cached, final BiFunction<Attributes, T, String> extract, final T... names) throws IOException {
         final String[] list = new String[names.length];
 
